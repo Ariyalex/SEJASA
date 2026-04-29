@@ -49,11 +49,11 @@ Pastikan Anda sudah menginstal Flutter SDK di mesin Anda.
 ### Instalasi
 1. Clone repository ini:
    ```bash
-   git clone [https://github.com/](https://github.com/)[username]/sejasa_flutter.git
+   git clone https://github.com/Ariyalex/SEJASA.git
    ```
 2. Masuk ke direktori proyek:
    ```bash
-   cd sejasa_flutter
+   cd SEJASA
    ```
 3. Ambil dependencies:
    ```bash
