@@ -1,3 +1,3 @@
 abstract class RouteNamed {
-  static const dashboard = '';
+  static const dashboard = '/';
 }

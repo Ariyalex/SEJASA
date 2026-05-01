@@ -21,9 +21,7 @@ class ApiService {
   final StorageService _storage;
   final ConnectivityService _connectivity;
 
-  ApiService(this._storage, this._connectivity) {
-    initializeDio();
-  }
+  ApiService(this._storage, this._connectivity);
 
   //  Better refresh tracking
   bool _isRefreshing = false;

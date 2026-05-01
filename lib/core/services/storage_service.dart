@@ -13,8 +13,6 @@ class StorageService {
   ///instance of shared preferences
   late SharedPreferences _prefs;
 
-  ///Instance of flutter secure storage
-
   // Completer to track initialization status
   final Completer<void> _initCompleter = Completer<void>();
   Future<void> get isReady => _initCompleter.future;
