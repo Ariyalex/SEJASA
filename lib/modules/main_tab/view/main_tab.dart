@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
+import 'package:sejasa/modules/dashboard/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
 
@@ -23,10 +24,11 @@ class MainTab extends StatelessWidget {
             controller: mainTabBloc.mainTabController,
             tabs: [
               PersistentTabConfig(
-                screen: Scaffold(),
+                screen: DashboardScreen(),
                 item: ItemConfig(
                   icon: const Icon(LucideIcons.layoutDashboard),
                   title: "Dashboard",
+                  activeForegroundColor: theme.colorScheme.primary,
                 ),
               ),
               PersistentTabConfig(
@@ -34,11 +36,13 @@ class MainTab extends StatelessWidget {
                 item: ItemConfig(
                   icon: const Icon(Icons.assignment_outlined),
                   title: "My Project",
+                  activeForegroundColor: theme.colorScheme.primary,
                 ),
               ),
               PersistentTabConfig.noScreen(
                 item: ItemConfig(
                   icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),
+                  activeForegroundColor: theme.primaryColor,
                 ),
                 onPressed: (BuildContext context) {
                   LogUtils.d('belum ada aksi');
@@ -46,17 +50,31 @@ class MainTab extends StatelessWidget {
               ),
               PersistentTabConfig(
                 screen: Scaffold(),
-                item: ItemConfig(icon: const Icon(Icons.chat_outlined)),
+                item: ItemConfig(
+                  icon: const Icon(Icons.chat_outlined),
+                  title: "Chats",
+                  activeForegroundColor: theme.colorScheme.primary,
+                ),
               ),
               PersistentTabConfig(
                 screen: Scaffold(),
                 item: ItemConfig(
                   icon: const Icon(Icons.person_outline_rounded),
+                  title: "Profile",
+                  activeForegroundColor: theme.colorScheme.primary,
                 ),
               ),
             ],
             navBarBuilder: (navbarConfig) {
-              return Style13BottomNavBar(navBarConfig: navbarConfig);
+              return Style15BottomNavBar(
+                navBarConfig: navbarConfig,
+                navBarDecoration: NavBarDecoration(
+                  padding: EdgeInsets.only(top: 8),
+                  border: BoxBorder.fromLTRB(
+                    top: BorderSide(color: theme.dividerColor),
+                  ),
+                ),
+              );
             },
           );
         },

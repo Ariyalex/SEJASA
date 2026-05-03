@@ -1,6 +1,7 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 /// The [AppTheme] defines light and dark themes for the app.
 ///
 /// Theme setup for FlexColorScheme package v8.
@@ -20,16 +21,18 @@ abstract final class AppTheme {
   static ThemeData light = FlexThemeData.light(
     // User defined custom colors made with FlexSchemeColor() API.
     colors: const FlexSchemeColor(
-      primary: Color(0xFF4D5B8C),
+      primary: Color(0xFF355B96),
       primaryContainer: Color(0xFFA8C6E2),
-      secondary: Color(0xFF89957B),
-      secondaryContainer: Color(0xFFE0ECCF),
-      tertiary: Color(0xFF99988E),
+      secondary: Color(0xFFA8C6E2),
+      secondaryContainer: Color(0xFFD5F9FF),
+      tertiary: Color(0xFFE5E3D7),
       tertiaryContainer: Color(0xFFE5E3D7),
-      appBarColor: Color(0xFFE0ECCF),
+      appBarColor: Color(0xFFD5F9FF),
       error: Color(0xFFBA1A1A),
       errorContainer: Color(0xFFFFDAD6),
     ),
+    // Input color modifiers.
+    usedColors: 7,
     // Component theme configurations for light mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
@@ -50,17 +53,18 @@ abstract final class AppTheme {
     // Computing from light scheme using defaultError and toDark() methods.
     // User defined custom colors made with FlexSchemeColor() API.
     colors: const FlexSchemeColor(
-      primary: Color(0xFF4D5B8C),
+      primary: Color(0xFF355B96),
       primaryContainer: Color(0xFFA8C6E2),
-      secondary: Color(0xFF89957B),
-      secondaryContainer: Color(0xFFE0ECCF),
-      tertiary: Color(0xFF99988E),
+      secondary: Color(0xFFA8C6E2),
+      secondaryContainer: Color(0xFFD5F9FF),
+      tertiary: Color(0xFFE5E3D7),
       tertiaryContainer: Color(0xFFE5E3D7),
-      appBarColor: Color(0xFFE0ECCF),
+      appBarColor: Color(0xFFD5F9FF),
       error: Color(0xFFBA1A1A),
       errorContainer: Color(0xFFFFDAD6),
     ).defaultError.toDark(10, true),
     // Input color modifiers.
+    usedColors: 7,
     swapColors: true,
     // Component theme configurations for dark mode.
     subThemesData: const FlexSubThemesData(
