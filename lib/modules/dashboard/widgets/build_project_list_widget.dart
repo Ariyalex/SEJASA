@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
+import 'package:sejasa/data/entities/project.dart';
 import 'package:sejasa/modules/dashboard/widgets/project_item_widget.dart';
 
 class BuildProjectListWidget extends StatelessWidget {
-  const BuildProjectListWidget({super.key, required this.theme});
-
-  final ThemeData theme;
+  final List<Project> projects;
+  const BuildProjectListWidget({super.key, required this.projects});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class BuildProjectListWidget extends StatelessWidget {
         itemCount: 20,
         separatorBuilder: (context, index) => SizedBox(height: 6),
         itemBuilder: (context, index) {
-          return Column(children: [ProjectItemWidget(theme: theme)]);
+          return Column(children: [ProjectItemWidget(project: projects[0])]);
         },
       ),
     );

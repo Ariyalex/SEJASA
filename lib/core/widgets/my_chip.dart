@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class MyChip extends StatelessWidget {
-  const MyChip({super.key, required this.theme});
+  const MyChip({super.key, required this.title});
 
-  final ThemeData theme;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.chipTheme.backgroundColor,
@@ -14,7 +15,7 @@ class MyChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(50),
       ),
       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 6),
-      child: Text("status"),
+      child: Text(title),
     );
   }
 }
