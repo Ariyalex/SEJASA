@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:sejasa/data/entities/project.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/modules/dashboard/bloc/dashboard_bloc.dart';
+import 'package:sejasa/modules/dashboard/bloc/dashboard_event.dart';
+import 'package:sejasa/modules/dashboard/bloc/dashboard_state.dart';
 import 'package:sejasa/modules/dashboard/widgets/build_project_list_widget.dart';
-
-final dummyProject = Project(
-  id: '1',
-  title: 'nggak tawu',
-  address: 'belum',
-  status: ProjectStatus.hiring,
-  distance: '100m',
-  participant: '6/7',
-  category: 'testing',
-  ownerName: 'joko',
-  ownerRating: 1.67,
-);
 
 class DashboardScreen extends HookWidget {
   const DashboardScreen({super.key});
@@ -24,6 +14,14 @@ class DashboardScreen extends HookWidget {
   Widget build(BuildContext context) {
     final tabBarController = useTabController(initialLength: 3);
     final theme = Theme.of(context);
+
+    final dashboardBloc = context.read<DashboardBloc>();
+
+    useEffect(() {
+      dashboardBloc.add(LoadProjects(ProjectsListCategory.latest));
+      return null;
+    }, []);
+
     return Scaffold(
       backgroundColor: theme.focusColor,
 
@@ -56,14 +54,24 @@ class DashboardScreen extends HookWidget {
           ];
         },
 
-        body: TabBarView(
-          controller: tabBarController,
+        body: BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state.status == DashboardStatus.error) {
+              return Center(child: Text("error: ${state.message}"));
+            } else if (state.status == DashboardStatus.success) {
+              return TabBarView(
+                controller: tabBarController,
 
-          children: [
-            BuildProjectListWidget(projects: [dummyProject]),
-            BuildProjectListWidget(projects: [dummyProject]),
-            BuildProjectListWidget(projects: [dummyProject]),
-          ],
+                children: [
+                  BuildProjectListWidget(projects: state.projects),
+                  BuildProjectListWidget(projects: state.projects, tipe: 1),
+                  BuildProjectListWidget(projects: state.projects),
+                ],
+              );
+            } else {
+              return Center(child: CircularProgressIndicator());
+            }
+          },
         ),
       ),
     );

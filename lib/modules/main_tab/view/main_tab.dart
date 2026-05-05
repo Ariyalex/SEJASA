@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
+import 'package:sejasa/data/repositories/project_repository.dart';
+import 'package:sejasa/modules/dashboard/bloc/dashboard_bloc.dart';
 import 'package:sejasa/modules/dashboard/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
@@ -24,7 +26,11 @@ class MainTab extends StatelessWidget {
             controller: mainTabBloc.mainTabController,
             tabs: [
               PersistentTabConfig(
-                screen: DashboardScreen(),
+                screen: BlocProvider(
+                  create: (context) =>
+                      DashboardBloc(context.read<ProjectRepository>()),
+                  child: DashboardScreen(),
+                ),
                 item: ItemConfig(
                   icon: const Icon(LucideIcons.layoutDashboard),
                   title: "Dashboard",

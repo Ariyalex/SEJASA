@@ -35,4 +35,22 @@ class ProjectModel extends Project {
       requirements: json['requirements'],
     );
   }
+
+  Project toEntity() {
+    return Project(
+      id: id,
+      title: title,
+      description: description,
+      hastags: hastags,
+      requirements: requirements,
+      address: address,
+      status: status,
+      distance: distance,
+      participant: participant,
+      category: category,
+      ownerName: ownerName,
+      ownerRating: ownerRating,
+      ownerImagePath: ownerImagePath,
+    );
+  }
 }

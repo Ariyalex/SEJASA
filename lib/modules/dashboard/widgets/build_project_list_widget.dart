@@ -5,7 +5,12 @@ import 'package:sejasa/modules/dashboard/widgets/project_item_widget.dart';
 
 class BuildProjectListWidget extends StatelessWidget {
   final List<Project> projects;
-  const BuildProjectListWidget({super.key, required this.projects});
+  final int tipe;
+  const BuildProjectListWidget({
+    super.key,
+    required this.projects,
+    this.tipe = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,9 @@ class BuildProjectListWidget extends StatelessWidget {
         itemCount: 20,
         separatorBuilder: (context, index) => SizedBox(height: 6),
         itemBuilder: (context, index) {
-          return Column(children: [ProjectItemWidget(project: projects[0])]);
+          return Column(
+            children: [ProjectItemWidget(project: projects[0], tipe: tipe)],
+          );
         },
       ),
     );
