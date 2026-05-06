@@ -5,7 +5,15 @@ class ProjectRepository {
   final RemoteProjectProvider _provider;
   ProjectRepository(this._provider);
 
-  Future<List<Project>> getProjects() async {
+  Future<List<Project>> getProjects({
+    required int pages,
+    required String type,
+  }) async {
+    final data = await _provider.getProjects();
+    return data.map((e) => e.toEntity()).toList();
+  }
+
+  Future<List<Project>> getMyProjects() async {
     final data = await _provider.getProjects();
     return data.map((e) => e.toEntity()).toList();
   }

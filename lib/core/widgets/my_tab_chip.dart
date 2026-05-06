@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class MyChip extends StatelessWidget {
-  const MyChip({super.key, required this.title});
+class MyTabChip extends StatelessWidget {
+  const MyTabChip({super.key, required this.title});
 
   final String title;
 
