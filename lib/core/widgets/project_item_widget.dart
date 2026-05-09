@@ -15,127 +15,160 @@ class ProjectItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (isMyProject) {
-      return myProjectTile(theme);
-    } else {
-      return otherProjectTile(theme);
-    }
-  }
-
-  Widget myProjectTile(ThemeData theme) {
-    return ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(project.title, style: theme.textTheme.titleMedium),
-          Text(
-            "${project.participant} pelamar",
-            style: theme.textTheme.titleSmall!.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-      subtitle: Column(
-        spacing: 6,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(project.address, overflow: TextOverflow.ellipsis),
-              ),
-              Text(project.distance),
-            ],
-          ),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              MyVisualChip(title: project.status.display),
-              MyVisualChip(title: project.category),
-              ...project.hastags?.map<Widget>((e) => MyVisualChip(title: e)) ??
-                  [],
-            ],
-          ),
-        ],
-      ),
+    return InkWell(
       onTap: () {},
-      tileColor: theme.scaffoldBackgroundColor,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: Text(
+                    project.title,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(
+                      alpha: 0.5,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "${project.participant} Pelamar",
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        project.address,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.route_outlined,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(project.distance),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  spacing: 6,
+                  children: [
+                    MyVisualChip(
+                      title: project.status.display,
+                      textColor: project.status.getTextColor(theme),
+                      backgroundColor: project.status.getBackgroundColor(theme),
+                    ),
+                    MyVisualChip(
+                      title: project.category,
+                      backgroundColor: theme.colorScheme.primary.withValues(
+                        alpha: 0.1,
+                      ),
+                      textColor: theme.colorScheme.primary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children:
+                      project.hastags
+                          ?.map<Widget>((e) => MyVisualChip(title: "#$e"))
+                          .toList() ??
+                      [],
+                ),
+                if (!isMyProject) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1),
+                  ),
+                  _buildOwnerProfile(theme),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget otherProjectTile(ThemeData theme) {
-    return ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(project.title, style: theme.textTheme.titleMedium),
-          Text(
-            "${project.participant} pelamar",
-            style: theme.textTheme.titleSmall!.copyWith(
-              color: theme.colorScheme.primary,
+  Widget _buildOwnerProfile(ThemeData theme) {
+    return Row(
+      spacing: 10,
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.grey,
+          child: Icon(Icons.person, size: 18, color: Colors.white),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              project.ownerName,
+              style: theme.textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
-      ),
-      subtitle: Column(
-        spacing: 6,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(project.address, overflow: TextOverflow.ellipsis),
-              ),
-              Text(project.distance),
-            ],
-          ),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              MyVisualChip(title: project.status.display),
-              MyVisualChip(title: project.category),
-              ...project.hastags?.map<Widget>((e) => MyVisualChip(title: e)) ??
-                  [],
-            ],
-          ),
-          Row(
-            spacing: 10,
-            children: [
-              CircleAvatar(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.ownerName,
-                    style: theme.textTheme.titleSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Row(
-                    spacing: 6,
-                    children: [
-                      RatingBarIndicator(
-                        itemBuilder: (context, index) {
-                          return Icon(Icons.star, color: Colors.amber);
-                        },
-                        itemCount: 5,
+            Row(
+              spacing: 6,
+              children: [
+                RatingBarIndicator(
+                  itemBuilder: (context, index) {
+                    return Icon(Icons.star, color: Colors.amber);
+                  },
+                  itemCount: 5,
 
-                        rating: project.ownerRating,
-                        itemSize: 18,
-                      ),
-                      Text("4.6"),
-                    ],
+                  rating: project.ownerRating,
+                  itemSize: 18,
+                ),
+                Text(
+                  project.ownerRating.toString(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-      onTap: () {},
-      tileColor: theme.scaffoldBackgroundColor,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

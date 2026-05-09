@@ -32,44 +32,44 @@ class BuildProjectListFetchPageWidget extends HookWidget {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (!hasReachedMax &&
+      child: ListView.separated(
+        padding: EdgeInsets.all(8),
+        itemCount: isLoading ? 10 : projects.length + (hasReachedMax ? 0 : 5),
+        separatorBuilder: (context, index) => SizedBox(height: 6),
+        itemBuilder: (context, index) {
+          if (!isLoading &&
               !isFetchingMore &&
-              scrollInfo.metrics.pixels >=
-                  scrollInfo.metrics.maxScrollExtent * 0.9) {
-            onLoadMore();
-          }
-          return false;
-        },
-        child: ListView.separated(
-          padding: EdgeInsets.symmetric(vertical: 6),
-          itemCount: isLoading ? 10 : projects.length + (hasReachedMax ? 0 : 5),
-          separatorBuilder: (context, index) => SizedBox(height: 6),
-          itemBuilder: (context, index) {
-            if (index >= projects.length || isLoading) {
-              return Skeletonizer(
-                child: ProjectItemWidget(
-                  project: Project(
-                    id: "",
-                    title: 'loading data',
-                    address: "ngawi",
-                    status: ProjectStatus.going,
-                    distance: '100km',
-                    participant: '6/7 peserta',
-                    category: 'random',
-                    ownerName: "gatawu",
-                    ownerRating: 5,
-                  ),
-                ),
+              !hasReachedMax &&
+              index == projects.length + 1) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              print(
+                "🚀 Load more dipicu tepat saat skeleton pertama dirender!",
               );
-            }
-            return ProjectItemWidget(
-              project: projects[index],
-              isMyProject: isMyProjects,
+              onLoadMore();
+            });
+          }
+          if (index >= projects.length || isLoading) {
+            return Skeletonizer(
+              child: ProjectItemWidget(
+                project: Project(
+                  id: "",
+                  title: 'loading data',
+                  address: "ngawi",
+                  status: ProjectStatus.going,
+                  distance: '100km',
+                  participant: '6/7 peserta',
+                  category: 'random',
+                  ownerName: "gatawu",
+                  ownerRating: 5,
+                ),
+              ),
             );
-          },
-        ),
+          }
+          return ProjectItemWidget(
+            project: projects[index],
+            isMyProject: isMyProjects,
+          );
+        },
       ),
     );
   }

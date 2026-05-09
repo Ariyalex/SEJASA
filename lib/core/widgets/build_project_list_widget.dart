@@ -22,7 +22,7 @@ class BuildProjectListWidget extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.separated(
-        padding: EdgeInsets.symmetric(vertical: 6),
+        padding: EdgeInsets.all(8),
         itemCount: isLoading ? 5 : projects.length,
         separatorBuilder: (context, index) => SizedBox(height: 6),
         itemBuilder: (context, index) {

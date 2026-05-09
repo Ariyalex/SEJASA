@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
-import 'package:sejasa/modules/project/bloc/project_bloc.dart';
-import 'package:sejasa/modules/project/bloc/project_event.dart';
-import 'package:sejasa/modules/project/bloc/project_state.dart';
+import 'package:sejasa/modules/my_project/bloc/project_bloc.dart';
+import 'package:sejasa/modules/my_project/bloc/project_event.dart';
+import 'package:sejasa/modules/my_project/bloc/project_state.dart';
 
 class MyProjectScreen extends HookWidget {
   const MyProjectScreen({super.key});
@@ -13,7 +13,6 @@ class MyProjectScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final tabBarController = useTabController(initialLength: 2);
-    final theme = Theme.of(context);
 
     final projectBloc = context.read<ProjectBloc>();
 
@@ -24,8 +23,6 @@ class MyProjectScreen extends HookWidget {
     }, []);
 
     return Scaffold(
-      backgroundColor: theme.focusColor,
-
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -51,8 +48,8 @@ class MyProjectScreen extends HookWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
+                        vertical: 8,
+                        horizontal: 12,
                       ),
                       child: Row(
                         spacing: 12,

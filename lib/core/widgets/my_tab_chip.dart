@@ -14,7 +14,7 @@ class MyTabChip extends StatelessWidget {
         border: Border.all(color: theme.dividerColor),
         borderRadius: BorderRadius.circular(50),
       ),
-      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
       child: Text(title),
     );
   }

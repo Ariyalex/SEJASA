@@ -8,8 +8,8 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dar
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
-import 'package:sejasa/modules/project/bloc/project_bloc.dart';
-import 'package:sejasa/modules/project/view/my_project_screen.dart';
+import 'package:sejasa/modules/my_project/bloc/project_bloc.dart';
+import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});

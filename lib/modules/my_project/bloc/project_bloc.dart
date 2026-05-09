@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/data/repositories/project_repository.dart';
-import 'package:sejasa/modules/project/bloc/project_event.dart';
-import 'package:sejasa/modules/project/bloc/project_state.dart';
+import 'package:sejasa/modules/my_project/bloc/project_event.dart';
+import 'package:sejasa/modules/my_project/bloc/project_state.dart';
 
 class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   final ProjectRepository _repository;
