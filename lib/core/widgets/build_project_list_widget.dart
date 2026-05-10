@@ -40,6 +40,7 @@ class BuildProjectListWidget extends StatelessWidget {
                   category: 'random',
                   ownerName: "gatawu",
                   ownerRating: 5,
+                  isBookmark: false,
                 ),
               ),
             );

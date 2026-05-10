@@ -7,4 +7,10 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
     // TODO: implement getProjects
     throw UnimplementedError();
   }
+
+  @override
+  Future<ProjectModel> getProject(String id) {
+    // TODO: implement getProject
+    throw UnimplementedError();
+  }
 }

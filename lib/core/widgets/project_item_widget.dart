@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/data/entities/project.dart';
 
@@ -16,7 +18,13 @@ class ProjectItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        context.pushNamed(
+          RouteNamed.projectDetail,
+          pathParameters: {'id': project.id},
+          extra: {'is_owner': isMyProject},
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

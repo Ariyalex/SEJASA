@@ -1,15 +1,38 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
+import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
+import 'package:sejasa/modules/project_detail/view/project_detail_view.dart';
 
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     routes: [
       GoRoute(
-        path: RouteNamed.dashboard,
+        path: "/",
         name: RouteNamed.dashboard,
         builder: (context, state) => MainTab(),
+      ),
+      GoRoute(
+        path: '/project/:id',
+        name: RouteNamed.projectDetail,
+        builder: (context, state) {
+          final id = state.pathParameters['id'];
+          final extra = state.extra as Map<String, dynamic>;
+          if (id == null) {
+            LogUtils.e(
+              "id tidak ada ada di parameter, jangan lupa tambahin id",
+            );
+          }
+          return BlocProvider(
+            create: (context) =>
+                ProjectDetailBloc(context.read<ProjectRepository>()),
+            child: ProjectDetailView(id: id!, isOwner: extra['is_owner']),
+          );
+        },
       ),
     ],
   );

@@ -16,6 +16,7 @@ class ProjectModel extends Project {
     required super.ownerName,
     required super.ownerRating,
     super.ownerImagePath,
+    required super.isBookmark,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class ProjectModel extends Project {
       description: json['description'],
       hastags: json['hastags'],
       requirements: json['requirements'],
+      isBookmark: json['bookmark'],
     );
   }
 
@@ -51,6 +53,7 @@ class ProjectModel extends Project {
       ownerName: ownerName,
       ownerRating: ownerRating,
       ownerImagePath: ownerImagePath,
+      isBookmark: isBookmark,
     );
   }
 }

@@ -4,9 +4,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
 import 'package:sejasa/data/value_objects/project_filter_type.dart';
-import 'package:sejasa/modules/my_project/bloc/project_bloc.dart';
-import 'package:sejasa/modules/my_project/bloc/project_event.dart';
-import 'package:sejasa/modules/my_project/bloc/project_state.dart';
+import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
+import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
+import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
 
 class MyProjectScreen extends HookWidget {
   const MyProjectScreen({super.key});
@@ -15,11 +15,11 @@ class MyProjectScreen extends HookWidget {
   Widget build(BuildContext context) {
     final tabBarController = useTabController(initialLength: 2);
 
-    final projectBloc = context.read<ProjectBloc>();
+    final projectBloc = context.read<MyProjectBloc>();
 
     useEffect(() {
-      projectBloc.add(LoadUploadedProjects());
-      projectBloc.add(LoadTakenProjects());
+      projectBloc.add(LoadMyUploadedProjects());
+      projectBloc.add(LoadMyTakenProjects());
       return null;
     }, []);
 
@@ -61,8 +61,8 @@ class MyProjectScreen extends HookWidget {
                         ),
                         child:
                             BlocSelector<
-                              ProjectBloc,
-                              ProjectState,
+                              MyProjectBloc,
+                              MyProjectState,
                               ProjectFilterType
                             >(
                               selector: (state) {
@@ -81,7 +81,7 @@ class MyProjectScreen extends HookWidget {
                                           onSelected: (selected) {
                                             if (selected) {
                                               projectBloc.add(
-                                                SetProjectFilterType(status),
+                                                SetMyProjectFilterType(status),
                                               );
                                             }
                                           },
@@ -100,9 +100,9 @@ class MyProjectScreen extends HookWidget {
           ];
         },
 
-        body: BlocBuilder<ProjectBloc, ProjectState>(
+        body: BlocBuilder<MyProjectBloc, MyProjectState>(
           builder: (context, state) {
-            if (state.status == ProjectBlocStatus.error) {
+            if (state.status == MyProjectStatus.error) {
               return Center(child: Text("Error: ${state.message}"));
             } else {
               return TabBarView(
@@ -111,20 +111,20 @@ class MyProjectScreen extends HookWidget {
                   BuildProjectListWidget(
                     projects: state.filteredTakenProjects,
                     onRefresh: () async {
-                      projectBloc.add(LoadTakenProjects());
+                      projectBloc.add(LoadMyTakenProjects());
                     },
                     isLoading:
-                        state.status != ProjectBlocStatus.error &&
+                        state.status != MyProjectStatus.error &&
                         state.isFetchingProjectTaken,
                   ),
                   BuildProjectListWidget(
                     projects: state.filteredUploadedProjects,
                     isMyProjects: true,
                     onRefresh: () async {
-                      projectBloc.add(LoadUploadedProjects());
+                      projectBloc.add(LoadMyUploadedProjects());
                     },
                     isLoading:
-                        state.status != ProjectBlocStatus.error &&
+                        state.status != MyProjectStatus.error &&
                         state.isFetchingProjectUploaded,
                   ),
                 ],

@@ -16,7 +16,7 @@ class MyOutlineButton extends StatelessWidget {
         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18)),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            borderRadius: BorderRadiusGeometry.circular(12),
+            borderRadius: BorderRadiusGeometry.circular(8),
           ),
         ),
       ),

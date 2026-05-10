@@ -1,6 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sejasa/data/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_tab_paging_state.dart';

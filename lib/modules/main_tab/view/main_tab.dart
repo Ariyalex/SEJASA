@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
-import 'package:sejasa/data/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
-import 'package:sejasa/modules/my_project/bloc/project_bloc.dart';
+import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
 import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
 
 class MainTab extends StatelessWidget {
@@ -43,7 +43,7 @@ class MainTab extends StatelessWidget {
                 PersistentTabConfig(
                   screen: BlocProvider(
                     create: (context) =>
-                        ProjectBloc(context.read<ProjectRepository>()),
+                        MyProjectBloc(context.read<ProjectRepository>()),
                     child: MyProjectScreen(),
                   ),
                   item: ItemConfig(

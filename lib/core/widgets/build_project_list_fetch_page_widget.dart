@@ -42,9 +42,6 @@ class BuildProjectListFetchPageWidget extends HookWidget {
               !hasReachedMax &&
               index == projects.length + 1) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              print(
-                "🚀 Load more dipicu tepat saat skeleton pertama dirender!",
-              );
               onLoadMore();
             });
           }
@@ -61,6 +58,7 @@ class BuildProjectListFetchPageWidget extends HookWidget {
                   category: 'random',
                   ownerName: "gatawu",
                   ownerRating: 5,
+                  isBookmark: false,
                 ),
               ),
             );
