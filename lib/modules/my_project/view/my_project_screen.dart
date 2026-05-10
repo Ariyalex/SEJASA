@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
+import 'package:sejasa/data/value_objects/project_filter_type.dart';
 import 'package:sejasa/modules/my_project/bloc/project_bloc.dart';
 import 'package:sejasa/modules/my_project/bloc/project_event.dart';
 import 'package:sejasa/modules/my_project/bloc/project_state.dart';
@@ -28,6 +29,7 @@ class MyProjectScreen extends HookWidget {
           return [
             SliverAppBar(
               leading: FlutterLogo(),
+              title: Text("SeJasa"),
               floating: true,
               snap: true,
               pinned: true,
@@ -41,24 +43,54 @@ class MyProjectScreen extends HookWidget {
                   children: [
                     TabBar(
                       controller: tabBarController,
+                      splashBorderRadius: BorderRadius.only(
+                        topRight: Radius.circular(10),
+                        topLeft: Radius.circular(10),
+                      ),
                       tabs: [
-                        Tab(text: "Project Diambil"),
-                        Tab(text: "Project Diunggah"),
+                        Tab(text: "Project Diambil", height: 40),
+                        Tab(text: "Project Diunggah", height: 40),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 12,
-                      ),
-                      child: Row(
-                        spacing: 12,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          MyTabChip(title: "Berlangsung"),
-                          MyTabChip(title: "Dibatalkan"),
-                          MyTabChip(title: "Selesai"),
-                        ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 2,
+                          horizontal: 12,
+                        ),
+                        child:
+                            BlocSelector<
+                              ProjectBloc,
+                              ProjectState,
+                              ProjectFilterType
+                            >(
+                              selector: (state) {
+                                return state.filterType;
+                              },
+                              builder: (context, filterType) {
+                                return Row(
+                                  spacing: 6,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: ProjectFilterType.values
+                                      .map<Widget>((status) {
+                                        final isSelected = filterType == status;
+                                        return MyTabChip(
+                                          title: status.display,
+                                          selected: isSelected,
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              projectBloc.add(
+                                                SetProjectFilterType(status),
+                                              );
+                                            }
+                                          },
+                                        );
+                                      })
+                                      .toList(),
+                                );
+                              },
+                            ),
                       ),
                     ),
                   ],
@@ -77,23 +109,23 @@ class MyProjectScreen extends HookWidget {
                 controller: tabBarController,
                 children: [
                   BuildProjectListWidget(
-                    projects: state.projectsTaken,
+                    projects: state.filteredTakenProjects,
                     onRefresh: () async {
                       projectBloc.add(LoadTakenProjects());
                     },
                     isLoading:
                         state.status != ProjectBlocStatus.error &&
-                        state.status != ProjectBlocStatus.success,
+                        state.isFetchingProjectTaken,
                   ),
                   BuildProjectListWidget(
-                    projects: state.projectsUploaded,
+                    projects: state.filteredUploadedProjects,
                     isMyProjects: true,
                     onRefresh: () async {
                       projectBloc.add(LoadUploadedProjects());
                     },
                     isLoading:
                         state.status != ProjectBlocStatus.error &&
-                        state.status != ProjectBlocStatus.success,
+                        state.isFetchingProjectUploaded,
                   ),
                 ],
               );

@@ -13,6 +13,7 @@ class MyOutlineButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: ButtonStyle(
+        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18)),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadiusGeometry.circular(12),
