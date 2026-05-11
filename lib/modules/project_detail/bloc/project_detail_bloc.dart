@@ -7,6 +7,7 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
   final ProjectRepository _repository;
   ProjectDetailBloc(this._repository) : super(ProjectDetailState()) {
     on<LoadProject>(_onLoadProject);
+    on<ToggleProjectBookmark>(_onSetProjectBookmark);
   }
 
   Future<void> _onLoadProject(
@@ -24,6 +25,26 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
         state.copyWith(
           message: e.toString(),
           status: ProjectDetailStatus.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetProjectBookmark(
+    ToggleProjectBookmark event,
+    Emitter<ProjectDetailState> emit,
+  ) async {
+    try {
+      final newProject = state.project?.copyWith(
+        isBookmark: !(state.project?.isBookmark ?? true),
+      );
+
+      emit(state.copyWith(project: newProject));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProjectDetailStatus.error,
+          message: e.toString(),
         ),
       );
     }

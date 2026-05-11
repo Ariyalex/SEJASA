@@ -5,6 +5,9 @@ class Project extends Equatable {
   final String id;
   final String title;
   final String address;
+  final String? detailAddress;
+  final double? latitude;
+  final double? longitude;
   final ProjectStatus status;
   final String distance;
   final String participant;
@@ -21,6 +24,9 @@ class Project extends Equatable {
     required this.id,
     required this.title,
     required this.address,
+    this.detailAddress,
+    this.latitude,
+    this.longitude,
     required this.status,
     required this.distance,
     required this.participant,
@@ -37,6 +43,9 @@ class Project extends Equatable {
   Project copyWith({
     final String? title,
     final String? address,
+    final String? detailAddress,
+    final double? latitude,
+    final double? longitude,
     final ProjectStatus? status,
     final String? distance,
     final String? participant,
@@ -54,6 +63,9 @@ class Project extends Equatable {
       title: title ?? this.title,
       description: description ?? this.description,
       address: address ?? this.address,
+      detailAddress: detailAddress ?? this.detailAddress,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       status: status ?? this.status,
       distance: distance ?? this.distance,
       participant: participant ?? this.participant,
@@ -72,6 +84,9 @@ class Project extends Equatable {
       id: 'dummy',
       title: 'Judul Project Skeleton',
       address: 'Alamat Skeleton, Jakarta',
+      detailAddress: 'Blok A No. 123',
+      latitude: -6.2088,
+      longitude: 106.8456,
       status: ProjectStatus.hiring,
       distance: '10 km',
       participant: '0',
@@ -94,19 +109,22 @@ class Project extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    title,
-    description,
-    address,
-    status,
-    distance,
-    participant,
-    category,
-    hastags,
-    requirements,
-    ownerName,
-    ownerRating,
-    ownerImagePath,
-    isBookmark,
-  ];
+        id,
+        title,
+        description,
+        address,
+        detailAddress,
+        latitude,
+        longitude,
+        status,
+        distance,
+        participant,
+        category,
+        hastags,
+        requirements,
+        ownerName,
+        ownerRating,
+        ownerImagePath,
+        isBookmark,
+      ];
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/data/entities/project.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
@@ -101,7 +103,9 @@ class ProjectDetailView extends HookWidget {
                 );
               }
               return IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  projectDetailBloc.add(ToggleProjectBookmark());
+                },
                 icon: Icon(
                   isBookmark ? Icons.bookmark : Icons.bookmark_outline,
                   color: theme.colorScheme.primary,
@@ -115,7 +119,12 @@ class ProjectDetailView extends HookWidget {
           ),
           if (isOwner)
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                context.pushNamed(
+                  RouteNamed.editProject,
+                  extra: projectDetailBloc.state.project,
+                );
+              },
               icon: Icon(Icons.edit, color: theme.colorScheme.primary),
             ),
           if (!isOwner)

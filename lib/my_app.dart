@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sejasa/core/routes/app_router.dart';
 import 'package:sejasa/core/theme/app_theme.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -16,6 +18,12 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return child!;
       },
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
     );
   }
 }

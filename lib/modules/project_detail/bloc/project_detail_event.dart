@@ -14,3 +14,5 @@ class LoadProject extends ProjectDetailEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class ToggleProjectBookmark extends ProjectDetailEvent {}
