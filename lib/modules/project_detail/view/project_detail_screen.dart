@@ -364,19 +364,44 @@ class ProjectDetailScreen extends HookWidget {
         ),
       ),
       bottomNavigationBar: SafeArea(
-        child: Container(
-          color: Colors.transparent,
-          padding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-          width: double.infinity,
-          child: FilledButton(
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(8),
-              ),
-            ),
-            onPressed: () {},
-            child: Text(isOwner ? "List pelamar" : "Hubungi sekarang"),
-          ),
+        child: BlocBuilder<ProjectDetailBloc, ProjectDetailState>(
+          builder: (context, state) {
+            if (state.status == ProjectDetailStatus.error) {
+              return Center(child: Text("Terjadi error: ${state.message}"));
+            } else {
+              final bool isSkeleton =
+                  state.status != ProjectDetailStatus.success &&
+                  state.project == null;
+              return Skeletonizer(
+                enabled: isSkeleton,
+                child: Container(
+                  color: Colors.transparent,
+                  padding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      if (!isOwner) {
+                        context.pushNamed(
+                          RouteNamed.chat,
+                          pathParameters: {"id": '1'},
+                          extra: {
+                            "name": state.project?.ownerName,
+                            "project_id": state.project?.id,
+                          },
+                        );
+                      }
+                    },
+                    child: Text(isOwner ? "List pelamar" : "Hubungi sekarang"),
+                  ),
+                ),
+              );
+            }
+          },
         ),
       ),
     );

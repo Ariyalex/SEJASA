@@ -37,7 +37,7 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<List<ChatEntity>> getChatHistory(String projectId) async {
+  Future<List<ChatEntity>> getChatHistory(String? projectId) async {
     // Stubbed implementation
     return [];
   }

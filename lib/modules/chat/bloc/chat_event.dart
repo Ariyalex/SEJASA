@@ -9,7 +9,7 @@ abstract class ChatEvent extends Equatable {
 }
 
 class ChatStarted extends ChatEvent {
-  final String projectId;
+  final String? projectId;
   const ChatStarted(this.projectId);
 
   @override

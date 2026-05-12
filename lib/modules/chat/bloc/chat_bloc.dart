@@ -2,14 +2,17 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/chat/bloc/chat_event.dart';
 import 'package:sejasa/modules/chat/bloc/chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository _chatRepository;
+  final ProjectRepository _projectRepository;
   StreamSubscription<ChatEntity>? _messageSubscription;
 
-  ChatBloc(this._chatRepository) : super(const ChatState()) {
+  ChatBloc(this._chatRepository, this._projectRepository)
+    : super(const ChatState()) {
     on<ChatStarted>(_onChatStarted);
     on<SendMessage>(_onSendMessage);
     on<MessageReceived>(_onMessageReceived);
@@ -21,8 +24,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(state.copyWith(status: ChatStatus.loading));
     try {
+      // Fetch project if projectId is provided
+      if (event.projectId != null && event.projectId!.isNotEmpty) {
+        final project = await _projectRepository.getProject(event.projectId!);
+        emit(state.copyWith(project: project));
+      }
+
       // Connect to WebSocket (using echo server for testing)
-      _chatRepository.connect('ws://echo.websocket.events');
+      // _chatRepository.connect('ws://echo.websocket.events');
 
       // Subscribe to messages
       await _messageSubscription?.cancel();

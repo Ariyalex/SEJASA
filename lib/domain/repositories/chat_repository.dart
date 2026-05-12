@@ -5,5 +5,5 @@ abstract class ChatRepository {
   void sendMessage(ChatEntity message);
   void connect(String url);
   void disconnect();
-  Future<List<ChatEntity>> getChatHistory(String projectId); // Stubbed
+  Future<List<ChatEntity>> getChatHistory(String? projectId); // Stubbed
 }

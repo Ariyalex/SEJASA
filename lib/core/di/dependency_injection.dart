@@ -3,10 +3,6 @@ import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
 import 'package:sejasa/core/services/socket_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
-import 'package:sejasa/data/providers/remote/chat_socket_provider.dart';
-import 'package:sejasa/data/repositories/chat_repository_impl.dart';
-import 'package:sejasa/domain/providers/chat_socket_provider.dart';
-import 'package:sejasa/domain/repositories/chat_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -35,11 +31,5 @@ class DependencyInjection {
 
     // WebSocket implementation
     getIt.registerLazySingleton<SocketService>(() => SocketService());
-    getIt.registerLazySingleton<ChatSocketProvider>(
-      () => ChatSocketProviderImpl(getIt<SocketService>()),
-    );
-    getIt.registerLazySingleton<ChatRepository>(
-      () => ChatRepositoryImpl(getIt<ChatSocketProvider>()),
-    );
   }
 }
