@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
+import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/data/entities/project.dart';
 import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
@@ -24,13 +26,17 @@ class ProjectFormScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formKey = useMemoized(() => GlobalKey<FormState>());
+
     // Hooks for state management
     final titleController = useTextEditingController(
       text: initialProject?.title,
     );
+
     final addressController = useTextEditingController(
       text: initialProject?.address,
     );
+
     final detailAddressController = useTextEditingController(
       text: initialProject?.detailAddress,
     );
@@ -38,7 +44,10 @@ class ProjectFormScreen extends HookWidget {
     final selectedCategory = useState<String?>(initialProject?.category);
     final selectedLocation = useState<LatLng?>(
       initialProject?.latitude != null && initialProject?.longitude != null
-          ? LatLng(initialProject!.latitude!, initialProject!.longitude!)
+          ? LatLng(
+              initialProject?.latitude ?? 0,
+              initialProject?.longitude ?? 0,
+            )
           : null,
     );
 
@@ -49,20 +58,18 @@ class ProjectFormScreen extends HookWidget {
 
     // Quill Controller hook
     final quillController = useMemoized(() {
-      if (initialProject?.description != null) {
+      final description = initialProject?.description;
+      if (description != null) {
         try {
           // Assume description is stored as JSON string (Delta)
-          final doc = Document.fromJson(
-            jsonDecode(initialProject!.description!),
-          );
+          final doc = Document.fromJson(jsonDecode(description));
           return QuillController(
             document: doc,
             selection: const TextSelection.collapsed(offset: 0),
           );
         } catch (_) {
           // Fallback to plain text if JSON decode fails
-          return QuillController.basic()
-            ..document.insert(0, initialProject!.description!);
+          return QuillController.basic()..document.insert(0, description);
         }
       }
       return QuillController.basic();
@@ -75,14 +82,10 @@ class ProjectFormScreen extends HookWidget {
       body: BlocListener<ProjectFormBloc, ProjectFormState>(
         listener: (context, state) {
           if (state.status == ProjectFormStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isEditMode
-                      ? 'Project berhasil diubah'
-                      : 'Project berhasil diposting',
-                ),
-              ),
+            MySnackbar.success(
+              message: isEditMode
+                  ? 'Project berhasil diubah'
+                  : 'Project berhasil diposting',
             );
             Navigator.pop(context, true);
           } else if (state.status == ProjectFormStatus.error) {
@@ -93,156 +96,234 @@ class ProjectFormScreen extends HookWidget {
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Judul Project
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Project',
-                  border: OutlineInputBorder(),
+          child: Form(
+            key: formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Judul Project
+                MyTextField(
+                  title: 'Nama Project',
+                  hint: 'Masukkan nama project',
+                  controller: titleController,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Nama project wajib diisi' : null,
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Category Dropdown
-              ProjectCategoryDropdown(
-                initialValue: selectedCategory.value,
-                onChanged: (val) => selectedCategory.value = val,
-              ),
-              const SizedBox(height: 16),
-
-              // Location Picker (Map)
-              ProjectLocationPicker(
-                initialLocation: selectedLocation.value,
-                onLocationChanged: (LatLng location, address) {
-                  selectedLocation.value = location;
-                  if (addressController.text.isEmpty) {
-                    addressController.text = address;
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Alamat Field
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Alamat Project',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.map),
+                // Category Dropdown
+                ProjectCategoryDropdown(
+                  initialValue: selectedCategory.value,
+                  onChanged: (val) => selectedCategory.value = val,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Kategori wajib dipilih' : null,
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Detail Alamat (Form Besar)
-              TextField(
-                controller: detailAddressController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Detail Alamat',
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description Editor (Rich Text)
-              ProjectDescriptionEditor(controller: quillController),
-              const SizedBox(height: 16),
-
-              // Requirements List
-              ProjectRequirementsList(
-                requirements: requirements.value,
-                onAdd: (req) =>
-                    requirements.value = [...requirements.value, req],
-                onRemove: (index) {
-                  final newList = List<String>.from(requirements.value);
-                  newList.removeAt(index);
-                  requirements.value = newList;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Hashtags Input
-              ProjectHashtagsInput(
-                hashtags: hashtags.value,
-                onHashtagsChanged: (tags) => hashtags.value = tags,
-              ),
-              const SizedBox(height: 32),
-
-              // Submit Button
-              ElevatedButton(
-                onPressed: () {
-                  // Basic validation
-                  if (titleController.text.isEmpty ||
-                      selectedCategory.value == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Judul dan Kategori wajib diisi'),
-                      ),
-                    );
-                    return;
-                  }
-
-                  final descriptionJson = jsonEncode(
-                    quillController.document.toDelta().toJson(),
-                  );
-
-                  final project = Project(
-                    id:
-                        initialProject?.id ??
-                        DateTime.now().millisecondsSinceEpoch.toString(),
-                    title: titleController.text,
-                    address: addressController.text,
-                    detailAddress: detailAddressController.text,
-                    latitude: selectedLocation.value?.latitude,
-                    longitude: selectedLocation.value?.longitude,
-                    status: initialProject?.status ?? ProjectStatus.hiring,
-                    distance: initialProject?.distance ?? '0 km',
-                    participant: initialProject?.participant ?? '0',
-                    category: selectedCategory.value!,
-                    description: descriptionJson,
-                    requirements: requirements.value,
-                    hastags: hashtags.value,
-                    ownerName: initialProject?.ownerName ?? 'User', // Mock
-                    ownerRating: initialProject?.ownerRating ?? 5.0,
-                    isBookmark: initialProject?.isBookmark ?? false,
-                  );
-
-                  if (isEditMode) {
-                    context.read<ProjectFormBloc>().add(EditProject(project));
-                  } else {
-                    context.read<ProjectFormBloc>().add(AddNewProject(project));
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: BlocBuilder<ProjectFormBloc, ProjectFormState>(
-                  builder: (context, state) {
-                    if (state.status == ProjectFormStatus.loading) {
-                      return const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                // Location Picker (Map)
+                FormField<LatLng>(
+                  initialValue: selectedLocation.value,
+                  validator: (v) =>
+                      v == null ? 'Lokasi project wajib dipilih di peta' : null,
+                  builder: (state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProjectLocationPicker(
+                          initialLocation: selectedLocation.value,
+                          onLocationChanged: (LatLng location, address) {
+                            selectedLocation.value = location;
+                            state.didChange(location);
+                            if (addressController.text.isEmpty) {
+                              addressController.text = address;
+                            }
+                          },
                         ),
-                      );
-                    }
-                    return Text(
-                      isEditMode ? 'Simpan Perubahan' : 'Posting Project',
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 12),
+                            child: Text(
+                              state.errorText ?? '',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   },
                 ),
-              ),
-              const SizedBox(height: 32),
-            ],
+                const SizedBox(height: 16),
+
+                // Alamat Field
+                MyTextField(
+                  title: 'Alamat Project',
+                  hint: 'Pilih lokasi di peta untuk mendapatkan alamat',
+                  controller: addressController,
+                  readOnly: true,
+                  prefixIcon: const Icon(Icons.map),
+                  validator: (v) => (v?.isEmpty ?? true)
+                      ? 'Alamat wajib terisi via peta'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Detail Alamat (Form Besar)
+                MyTextField(
+                  title: 'Detail Alamat (Opsional)',
+                  hint: 'Nomor rumah, lantai, patokan, dll.',
+                  controller: detailAddressController,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+
+                // Description Editor (Rich Text)
+                ProjectDescriptionEditor(controller: quillController),
+                const SizedBox(height: 16),
+
+                // Requirements List
+                FormField<List<String>>(
+                  initialValue: requirements.value,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Minimal 1 requirement' : null,
+                  builder: (state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProjectRequirementsList(
+                          requirements: requirements.value,
+                          onAdd: (req) {
+                            final newList = [...requirements.value, req];
+                            requirements.value = newList;
+                            state.didChange(newList);
+                          },
+                          onRemove: (index) {
+                            final newList = List<String>.from(
+                              requirements.value,
+                            );
+                            newList.removeAt(index);
+                            requirements.value = newList;
+                            state.didChange(newList);
+                          },
+                        ),
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 12),
+                            child: Text(
+                              state.errorText ?? '',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Hashtags Input
+                FormField<List<String>>(
+                  initialValue: hashtags.value,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Minimal 1 hashtag' : null,
+                  builder: (state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProjectHashtagsInput(
+                          hashtags: hashtags.value,
+                          onHashtagsChanged: (tags) {
+                            hashtags.value = tags;
+                            state.didChange(tags);
+                          },
+                        ),
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 12),
+                            child: Text(
+                              state.errorText ?? '',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                // Submit Button
+                FilledButton(
+                  onPressed: () {
+                    if (formKey.currentState?.validate() ?? false) {
+                      final descriptionJson = jsonEncode(
+                        quillController.document.toDelta().toJson(),
+                      );
+
+                      final project = Project(
+                        id:
+                            initialProject?.id ??
+                            DateTime.now().millisecondsSinceEpoch.toString(),
+                        title: titleController.text,
+                        address: addressController.text,
+                        detailAddress: detailAddressController.text,
+                        latitude: selectedLocation.value?.latitude,
+                        longitude: selectedLocation.value?.longitude,
+                        status: initialProject?.status ?? ProjectStatus.hiring,
+                        distance: initialProject?.distance ?? '0 km',
+                        participant: initialProject?.participant ?? '0',
+                        category: selectedCategory.value ?? '',
+                        description: descriptionJson,
+                        requirements: requirements.value,
+                        hastags: hashtags.value,
+                        ownerName: initialProject?.ownerName ?? 'User', // Mock
+                        ownerRating: initialProject?.ownerRating ?? 5.0,
+                        isBookmark: initialProject?.isBookmark ?? false,
+                      );
+
+                      if (isEditMode) {
+                        context.read<ProjectFormBloc>().add(
+                          EditProject(project),
+                        );
+                      } else {
+                        context.read<ProjectFormBloc>().add(
+                          AddNewProject(project),
+                        );
+                      }
+                    }
+                  },
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: BlocBuilder<ProjectFormBloc, ProjectFormState>(
+                    builder: (context, state) {
+                      if (state.status == ProjectFormStatus.loading) {
+                        return const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        );
+                      }
+                      return Text(
+                        isEditMode ? 'Simpan Perubahan' : 'Posting Project',
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

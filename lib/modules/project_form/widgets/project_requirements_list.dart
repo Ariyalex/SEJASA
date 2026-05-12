@@ -61,7 +61,9 @@ class ProjectRequirementsList extends HookWidget {
           icon: const Icon(Icons.add),
           label: const Text('Tambah Requirement'),
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 45),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.circular(8),
+            ),
           ),
         ),
       ],

@@ -27,7 +27,18 @@ class ProjectDescriptionEditor extends HookWidget {
               QuillSimpleToolbar(
                 controller: controller,
 
-                config: const QuillSimpleToolbarConfig(showSearchButton: false),
+                config: const QuillSimpleToolbarConfig(
+                  showSearchButton: false,
+                  showFontFamily: false,
+                  showColorButton: false,
+                  showLink: false,
+                  showBackgroundColorButton: false,
+                  showCodeBlock: false,
+                  showInlineCode: false,
+                  headerStyleType: HeaderStyleType.original,
+                  showFontSize: false,
+                  showRedo: false,
+                ),
               ),
               const Divider(height: 1),
               SizedBox(

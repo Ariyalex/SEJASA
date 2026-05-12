@@ -5,11 +5,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 class ProjectCategoryDropdown extends HookWidget {
   final String? initialValue;
   final Function(String?) onChanged;
+  final FormFieldValidator<String>? validator;
 
   const ProjectCategoryDropdown({
     super.key,
     this.initialValue,
     required this.onChanged,
+    this.validator,
   });
 
   @override
@@ -31,15 +33,21 @@ class ProjectCategoryDropdown extends HookWidget {
           'Kategori Project',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4), // Matching MyTextField gap
         DropdownSearch<String>(
           items: (filter, loadProps) => categories,
           selectedItem: initialValue,
-          decoratorProps: const DropDownDecoratorProps(
+          validator: validator,
+          decoratorProps: DropDownDecoratorProps(
             decoration: InputDecoration(
               hintText: 'Pilih Kategori',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              filled: true,
+              fillColor: const Color(0xFFEEEEEE),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           ),
           popupProps: const PopupProps.menu(

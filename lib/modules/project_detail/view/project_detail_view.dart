@@ -364,8 +364,13 @@ class ProjectDetailView extends HookWidget {
           padding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
           width: double.infinity,
           child: FilledButton(
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(8),
+              ),
+            ),
             onPressed: () {},
-            child: Text("Hubungi sekarang"),
+            child: Text(isOwner ? "List pelamar" : "Hubungi sekarang"),
           ),
         ),
       ),

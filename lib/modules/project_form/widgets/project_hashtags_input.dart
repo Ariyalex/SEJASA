@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:sejasa/core/widgets/my_text_field.dart';
 
 class ProjectHashtagsInput extends HookWidget {
   final List<String> hashtags;
@@ -13,63 +14,45 @@ class ProjectHashtagsInput extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useTextEditingController();
+    // Controller to maintain the text field state
+    final controller = useTextEditingController(
+      // Initialize with existing hashtags if any (for edit mode)
+      text: hashtags.isNotEmpty ? hashtags.map((t) => '#$t').join(' ') : null,
+    );
 
-    void addHashtag(String value) {
-      final trimmed = value.trim();
-      if (trimmed.isEmpty) return;
+    // Regex to detect hashtags in real-time
+    final hashtagRegex = RegExp(r'#(\w+)');
 
-      // Extract hashtags if multiple are pasted or typed
-      final newTags = trimmed
-          .split(' ')
-          .where((tag) => tag.startsWith('#'))
-          .map((tag) => tag.substring(1))
-          .where((tag) => tag.isNotEmpty && !hashtags.contains(tag))
-          .toList();
-
-      if (newTags.isNotEmpty) {
-        onHashtagsChanged([...hashtags, ...newTags]);
-        controller.clear();
-      }
+    void _updateHashtags(String text) {
+      final matches = hashtagRegex.allMatches(text);
+      final tags = matches.map((m) => m.group(1)).whereType<String>().toList();
+      onHashtagsChanged(tags);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Hashtags',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 8),
-        TextField(
+        MyTextField(
+          title: 'Hashtags',
+          hint: 'Masukkan hashtag (misal: #flutter #dart)',
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Masukkan hashtag (misal: #flutter #dart)',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.tag),
+          prefixIcon: const Icon(Icons.tag),
+          onChanged: _updateHashtags,
+          validator: (v) => (v?.isEmpty ?? true) ? 'Minimal 1 hashtag' : null,
+        ),
+        if (hashtags.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: hashtags.map((tag) {
+              return Chip(
+                label: Text('#$tag'),
+                // No deleteIcon as requested: chips are real-time display of textfield
+              );
+            }).toList(),
           ),
-          onChanged: (value) {
-            if (value.endsWith(' ')) {
-              addHashtag(value);
-            }
-          },
-          onSubmitted: addHashtag,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          children: hashtags.map((tag) {
-            return Chip(
-              label: Text('#$tag'),
-              deleteIcon: const Icon(Icons.close, size: 16),
-              onDeleted: () {
-                final updated = hashtags.where((t) => t != tag).toList();
-                onHashtagsChanged(updated);
-              },
-            );
-          }).toList(),
-        ),
+        ],
       ],
     );
   }
