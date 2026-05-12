@@ -1,15 +1,18 @@
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 
 abstract class ProjectRepository {
   Stream<void> get projectUpdateStream;
 
-  Future<List<Project>> getProjects({required int pages, required String type});
+  Future<List<ProjectEntity>> getProjects({
+    required int pages,
+    required String type,
+  });
 
-  Future<List<Project>> getMyProjects();
+  Future<List<ProjectEntity>> getMyProjects();
 
-  Future<Project> getProject(String id);
+  Future<ProjectEntity> getProject(String id);
 
-  Future<void> addNewProject(Project project);
+  Future<void> addNewProject(ProjectEntity project);
 
-  Future<void> updateProject(Project project);
+  Future<void> updateProject(ProjectEntity project);
 }

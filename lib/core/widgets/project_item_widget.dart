@@ -3,10 +3,10 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 
 class ProjectItemWidget extends StatelessWidget {
-  final Project project;
+  final ProjectEntity project;
   final bool isMyProject;
   const ProjectItemWidget({
     super.key,

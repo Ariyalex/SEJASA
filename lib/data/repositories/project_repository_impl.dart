@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 
@@ -14,7 +14,7 @@ class ProjectRepositoryImpl extends ProjectRepository {
   Stream<void> get projectUpdateStream => _projectUpdateController.stream;
 
   @override
-  Future<List<Project>> getProjects({
+  Future<List<ProjectEntity>> getProjects({
     required int pages,
     required String type,
   }) async {
@@ -23,19 +23,19 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<List<Project>> getMyProjects() async {
+  Future<List<ProjectEntity>> getMyProjects() async {
     final data = await _provider.getProjects();
     return data.map((e) => e.toEntity()).toList();
   }
 
   @override
-  Future<Project> getProject(String id) async {
+  Future<ProjectEntity> getProject(String id) async {
     final data = await _provider.getProject(id);
     return data.toEntity();
   }
 
   @override
-  Future<void> addNewProject(Project project) async {
+  Future<void> addNewProject(ProjectEntity project) async {
     try {
       await Future.delayed(const Duration(seconds: 1));
       _projectUpdateController.add(null);
@@ -45,7 +45,7 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<void> updateProject(Project project) async {
+  Future<void> updateProject(ProjectEntity project) async {
     try {
       await Future.delayed(const Duration(seconds: 1));
       _projectUpdateController.add(null);

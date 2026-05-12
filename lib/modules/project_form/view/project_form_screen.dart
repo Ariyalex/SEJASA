@@ -6,7 +6,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_event.dart';
@@ -18,7 +18,7 @@ import 'package:sejasa/modules/project_form/widgets/project_location_picker.dart
 import 'package:sejasa/modules/project_form/widgets/project_requirements_list.dart';
 
 class ProjectFormScreen extends HookWidget {
-  final Project? initialProject;
+  final ProjectEntity? initialProject;
 
   const ProjectFormScreen({super.key, this.initialProject});
 
@@ -265,7 +265,7 @@ class ProjectFormScreen extends HookWidget {
                         quillController.document.toDelta().toJson(),
                       );
 
-                      final project = Project(
+                      final project = ProjectEntity(
                         id:
                             initialProject?.id ??
                             DateTime.now().millisecondsSinceEpoch.toString(),

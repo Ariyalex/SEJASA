@@ -1,20 +1,20 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/data/value_objects/project_filter_type.dart';
 
 enum MyProjectStatus { initial, loading, success, error }
 
 class MyProjectState extends Equatable {
-  final List<Project> takenProjects;
-  final List<Project> uploadedProjects;
+  final List<ProjectEntity> takenProjects;
+  final List<ProjectEntity> uploadedProjects;
   final bool isFetchingProjectTaken;
   final bool isFetchingProjectUploaded;
 
   final MyProjectStatus status;
   final String? message;
 
-  final List<Project> filteredTakenProjects;
-  final List<Project> filteredUploadedProjects;
+  final List<ProjectEntity> filteredTakenProjects;
+  final List<ProjectEntity> filteredUploadedProjects;
   final ProjectFilterType filterType;
 
   const MyProjectState({
@@ -32,16 +32,16 @@ class MyProjectState extends Equatable {
   });
 
   MyProjectState copyWith({
-    final List<Project>? takenProjects,
-    final List<Project>? uploadedProjects,
+    final List<ProjectEntity>? takenProjects,
+    final List<ProjectEntity>? uploadedProjects,
     final bool? isFetchingProjectTaken,
     final bool? isFetchingProjectUploaded,
 
     final MyProjectStatus? status,
     final String? message,
 
-    final List<Project>? filteredTakenProjects,
-    final List<Project>? filteredUploadedProjects,
+    final List<ProjectEntity>? filteredTakenProjects,
+    final List<ProjectEntity>? filteredUploadedProjects,
     final ProjectFilterType? filterType,
   }) {
     return MyProjectState(

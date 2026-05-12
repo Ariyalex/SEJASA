@@ -2,11 +2,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
-import 'package:sejasa/modules/project_detail/view/project_detail_view.dart';
+import 'package:sejasa/modules/project_detail/view/project_detail_screen.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/view/project_form_screen.dart';
 
@@ -34,7 +34,7 @@ class AppRouter {
         path: '/project/edit',
         name: RouteNamed.editProject,
         builder: (context, state) {
-          final project = state.extra as Project;
+          final project = state.extra as ProjectEntity;
           return BlocProvider(
             create: (context) =>
                 ProjectFormBloc(context.read<ProjectRepository>()),
@@ -56,7 +56,7 @@ class AppRouter {
           return BlocProvider(
             create: (context) =>
                 ProjectDetailBloc(context.read<ProjectRepository>()),
-            child: ProjectDetailView(id: id!, isOwner: extra['is_owner']),
+            child: ProjectDetailScreen(id: id!, isOwner: extra['is_owner']),
           );
         },
       ),

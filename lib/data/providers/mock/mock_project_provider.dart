@@ -1,4 +1,4 @@
-import 'package:sejasa/domain/models/project_model.dart';
+import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class MockProjectProvider extends RemoteProjectProvider {

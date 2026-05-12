@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/data/value_objects/project_status.dart';
 
-class Project extends Equatable {
+class ProjectEntity extends Equatable {
   final String id;
   final String title;
   final String address;
@@ -20,7 +20,7 @@ class Project extends Equatable {
   final String? ownerImagePath;
   final bool isBookmark;
 
-  const Project({
+  const ProjectEntity({
     required this.id,
     required this.title,
     required this.address,
@@ -40,7 +40,7 @@ class Project extends Equatable {
     required this.isBookmark,
   });
 
-  Project copyWith({
+  ProjectEntity copyWith({
     final String? title,
     final String? address,
     final String? detailAddress,
@@ -58,7 +58,7 @@ class Project extends Equatable {
     final String? ownerImagePath,
     final bool? isBookmark,
   }) {
-    return Project(
+    return ProjectEntity(
       id: id,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -79,8 +79,8 @@ class Project extends Equatable {
     );
   }
 
-  static Project dummyProject() {
-    return const Project(
+  static ProjectEntity dummyProject() {
+    return const ProjectEntity(
       id: 'dummy',
       title: 'Judul Project Skeleton',
       address: 'Alamat Skeleton, Jakarta',
@@ -109,22 +109,22 @@ class Project extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        description,
-        address,
-        detailAddress,
-        latitude,
-        longitude,
-        status,
-        distance,
-        participant,
-        category,
-        hastags,
-        requirements,
-        ownerName,
-        ownerRating,
-        ownerImagePath,
-        isBookmark,
-      ];
+    id,
+    title,
+    description,
+    address,
+    detailAddress,
+    latitude,
+    longitude,
+    status,
+    distance,
+    participant,
+    category,
+    hastags,
+    requirements,
+    ownerName,
+    ownerRating,
+    ownerImagePath,
+    isBookmark,
+  ];
 }

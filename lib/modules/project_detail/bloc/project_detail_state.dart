@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 
 enum ProjectDetailStatus { initial, loading, success, error }
 
 class ProjectDetailState extends Equatable {
-  final Project? project;
+  final ProjectEntity? project;
   final ProjectDetailStatus status;
   final String? message;
 
@@ -15,7 +15,7 @@ class ProjectDetailState extends Equatable {
   });
 
   ProjectDetailState copyWith({
-    final Project? project,
+    final ProjectEntity? project,
     final ProjectDetailStatus? status,
     final String? message,
   }) {

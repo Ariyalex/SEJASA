@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListWidget extends StatelessWidget {
   final RefreshCallback onRefresh;
-  final List<Project> projects;
+  final List<ProjectEntity> projects;
   final bool isLoading;
   final bool isMyProjects;
   const BuildProjectListWidget({
@@ -30,7 +30,7 @@ class BuildProjectListWidget extends StatelessWidget {
             return Skeletonizer(
               child: ProjectItemWidget(
                 isMyProject: isMyProjects,
-                project: Project(
+                project: ProjectEntity(
                   id: "",
                   title: 'loading data',
                   address: "ngawi",

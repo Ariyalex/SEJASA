@@ -6,17 +6,21 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_state.dart';
 import 'package:sejasa/modules/project_detail/widgets/requirement_text_item.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class ProjectDetailView extends HookWidget {
+class ProjectDetailScreen extends HookWidget {
   final String id;
   final bool isOwner;
-  const ProjectDetailView({super.key, required this.id, this.isOwner = false});
+  const ProjectDetailScreen({
+    super.key,
+    required this.id,
+    this.isOwner = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,40 +57,41 @@ class ProjectDetailView extends HookWidget {
         shadowColor: theme.focusColor,
         leadingWidth: 50,
         titleSpacing: 4,
-        title: BlocSelector<ProjectDetailBloc, ProjectDetailState, Project?>(
-          selector: (state) {
-            return state.project;
-          },
-          builder: (context, project) {
-            if (project == null) return SizedBox.shrink();
-            if (isScrolled.value) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  Row(
-                    spacing: 4,
+        title:
+            BlocSelector<ProjectDetailBloc, ProjectDetailState, ProjectEntity?>(
+              selector: (state) {
+                return state.project;
+              },
+              builder: (context, project) {
+                if (project == null) return SizedBox.shrink();
+                if (isScrolled.value) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.person, size: 18),
-                      Expanded(
-                        child: Text(
-                          project.ownerName,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium,
-                        ),
+                      Text(
+                        project.title,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      Row(
+                        spacing: 4,
+                        children: [
+                          Icon(Icons.person, size: 18),
+                          Expanded(
+                            child: Text(
+                              project.ownerName,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-              );
-            }
-            return SizedBox.shrink();
-          },
-        ),
+                  );
+                }
+                return SizedBox.shrink();
+              },
+            ),
         actions: [
           BlocSelector<ProjectDetailBloc, ProjectDetailState, bool?>(
             selector: (state) {
@@ -143,7 +148,7 @@ class ProjectDetailView extends HookWidget {
               if (state.status == ProjectDetailStatus.error) {
                 return Center(child: Text("Terjadi error: ${state.message}"));
               } else {
-                final project = state.project ?? Project.dummyProject();
+                final project = state.project ?? ProjectEntity.dummyProject();
                 final isSkeleton =
                     state.status != ProjectDetailStatus.success &&
                     state.project == null;

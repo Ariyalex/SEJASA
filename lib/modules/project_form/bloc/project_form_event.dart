@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 
 class ProjectFormEvent extends Equatable {
   const ProjectFormEvent();
@@ -9,7 +9,7 @@ class ProjectFormEvent extends Equatable {
 }
 
 class AddNewProject extends ProjectFormEvent {
-  final Project newProject;
+  final ProjectEntity newProject;
   const AddNewProject(this.newProject);
 
   @override
@@ -17,7 +17,7 @@ class AddNewProject extends ProjectFormEvent {
 }
 
 class EditProject extends ProjectFormEvent {
-  final Project editedProject;
+  final ProjectEntity editedProject;
   const EditProject(this.editedProject);
 
   @override

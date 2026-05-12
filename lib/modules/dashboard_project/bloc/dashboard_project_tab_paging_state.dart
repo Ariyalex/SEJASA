@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 
 class DashboardProjectTabPagingState extends Equatable {
-  final List<Project> projects;
+  final List<ProjectEntity> projects;
   final int currentPage;
   final bool isFetchingMore;
   final bool hasReachedMax;
@@ -17,7 +17,7 @@ class DashboardProjectTabPagingState extends Equatable {
   });
 
   DashboardProjectTabPagingState copyWith({
-    final List<Project>? projects,
+    final List<ProjectEntity>? projects,
     final int? currentPage,
     final bool? isFetchingMore,
     final bool? hasReachedMax,
