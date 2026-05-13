@@ -79,10 +79,16 @@ class AppRouter {
               "id tidak ada ada di parameter, jangan lupa tambahin id",
             );
           }
+          final isReadMore = extra['read_more'] as bool?;
+
           return BlocProvider(
             create: (context) =>
                 ProjectDetailBloc(context.read<ProjectRepository>()),
-            child: ProjectDetailScreen(id: id!, isOwner: extra['is_owner']),
+            child: ProjectDetailScreen(
+              id: id!,
+              isOwner: extra['is_owner'],
+              isReadMore: isReadMore ?? false,
+            ),
           );
         },
       ),

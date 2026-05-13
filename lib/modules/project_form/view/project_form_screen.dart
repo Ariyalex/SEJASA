@@ -134,9 +134,7 @@ class ProjectFormScreen extends HookWidget {
                           onLocationChanged: (LatLng location, address) {
                             selectedLocation.value = location;
                             state.didChange(location);
-                            if (addressController.text.isEmpty) {
-                              addressController.text = address;
-                            }
+                            addressController.text = address;
                           },
                         ),
                         if (state.hasError)

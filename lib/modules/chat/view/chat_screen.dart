@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_event.dart';
 import 'package:sejasa/modules/chat/bloc/chat_state.dart';
@@ -29,6 +30,7 @@ class ChatScreen extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 5,
         title: Row(
           children: [
             CircleAvatar(
@@ -55,7 +57,7 @@ class ChatScreen extends HookWidget {
       body: BlocBuilder<ChatBloc, ChatState>(
         builder: (context, state) {
           if (state.status == ChatStatus.loading && state.messages.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildSkeleton();
           }
 
           if (state.status == ChatStatus.error) {
@@ -64,23 +66,28 @@ class ChatScreen extends HookWidget {
             );
           }
 
+          final hasProject = state.project != null;
+
           return Column(
             children: [
-              if (state.project != null)
-                ProjectInfoCard(project: state.project!),
               Expanded(
                 child: ListView.builder(
                   controller: scrollController,
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: state.messages.length,
+                  itemCount: state.messages.length + (hasProject ? 1 : 0),
                   itemBuilder: (context, index) {
-                    final chat = state.messages[index];
+                    if (hasProject && index == 0) {
+                      return ProjectInfoCard(project: state.project!);
+                    }
+
+                    final messageIndex = hasProject ? index - 1 : index;
+                    final chat = state.messages[messageIndex];
                     bool showDateChip = false;
 
-                    if (index == 0) {
+                    if (messageIndex == 0) {
                       showDateChip = true;
                     } else {
-                      final prevChat = state.messages[index - 1];
+                      final prevChat = state.messages[messageIndex - 1];
                       if (!_isSameDay(chat.timestamp, prevChat.timestamp)) {
                         showDateChip = true;
                       }
@@ -129,6 +136,34 @@ class ChatScreen extends HookWidget {
                 },
               ),
             ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSkeleton() {
+    return Skeletonizer(
+      enabled: true,
+      child: ListView.builder(
+        itemCount: 6,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemBuilder: (context, index) {
+          final isMe = index % 2 == 0;
+
+          return Align(
+            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Ini adalah dummy message untuk skeleton loading',
+              ),
+            ),
           );
         },
       ),

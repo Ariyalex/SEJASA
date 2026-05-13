@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/widgets/my_text_field.dart';
 
 class ChatInputBar extends HookWidget {
   final Function(String) onSend;
@@ -15,7 +16,8 @@ class ChatInputBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final controller = useTextEditingController();
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -23,7 +25,7 @@ class ChatInputBar extends HookWidget {
         color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -32,32 +34,22 @@ class ChatInputBar extends HookWidget {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              onPressed: onAttach,
-              icon: Icon(LucideIcons.paperclip, color: colorScheme.primary),
-            ),
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(24),
+              child: MyTextField(
+                title: '',
+                hint: 'Ketik pesan...',
+                controller: controller,
+                borderRadius: 24,
+                fillColor: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
                 ),
-                child: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(
-                    hintText: 'Ketik pesan...',
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                  ),
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      onSend(value);
-                      controller.clear();
-                    }
-                  },
+                suffixIcon: IconButton(
+                  onPressed: onAttach,
+                  icon: Icon(LucideIcons.paperclip, color: colorScheme.primary),
                 ),
+                onChanged: (_) {
+                  // Trigger rebuild to update suffix icon state if MyTextField relies on it
+                },
               ),
             ),
             const SizedBox(width: 8),

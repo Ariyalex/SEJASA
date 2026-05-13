@@ -17,22 +17,69 @@ class ProjectLocationPicker extends HookWidget {
     required this.onLocationChanged,
   });
 
-  Future<Position?> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  Future<Position?> _getCurrentLocation(BuildContext context) async {
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return null;
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return null;
+      permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        // Show explanation dialog first
+        if (context.mounted) {
+          final bool? shouldProceed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Izin Lokasi'),
+              content: const Text(
+                'Aplikasi membutuhkan izin lokasi untuk menentukan titik project Anda di peta dan mendapatkan alamat secara otomatis.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Batal'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Beri Izin'),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldProceed != true) return null;
+
+          // Berikan sedikit waktu agar animasi transisi dialog selesai
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+
+        if (permission == LocationPermission.deniedForever) {
+          await Geolocator.openAppSettings();
+          return null;
+        }
+
+        permission = await Geolocator.requestPermission();
+
+        if (permission == LocationPermission.deniedForever) {
+          // Jika OS secara otomatis menolak permanen, arahkan ke pengaturan
+          await Geolocator.openAppSettings();
+          return null;
+        }
+
+        if (permission == LocationPermission.denied) {
+          return null;
+        }
+      }
+
+      return await Geolocator.getCurrentPosition();
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      return null;
     }
-
-    if (permission == LocationPermission.deniedForever) return null;
-
-    return await Geolocator.getCurrentPosition();
   }
 
   Future<String> _getAddressFromLatLng(LatLng point) async {
@@ -83,7 +130,7 @@ class ProjectLocationPicker extends HookWidget {
     useEffect(() {
       if (initialLocation == null) {
         isLoading.value = true;
-        _getCurrentLocation().then((position) {
+        _getCurrentLocation(context).then((position) {
           if (position != null) {
             final userLoc = LatLng(position.latitude, position.longitude);
             mapController.move(userLoc, 15.0);
@@ -118,7 +165,7 @@ class ProjectLocationPicker extends HookWidget {
                 icon: const Icon(Icons.my_location, size: 20),
                 onPressed: () async {
                   isLoading.value = true;
-                  final pos = await _getCurrentLocation();
+                  final pos = await _getCurrentLocation(context);
                   if (pos != null) {
                     final loc = LatLng(pos.latitude, pos.longitude);
                     mapController.move(loc, 15.0);

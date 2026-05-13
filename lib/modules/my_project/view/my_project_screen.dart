@@ -44,8 +44,8 @@ class MyProjectScreen extends HookWidget {
                     TabBar(
                       controller: tabBarController,
                       splashBorderRadius: BorderRadius.only(
-                        topRight: Radius.circular(10),
-                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(8),
+                        topLeft: Radius.circular(8),
                       ),
                       tabs: [
                         Tab(text: "Project Diambil", height: 40),

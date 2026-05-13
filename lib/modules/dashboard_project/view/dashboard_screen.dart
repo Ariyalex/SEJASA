@@ -54,6 +54,10 @@ class DashboardScreen extends HookWidget {
               ],
               bottom: TabBar(
                 controller: tabBarController,
+                splashBorderRadius: BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  topLeft: Radius.circular(8),
+                ),
                 tabs: [
                   Tab(text: "Terdekat"),
                   Tab(text: "Terbaru"),
