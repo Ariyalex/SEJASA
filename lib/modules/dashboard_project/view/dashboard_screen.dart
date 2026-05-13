@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/widgets/my_outline_button.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.dart';
@@ -31,8 +32,6 @@ class DashboardScreen extends HookWidget {
     }, []);
 
     return Scaffold(
-      backgroundColor: theme.focusColor,
-
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -42,6 +41,7 @@ class DashboardScreen extends HookWidget {
               snap: true,
               pinned: true,
               surfaceTintColor: Colors.transparent,
+              actionsPadding: EdgeInsets.symmetric(horizontal: 8),
               actions: [
                 IconButton.filled(
                   onPressed: () {},
@@ -50,9 +50,14 @@ class DashboardScreen extends HookWidget {
                     color: theme.colorScheme.onPrimary,
                   ),
                 ),
+                MyOutlineButton(onPressed: () {}, child: Text("Masuk")),
               ],
               bottom: TabBar(
                 controller: tabBarController,
+                splashBorderRadius: BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  topLeft: Radius.circular(8),
+                ),
                 tabs: [
                   Tab(text: "Terdekat"),
                   Tab(text: "Terbaru"),
@@ -70,7 +75,6 @@ class DashboardScreen extends HookWidget {
             } else {
               return TabBarView(
                 controller: tabBarController,
-
                 children: [
                   BuildProjectListFetchPageWidget(
                     projects: state.closest.projects,

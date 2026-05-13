@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum ProjectStatus {
   hiring('hiring', 'Merekrut'),
   going('on_going', 'Sedang Berlangsung'),
@@ -16,5 +18,31 @@ enum ProjectStatus {
       (element) => element.jsonValue == value || element.label == value,
       orElse: () => throw Exception('invalid status value: $value'),
     );
+  }
+
+  Color getTextColor(ThemeData theme) {
+    switch (this) {
+      case ProjectStatus.hiring:
+        return theme.colorScheme.onPrimary;
+      case ProjectStatus.going:
+        return theme.colorScheme.onSecondary;
+      case ProjectStatus.completed:
+        return Colors.white;
+      case ProjectStatus.cancled:
+        return theme.colorScheme.onError;
+    }
+  }
+
+  Color getBackgroundColor(ThemeData theme) {
+    switch (this) {
+      case ProjectStatus.hiring:
+        return theme.colorScheme.primary;
+      case ProjectStatus.going:
+        return theme.colorScheme.secondary;
+      case ProjectStatus.completed:
+        return Colors.green;
+      case ProjectStatus.cancled:
+        return theme.colorScheme.error;
+    }
   }
 }

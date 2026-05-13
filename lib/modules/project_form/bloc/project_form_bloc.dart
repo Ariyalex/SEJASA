@@ -1,0 +1,42 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/modules/project_form/bloc/project_form_event.dart';
+import 'package:sejasa/modules/project_form/bloc/project_form_state.dart';
+
+class ProjectFormBloc extends Bloc<ProjectFormEvent, ProjectFormState> {
+  final ProjectRepository _repository;
+  ProjectFormBloc(this._repository) : super(ProjectFormState()) {
+    on<AddNewProject>(_onAddNewProject);
+    on<EditProject>(_onEditProject);
+  }
+
+  Future<void> _onAddNewProject(
+    AddNewProject event,
+    Emitter<ProjectFormState> emit,
+  ) async {
+    emit(state.copyWith(status: ProjectFormStatus.loading));
+    try {
+      await _repository.addNewProject(event.newProject);
+      emit(state.copyWith(status: ProjectFormStatus.success));
+    } catch (e) {
+      emit(
+        state.copyWith(status: ProjectFormStatus.error, message: e.toString()),
+      );
+    }
+  }
+
+  Future<void> _onEditProject(
+    EditProject event,
+    Emitter<ProjectFormState> emit,
+  ) async {
+    emit(state.copyWith(status: ProjectFormStatus.loading));
+    try {
+      await _repository.updateProject(event.editedProject);
+      emit(state.copyWith(status: ProjectFormStatus.success));
+    } catch (e) {
+      emit(
+        state.copyWith(status: ProjectFormStatus.error, message: e.toString()),
+      );
+    }
+  }
+}

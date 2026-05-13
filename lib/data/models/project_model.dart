@@ -1,7 +1,7 @@
-import 'package:sejasa/data/entities/project.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/data/value_objects/project_status.dart';
 
-class ProjectModel extends Project {
+class ProjectModel extends ProjectEntity {
   const ProjectModel({
     required super.id,
     required super.title,
@@ -16,6 +16,7 @@ class ProjectModel extends Project {
     required super.ownerName,
     required super.ownerRating,
     super.ownerImagePath,
+    required super.isBookmark,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -33,11 +34,12 @@ class ProjectModel extends Project {
       description: json['description'],
       hastags: json['hastags'],
       requirements: json['requirements'],
+      isBookmark: json['bookmark'],
     );
   }
 
-  Project toEntity() {
-    return Project(
+  ProjectEntity toEntity() {
+    return ProjectEntity(
       id: id,
       title: title,
       description: description,
@@ -51,6 +53,7 @@ class ProjectModel extends Project {
       ownerName: ownerName,
       ownerRating: ownerRating,
       ownerImagePath: ownerImagePath,
+      isBookmark: isBookmark,
     );
   }
 }

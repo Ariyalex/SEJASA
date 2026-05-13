@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
-import 'package:sejasa/data/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
-import 'package:sejasa/modules/project/bloc/project_bloc.dart';
-import 'package:sejasa/modules/project/view/my_project_screen.dart';
+import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
+import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});
@@ -43,7 +45,7 @@ class MainTab extends StatelessWidget {
                 PersistentTabConfig(
                   screen: BlocProvider(
                     create: (context) =>
-                        ProjectBloc(context.read<ProjectRepository>()),
+                        MyProjectBloc(context.read<ProjectRepository>()),
                     child: MyProjectScreen(),
                   ),
                   item: ItemConfig(
@@ -58,7 +60,8 @@ class MainTab extends StatelessWidget {
                     activeForegroundColor: theme.primaryColor,
                   ),
                   onPressed: (BuildContext context) {
-                    LogUtils.d('belum ada aksi');
+                    LogUtils.d("tombo jalan ini");
+                    context.pushNamed(RouteNamed.addProject);
                   },
                 ),
                 PersistentTabConfig(

@@ -1,21 +1,39 @@
 import 'package:flutter/material.dart';
 
 class MyTabChip extends StatelessWidget {
-  const MyTabChip({super.key, required this.title});
-
   final String title;
+  final bool selected;
+  final ValueChanged<bool> onSelected;
+  const MyTabChip({
+    super.key,
+    required this.title,
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.chipTheme.backgroundColor,
-        border: Border.all(color: theme.dividerColor),
-        borderRadius: BorderRadius.circular(50),
+    return ChoiceChip(
+      label: Text(title),
+      selected: selected,
+      showCheckmark: false,
+      onSelected: onSelected,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      selectedColor: theme.colorScheme.primaryContainer,
+      labelStyle: TextStyle(
+        color: selected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
       ),
-      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 6),
-      child: Text(title),
+      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: selected ? Colors.transparent : theme.dividerColor,
+        ),
+      ),
     );
   }
 }

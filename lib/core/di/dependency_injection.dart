@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
+import 'package:sejasa/core/services/socket_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 
 final getIt = GetIt.instance;
@@ -27,5 +28,8 @@ class DependencyInjection {
       apiService.initializeDio();
       return apiService;
     }, dependsOn: [StorageService, ConnectivityService]);
+
+    // WebSocket implementation
+    getIt.registerLazySingleton<SocketService>(() => SocketService());
   }
 }
