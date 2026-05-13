@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_outline_button.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
@@ -44,7 +46,9 @@ class DashboardScreen extends HookWidget {
               actionsPadding: EdgeInsets.symmetric(horizontal: 8),
               actions: [
                 IconButton.filled(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.pushNamed(RouteNamed.searchInitial);
+                  },
                   icon: Icon(
                     LucideIcons.search,
                     color: theme.colorScheme.onPrimary,

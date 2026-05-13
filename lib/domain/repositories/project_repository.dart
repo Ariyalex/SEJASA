@@ -1,3 +1,4 @@
+import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 
 abstract class ProjectRepository {
@@ -11,6 +12,13 @@ abstract class ProjectRepository {
   Future<List<ProjectEntity>> getMyProjects();
 
   Future<ProjectEntity> getProject(String id);
+
+  Future<List<ProjectEntity>> searchProjects({
+    required String keyword,
+    String? sort,
+    ProjectStatus? status,
+    String? category,
+  });
 
   Future<void> addNewProject(ProjectEntity project);
 

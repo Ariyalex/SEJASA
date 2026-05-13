@@ -48,6 +48,12 @@ class StorageService {
     await _prefs.setInt(key, value);
   }
 
+  /// Write List of String with key to shared preferences
+  Future<void> writeStringList(String key, List<String> value) async {
+    await isReady;
+    await _prefs.setStringList(key, value);
+  }
+
   /// Read String using key in shared preference.
   Future<String?> read(String key) async {
     await isReady;
@@ -64,6 +70,12 @@ class StorageService {
   Future<int?> readInt(String key) async {
     await isReady;
     return _prefs.getInt(key);
+  }
+
+  /// Read List of String using key in shared preferences.
+  Future<List<String>?> readStringList(String key) async {
+    await isReady;
+    return _prefs.getStringList(key);
   }
 
   /// Delete any data in shared prefences based on key.

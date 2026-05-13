@@ -1,7 +1,29 @@
 import 'package:sejasa/data/models/project_model.dart';
+import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class MockProjectProvider extends RemoteProjectProvider {
+  @override
+  Future<List<ProjectModel>> searchProjects({
+    required String keyword,
+    String? sort,
+    ProjectStatus? status,
+    String? category,
+  }) async {
+    final allProjects = await getProjects();
+    return allProjects.where((project) {
+      final matchesKeyword = project.title
+              .toLowerCase()
+              .contains(keyword.toLowerCase()) ||
+          (project.description?.toLowerCase().contains(keyword.toLowerCase()) ??
+              false);
+      final matchesStatus = status == null || project.status == status;
+      final matchesCategory = category == null || project.category == category;
+
+      return matchesKeyword && matchesStatus && matchesCategory;
+    }).toList();
+  }
+
   @override
   Future<List<ProjectModel>> getProjects() async {
     await Future.delayed(const Duration(seconds: 2));

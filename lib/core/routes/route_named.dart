@@ -4,4 +4,6 @@ abstract class RouteNamed {
   static const addProject = 'add_project';
   static const editProject = 'edit_project';
   static const chat = 'chat';
+  static const searchInitial = 'search_initial';
+  static const searchResult = 'search_result';
 }
