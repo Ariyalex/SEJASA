@@ -12,6 +12,8 @@ import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
 import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
+import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
+import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});
@@ -73,7 +75,11 @@ class MainTab extends StatelessWidget {
                   ),
                 ),
                 PersistentTabConfig(
-                  screen: Scaffold(),
+                  screen: BlocProvider(
+                    create: (context) =>
+                        ProfilProjectBloc(context.read<ProjectRepository>()),
+                    child: ProfilScreen(),
+                  ),
                   item: ItemConfig(
                     icon: const Icon(Icons.person_outline_rounded),
                     title: "Profile",
