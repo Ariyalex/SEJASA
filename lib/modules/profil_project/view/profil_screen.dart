@@ -6,7 +6,7 @@ import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
-import 'package:sejasa/core/widgets/profil_information.dart';
+import 'package:sejasa/modules/profil_project/widgets/profil_information.dart';
 
 class ProfilScreen extends HookWidget {
   const ProfilScreen({super.key});
@@ -21,7 +21,7 @@ class ProfilScreen extends HookWidget {
     useEffect(() {
       profilBloc.add(LoadMyUploadedProjects());
       profilBloc.add(LoadMyTakenProjects());
-      profilBloc.add(LoadAllMyProjects());
+      // profilBloc.add(LoadAllMyProjects());
       return null;
     }, []);
 
@@ -35,66 +35,79 @@ class ProfilScreen extends HookWidget {
               floating: true,
               snap: true,
               pinned: true,
+              actionsPadding: const EdgeInsets.symmetric(horizontal: 8),
               surfaceTintColor: Colors.transparent,
               actions: [
-                IconButton.filled(
-                  onPressed: () {},
+                PopupMenuButton<void>(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      onTap: () {},
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          Icon(LucideIcons.bookmark, size: 20),
+                          const Text("Simpan"),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: () {},
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          Icon(LucideIcons.share2, size: 20),
+                          const Text("Bagikan"),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: () {},
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          Icon(LucideIcons.pencil, size: 20),
+                          const Text("Edit Profil"),
+                        ],
+                      ),
+                    ),
+                  ],
                   icon: Icon(
-                    LucideIcons.bookmark,
+                    LucideIcons.ellipsisVertical,
                     color: theme.colorScheme.onPrimary,
                   ),
-                ),
-                const SizedBox(width: 8), 
-                // Tombol Share
-                IconButton.filled(
-                  onPressed: () {},
-                  icon: Icon(
-                    LucideIcons.share2,
-                    color: theme.colorScheme.onPrimary,
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                      theme.colorScheme.primary,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8), 
-                // Tombol Edit
-                IconButton.filled(
-                  onPressed: () {},
-                  icon: Icon(
-                    LucideIcons.pencil,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-                const SizedBox(width: 8), 
-                // Tombol Setelan / Opsi
-                IconButton.filled(
-                  onPressed: () {},
-                  icon: Icon(
-                    LucideIcons.settings,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-                // Memberi sedikit jarak di tepi kanan agar tidak terlalu menempel ke layar
-                const SizedBox(width: 8), 
               ],
             ),
 
-            SliverToBoxAdapter(
-              child: UserProfileHeaderWidget(),
-            ),
+            SliverToBoxAdapter(child: UserProfileHeaderWidget()),
 
             SliverAppBar(
               pinned: true,
               primary: false,
               toolbarHeight: 0, // Sembunyikan area toolbar default
-              surfaceTintColor: theme.scaffoldBackgroundColor,
+              surfaceTintColor: Colors.transparent,
               backgroundColor: theme.scaffoldBackgroundColor,
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(48),
                 child: TabBar(
                   controller: tabBarController,
                   indicatorSize: TabBarIndicatorSize.tab,
+                  splashBorderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(8),
+                    topLeft: Radius.circular(8),
+                  ),
                   tabs: [
                     Tab(text: "Semua"),
                     Tab(text: "Diselesaikan"),
-                    Tab(text: "Diunggah"),        
+                    Tab(text: "Diunggah"),
                   ],
                 ),
               ),

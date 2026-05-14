@@ -8,7 +8,7 @@ class ProfilProjectEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadAllMyProjects extends ProfilProjectEvent {}
+// class LoadAllMyProjects extends ProfilProjectEvent {}
 
 class LoadMyTakenProjects extends ProfilProjectEvent {}
 
