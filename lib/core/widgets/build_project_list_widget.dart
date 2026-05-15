@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListWidget extends StatelessWidget {

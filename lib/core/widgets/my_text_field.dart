@@ -120,7 +120,8 @@ class _MyTextFieldState extends State<MyTextField> {
     if (widget.obscureText) {
       return IconButton.filled(
         icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
-        color: widget.obscureIconColor,
+        color: widget.obscureIconColor ?? theme.colorScheme.primary,
+        style: IconButton.styleFrom(backgroundColor: Colors.transparent),
 
         onPressed: () {
           setState(() {

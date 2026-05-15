@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';

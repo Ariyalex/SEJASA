@@ -1,4 +1,6 @@
 abstract class RouteNamed {
+  static const login = 'login';
+  static const register = 'register';
   static const dashboard = 'dashboard';
   static const projectDetail = 'project_detail';
   static const addProject = 'add_project';

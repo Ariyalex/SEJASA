@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 enum ProfilProjectStatus { initial, loading, success, error }
 
@@ -51,8 +51,7 @@ class ProfilProjectState extends Equatable {
       allProjects: allProjects ?? this.allProjects,
       takenProjects: takenProjects ?? this.takenProjects,
       uploadedProjects: uploadedProjects ?? this.uploadedProjects,
-      isFetchingProjectAll:
-          isFetchingProjectAll ?? this.isFetchingProjectAll,
+      isFetchingProjectAll: isFetchingProjectAll ?? this.isFetchingProjectAll,
       isFetchingProjectTaken:
           isFetchingProjectTaken ?? this.isFetchingProjectTaken,
       isFetchingProjectUploaded:
@@ -60,7 +59,8 @@ class ProfilProjectState extends Equatable {
       status: status ?? this.status,
       message: message ?? this.message,
       filterType: filterType ?? this.filterType,
-      filteredCompletedProjects: filteredCompletedProjects ?? this.filteredCompletedProjects,
+      filteredCompletedProjects:
+          filteredCompletedProjects ?? this.filteredCompletedProjects,
     );
   }
 

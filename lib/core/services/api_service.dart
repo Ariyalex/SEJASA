@@ -8,8 +8,12 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:sejasa/core/config/app_config.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/errors/api_exceptions.dart';
+import 'package:sejasa/core/routes/app_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
+import 'package:sejasa/core/services/socket_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 
@@ -167,7 +171,11 @@ class ApiService {
 
           // ✅ Handle 401 with better logic
           if (statusCode == 401 && !_isAuthEndpoint(path)) {
-            if (error.response?.data["data"] != "unauthorized") {
+            final isUnauthorized =
+                error.response?.data?["message"]?.toString().toLowerCase() ==
+                "unauthorized";
+
+            if (!isUnauthorized) {
               LogUtils.d('🔄 Handling 401 for non-auth endpoint: $path');
 
               // Wait for ongoing refresh or start new one
@@ -224,7 +232,7 @@ class ApiService {
               } else {
                 // if token refresh with refreh token failed, then do log out.
                 LogUtils.d('❌ Token refresh failed, logging out...');
-                // await _handleLogout();
+                await _handleLogout();
               }
             }
           }
@@ -273,19 +281,21 @@ class ApiService {
       );
 
       final response = await refreshDio.post(
-        '/token/refresh',
-        data: {'refresh': refreshToken},
+        '/refresh',
+        data: {'refresh_token': refreshToken},
       );
 
       LogUtils.d('✅ Refresh API response: ${response.statusCode}');
 
-      final newAccessToken = response.data['access'];
+      final newAccessToken = response.data['data']?['access_token'];
 
       if (newAccessToken != null && newAccessToken.isNotEmpty) {
         await _storage.write('access_token', newAccessToken);
 
-        final newRefreshToken = response.data['refresh'];
-        await _storage.write('refresh_token', newRefreshToken);
+        final newRefreshToken = response.data['data']?['refresh_token'];
+        if (newRefreshToken != null) {
+          await _storage.write('refresh_token', newRefreshToken);
+        }
 
         LogUtils.d('✅ Tokens updated successfully');
         _refreshCompleter!.complete(true);
@@ -308,39 +318,36 @@ class ApiService {
   /// Checking is this path is auth endpoint or not.
   /// It will return [bool]
   bool _isAuthEndpoint(String path) {
-    final authEndpoints = ['/login', '/register', '/logout', '/token/refresh'];
+    final authEndpoints = ['/login', '/register', '/logout', '/refresh'];
     return authEndpoints.any((endpoint) => path.contains(endpoint));
   }
 
   /// Handle logout.
   /// Clear all pending request, access and refresh token
-  // Future<void> _handleLogout() async {
-  //   try {
-  //     LogUtils.d('🔄 Handling auto logout...');
+  Future<void> _handleLogout() async {
+    try {
+      LogUtils.d('🔄 Handling auto logout...');
 
-  //     //  Clear pending requests
-  //     _pendingRequests.clear();
-  //     _isRefreshing = false;
-  //     _refreshCompleter = null;
+      //  Clear pending requests
+      _pendingRequests.clear();
+      _isRefreshing = false;
+      _refreshCompleter = null;
 
-  //     //  Clear tokens
-  //     await _storage.delete('access_token');
-  //     await _storage.delete('refresh_token');
+      //  Clear tokens
+      await _storage.delete('access_token');
+      await _storage.delete('refresh_token');
 
-  //     // Call AuthService if available
-  //     if (Get.isRegistered<AuthService>()) {
-  //       final authService = Get.find<AuthService>();
-  //       await authService.logout();
-  //     }
-  //   } catch (e) {
-  //     LogUtils.e('❌ Logout error', e);
-  //   } finally {
-  //     //  Navigate to login
-  //     if (Get.currentRoute != RouteNames.loginPage) {
-  //       Get.offAllNamed(RouteNames.loginPage);
-  //     }
-  //   }
-  // }
+      // Disconnect socket
+      if (getIt.isRegistered<SocketService>()) {
+        getIt<SocketService>().disconnect();
+      }
+    } catch (e) {
+      LogUtils.e('❌ Logout error', e);
+    } finally {
+      //  Navigate to login
+      AppRouter.router.goNamed(RouteNamed.login);
+    }
+  }
 
   /// Http request Get.
   /// Handle custom get with dio.

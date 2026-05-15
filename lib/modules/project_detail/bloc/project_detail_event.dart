@@ -9,10 +9,11 @@ class ProjectDetailEvent extends Equatable {
 
 class LoadProject extends ProjectDetailEvent {
   final String id;
-  const LoadProject(this.id);
+  final bool isAuthenticated;
+  const LoadProject(this.id, {this.isAuthenticated = false});
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, isAuthenticated];
 }
 
 class ToggleProjectBookmark extends ProjectDetailEvent {}

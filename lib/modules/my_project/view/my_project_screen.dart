@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
@@ -8,11 +11,18 @@ import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/modules/auth/view/login_screen.dart';
+import 'package:sejasa/modules/auth/view/register_screen.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_event.dart';
 import 'package:sejasa/modules/chat/view/chat_screen.dart';
+import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
+import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
+import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/view/project_detail_screen.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/view/project_form_screen.dart';
@@ -24,7 +34,43 @@ import 'package:sejasa/modules/search/view/search_result_screen.dart';
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
+    refreshListenable: GoRouterRefreshStream(getIt<AuthBloc>().stream),
+    redirect: (context, state) {
+      final authState = context.read<AuthBloc>().state;
+      final isLoggingIn =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
+
+      if (authState is AuthUnauthenticated || authState is AuthInitial) {
+        if (state.matchedLocation == '/guest' || isLoggingIn) return null;
+        return '/guest';
+      }
+
+      if (authState is AuthAuthenticated) {
+        if (isLoggingIn || state.matchedLocation == '/guest') return '/';
+      }
+
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/login',
+        name: RouteNamed.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        name: RouteNamed.register,
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/guest',
+        builder: (context, state) => BlocProvider(
+          create: (context) =>
+              DashboardProjectBloc(context.read<ProjectRepository>()),
+          child: const DashboardScreen(),
+        ),
+      ),
       GoRoute(
         path: "/",
         name: RouteNamed.dashboard,
@@ -114,7 +160,13 @@ class AppRouter {
 
           return BlocProvider(
             create: (context) =>
-                ProjectDetailBloc(context.read<ProjectRepository>()),
+                ProjectDetailBloc(context.read<ProjectRepository>())..add(
+                  LoadProject(
+                    id,
+                    isAuthenticated:
+                        context.read<AuthBloc>().state is AuthAuthenticated,
+                  ),
+                ),
             child: ProjectDetailScreen(
               id: id!,
               isOwner: extra['is_owner'],
@@ -125,4 +177,21 @@ class AppRouter {
       ),
     ],
   );
+}
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }

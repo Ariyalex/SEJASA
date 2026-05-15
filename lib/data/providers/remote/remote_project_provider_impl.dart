@@ -1,5 +1,5 @@
 import 'package:sejasa/data/models/project_model.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class RemoteProjectProviderImpl extends RemoteProjectProvider {

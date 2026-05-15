@@ -9,6 +9,8 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dar
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.dart';
 import 'package:sejasa/core/widgets/build_project_list_fetch_page_widget.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 
 class DashboardScreen extends HookWidget {
   const DashboardScreen({super.key});
@@ -54,7 +56,19 @@ class DashboardScreen extends HookWidget {
                     color: theme.colorScheme.onPrimary,
                   ),
                 ),
-                MyOutlineButton(onPressed: () {}, child: Text("Masuk")),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    if (state is AuthAuthenticated) {
+                      return const SizedBox.shrink();
+                    }
+                    return MyOutlineButton(
+                      onPressed: () {
+                        context.pushNamed(RouteNamed.login);
+                      },
+                      child: const Text("Masuk"),
+                    );
+                  },
+                ),
               ],
               bottom: TabBar(
                 controller: tabBarController,

@@ -1,5 +1,5 @@
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ProjectModel extends ProjectEntity {
   const ProjectModel({

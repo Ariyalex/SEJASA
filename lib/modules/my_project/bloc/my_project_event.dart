@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 class MyProjectEvent extends Equatable {
   const MyProjectEvent();

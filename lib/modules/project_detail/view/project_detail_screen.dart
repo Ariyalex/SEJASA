@@ -378,6 +378,12 @@ class ProjectDetailScreen extends HookWidget {
                     final bool isSkeleton =
                         state.status != ProjectDetailStatus.success &&
                         state.project == null;
+
+                    // If not owner and not authenticated, hide the button
+                    if (!isOwner && !state.isAuthenticated) {
+                      return const SizedBox.shrink();
+                    }
+
                     return Skeletonizer(
                       enabled: isSkeleton,
                       child: Container(

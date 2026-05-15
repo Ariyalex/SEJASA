@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ProjectFilterBottomSheet extends HookWidget {
   final String? initialSort;
   final ProjectStatus? initialStatus;
   final String? initialCategory;
-  final void Function(String? sort, ProjectStatus? status, String? category) onApply;
+  final void Function(String? sort, ProjectStatus? status, String? category)
+  onApply;
 
   const ProjectFilterBottomSheet({
     super.key,
@@ -23,14 +24,28 @@ class ProjectFilterBottomSheet extends HookWidget {
     final theme = Theme.of(context);
     final selectedSort = useState<String?>(initialSort);
     // Default status to hiring if null
-    final selectedStatus = useState<ProjectStatus?>(initialStatus ?? ProjectStatus.hiring);
+    final selectedStatus = useState<ProjectStatus?>(
+      initialStatus ?? ProjectStatus.hiring,
+    );
     final selectedCategory = useState<String?>(initialCategory);
-    final categorySearchController = useTextEditingController(text: initialCategory);
-    
-    final allCategories = useMemoized(() => [
-      'Plumbing', 'Electrical', 'Cleaning', 'Painting', 'Carpentry', 
-      'Gardening', 'Roofing', 'Flooring', 'Masonry', 'AC Repair'
-    ]);
+    final categorySearchController = useTextEditingController(
+      text: initialCategory,
+    );
+
+    final allCategories = useMemoized(
+      () => [
+        'Plumbing',
+        'Electrical',
+        'Cleaning',
+        'Painting',
+        'Carpentry',
+        'Gardening',
+        'Roofing',
+        'Flooring',
+        'Masonry',
+        'AC Repair',
+      ],
+    );
     final filteredCategories = useState<List<String>>(allCategories);
     final debounceTimer = useRef<Timer?>(null);
 
@@ -69,7 +84,9 @@ class ProjectFilterBottomSheet extends HookWidget {
               children: [
                 Text(
                   "Filter Proyek",
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -77,8 +94,13 @@ class ProjectFilterBottomSheet extends HookWidget {
                 ),
               ],
             ),
-            
-            Text("Urutkan", style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+
+            Text(
+              "Urutkan",
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             Wrap(
               spacing: 8,
               children: ['Terbaru', 'Terlama'].map((sort) {
@@ -93,7 +115,12 @@ class ProjectFilterBottomSheet extends HookWidget {
               }).toList(),
             ),
 
-            Text("Status", style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              "Status",
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             Wrap(
               spacing: 8,
               children: ProjectStatus.values.map((status) {
@@ -108,7 +135,12 @@ class ProjectFilterBottomSheet extends HookWidget {
               }).toList(),
             ),
 
-            Text("Kategori", style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              "Kategori",
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             MyTextField(
               title: "",
               hint: "Cari kategori...",
@@ -116,7 +148,9 @@ class ProjectFilterBottomSheet extends HookWidget {
               onChanged: onSearchChanged,
             ),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 100), // Height for approx 2 rows
+              constraints: const BoxConstraints(
+                maxHeight: 100,
+              ), // Height for approx 2 rows
               child: ClipRect(
                 child: Wrap(
                   spacing: 8,
@@ -126,7 +160,7 @@ class ProjectFilterBottomSheet extends HookWidget {
                     final isSelected = selectedCategory.value == cat;
                     return ChoiceChip(
                       label: Text(
-                        cat, 
+                        cat,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -149,7 +183,11 @@ class ProjectFilterBottomSheet extends HookWidget {
               height: 50,
               child: FilledButton(
                 onPressed: () {
-                  onApply(selectedSort.value, selectedStatus.value, selectedCategory.value);
+                  onApply(
+                    selectedSort.value,
+                    selectedStatus.value,
+                    selectedCategory.value,
+                  );
                   Navigator.pop(context);
                 },
                 child: const Text("Tampilkan Hasil"),

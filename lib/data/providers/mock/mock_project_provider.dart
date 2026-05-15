@@ -1,5 +1,5 @@
 import 'package:sejasa/data/models/project_model.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class MockProjectProvider extends RemoteProjectProvider {
@@ -12,9 +12,8 @@ class MockProjectProvider extends RemoteProjectProvider {
   }) async {
     final allProjects = await getProjects();
     return allProjects.where((project) {
-      final matchesKeyword = project.title
-              .toLowerCase()
-              .contains(keyword.toLowerCase()) ||
+      final matchesKeyword =
+          project.title.toLowerCase().contains(keyword.toLowerCase()) ||
           (project.description?.toLowerCase().contains(keyword.toLowerCase()) ??
               false);
       final matchesStatus = status == null || project.status == status;

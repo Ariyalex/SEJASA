@@ -1,5 +1,7 @@
+import 'package:sejasa/data/models/skill_model.dart';
 import 'package:sejasa/data/models/user_model.dart';
 import 'package:sejasa/domain/providers/remote_user_provider.dart';
+import 'package:sejasa/domain/value_objects/gender_type.dart';
 
 class MockUserProvider extends RemoteUserProvider {
   @override
@@ -10,45 +12,72 @@ class MockUserProvider extends RemoteUserProvider {
       const UserModel(
         id: 'user-1',
         name: 'Budi Santoso',
+        email: 'budi@example.com',
+        gender: GenderType.male,
         rating: 4.8,
+        description: 'Tukang berpengalaman sejak 2010.',
+        contact: '08123456789',
         address: 'Jakarta Selatan',
+        latitude: -6.2088,
+        longitude: 106.8456,
         profilePicture: 'https://i.pravatar.cc/150?u=user-1',
-        gender: 'Laki-laki',
-        totalProjectsCreated: 5,
-        totalProjectsCompleted: 12,
-        skills: ['Pertukangan', 'Kelistrikan', 'Pengecatan'],
+        skills: [
+          SkillModel(id: 1, name: 'Pertukangan'),
+          SkillModel(id: 2, name: 'Kelistrikan'),
+          SkillModel(id: 3, name: 'Pengecatan'),
+        ],
       ),
       const UserModel(
         id: 'user-2',
         name: 'Siti Aminah',
+        email: 'siti@example.com',
+        gender: GenderType.female,
         rating: 4.9,
+        description: 'Spesialis kebersihan dan katering.',
+        contact: '08234567890',
         address: 'Bandung',
+        latitude: -6.9175,
+        longitude: 107.6191,
         profilePicture: 'https://i.pravatar.cc/150?u=user-2',
-        gender: 'Perempuan',
-        totalProjectsCreated: 2,
-        totalProjectsCompleted: 25,
-        skills: ['Kebersihan', 'Memasak', 'Menjahit'],
+        skills: [
+          SkillModel(id: 1, name: 'Kebersihan'),
+          SkillModel(id: 2, name: 'Memasak'),
+          SkillModel(id: 3, name: 'Menjahit'),
+        ],
       ),
       const UserModel(
         id: 'user-3',
         name: 'Agus Setiawan',
+        email: 'agus@example.com',
+        gender: GenderType.male,
         rating: 4.5,
+        description: 'Driver profesional dan jujur.',
+        contact: '08345678901',
         address: 'Surabaya',
+        latitude: -7.2575,
+        longitude: 112.7521,
         profilePicture: 'https://i.pravatar.cc/150?u=user-3',
-        gender: 'Laki-laki',
-        totalProjectsCreated: 10,
-        totalProjectsCompleted: 8,
-        skills: ['Mengemudi', 'Keamanan', 'Logistik'],
+        skills: [
+          SkillModel(id: 1, name: 'Mengemudi'),
+          SkillModel(id: 2, name: 'Keamanan'),
+          SkillModel(id: 3, name: 'Logistik'),
+        ],
       ),
     ];
 
     if (keyword.isEmpty) return users;
 
     return users
-        .where((user) =>
-            user.name.toLowerCase().contains(keyword.toLowerCase()) ||
-            user.skills.any((skill) =>
-                skill.toLowerCase().contains(keyword.toLowerCase())))
+        .where(
+          (user) =>
+              user.name.toLowerCase().contains(keyword.toLowerCase()) ||
+              (user.skills?.any(
+                    (skill) => skill.name.toLowerCase().contains(
+                      keyword.toLowerCase(),
+                    ),
+                  ) ??
+                  false),
+        )
         .toList();
   }
 }

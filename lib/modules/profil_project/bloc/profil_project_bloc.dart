@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   final ProjectRepository _repository;

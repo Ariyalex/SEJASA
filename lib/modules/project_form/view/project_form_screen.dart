@@ -7,7 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_event.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_state.dart';

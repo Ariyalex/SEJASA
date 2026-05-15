@@ -19,7 +19,10 @@ void main() async {
     MultiRepositoryProvider(
       providers: AppProviders.repositoryProviers,
       child: MultiBlocProvider(
-        providers: [BlocProvider(create: (context) => MainTabBloc())],
+        providers: [
+          BlocProvider(create: (context) => MainTabBloc()),
+          ...AppProviders.blocProviders,
+        ],
         child: const MyApp(),
       ),
     ),

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/entities/user_entity.dart';
 
@@ -58,15 +58,15 @@ class SearchState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        isProject,
-        history,
-        projectResults,
-        userResults,
-        errorMessage,
-        selectedSort,
-        selectedStatus,
-        selectedCategory,
-        lastKeyword,
-      ];
+    status,
+    isProject,
+    history,
+    projectResults,
+    userResults,
+    errorMessage,
+    selectedSort,
+    selectedStatus,
+    selectedCategory,
+    lastKeyword,
+  ];
 }

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 enum MyProjectStatus { initial, loading, success, error }
 

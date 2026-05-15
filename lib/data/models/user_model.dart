@@ -1,29 +1,42 @@
+import 'package:sejasa/data/models/skill_model.dart';
 import 'package:sejasa/domain/entities/user_entity.dart';
+import 'package:sejasa/domain/value_objects/gender_type.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
     required super.id,
     required super.name,
-    required super.rating,
-    required super.address,
-    super.profilePicture,
+    required super.email,
     required super.gender,
-    required super.totalProjectsCreated,
-    required super.totalProjectsCompleted,
-    required super.skills,
+    required super.rating,
+    super.description,
+    super.contact,
+    super.address,
+    required super.latitude,
+    required super.longitude,
+    super.profilePicture,
+    super.skills,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
       name: json['name'] as String,
+      email: json['email'] as String,
+      gender: GenderType.values.firstWhere(
+        (e) => e.jsonValue == json['gender'],
+        orElse: () => GenderType.male,
+      ),
       rating: (json['rating'] as num).toDouble(),
-      address: json['address'] as String,
-      profilePicture: json['profile_picture'] as String?,
-      gender: json['gender'] as String,
-      totalProjectsCreated: json['total_projects_created'] as int,
-      totalProjectsCompleted: json['total_projects_completed'] as int,
-      skills: List<String>.from(json['skills'] as List),
+      description: json['description'] as String?,
+      contact: json['contact'] as String?,
+      address: json['address'] as String?,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      profilePicture: json['image'] as String?,
+      skills: (json['skills'] as List?)
+          ?.map((e) => SkillModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -31,13 +44,24 @@ class UserModel extends UserEntity {
     return {
       'id': id,
       'name': name,
+      'email': email,
+      'gender': gender.jsonValue,
       'rating': rating,
+      'description': description,
+      'contact': contact,
       'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
       'profile_picture': profilePicture,
-      'gender': gender,
-      'total_projects_created': totalProjectsCreated,
-      'total_projects_completed': totalProjectsCompleted,
-      'skills': skills,
+      'skills': skills
+          ?.map(
+            (e) => SkillModel(
+              id: e.id,
+              name: e.name,
+              description: e.description,
+            ).toJson(),
+          )
+          .toList(),
     };
   }
 
@@ -45,12 +69,15 @@ class UserModel extends UserEntity {
     return UserEntity(
       id: id,
       name: name,
-      rating: rating,
-      address: address,
-      profilePicture: profilePicture,
+      email: email,
       gender: gender,
-      totalProjectsCreated: totalProjectsCreated,
-      totalProjectsCompleted: totalProjectsCompleted,
+      rating: rating,
+      description: description,
+      contact: contact,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      profilePicture: profilePicture,
       skills: skills,
     );
   }

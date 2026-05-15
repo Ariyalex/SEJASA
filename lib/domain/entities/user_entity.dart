@@ -1,38 +1,51 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/domain/entities/skill_entity.dart';
+import 'package:sejasa/domain/value_objects/gender_type.dart';
 
 class UserEntity extends Equatable {
   final String id;
   final String name;
+  final String email;
+  final GenderType gender;
   final double rating;
-  final String address;
+  final String? description;
+  final String? contact;
+  final String? address;
+  final double longitude;
+  final double latitude;
   final String? profilePicture;
-  final String gender;
-  final int totalProjectsCreated;
-  final int totalProjectsCompleted;
-  final List<String> skills;
+  final List<SkillEntity>? skills;
 
   const UserEntity({
     required this.id,
     required this.name,
-    required this.rating,
-    required this.address,
-    this.profilePicture,
+    required this.email,
     required this.gender,
-    required this.totalProjectsCreated,
-    required this.totalProjectsCompleted,
-    required this.skills,
+    required this.rating,
+    this.description,
+    this.contact,
+    this.address,
+    required this.latitude,
+    required this.longitude,
+
+    this.profilePicture,
+
+    this.skills,
   });
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        rating,
-        address,
-        profilePicture,
-        gender,
-        totalProjectsCreated,
-        totalProjectsCompleted,
-        skills,
-      ];
+    id,
+    name,
+    email,
+    gender,
+    description,
+    contact,
+    longitude,
+    latitude,
+    rating,
+    address,
+    profilePicture,
+    skills,
+  ];
 }

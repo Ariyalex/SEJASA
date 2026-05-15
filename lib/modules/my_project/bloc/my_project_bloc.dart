@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';

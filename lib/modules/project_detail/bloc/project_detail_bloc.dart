@@ -14,7 +14,10 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
     LoadProject event,
     Emitter<ProjectDetailState> emit,
   ) async {
-    emit(state.copyWith(status: ProjectDetailStatus.loading));
+    emit(state.copyWith(
+      status: ProjectDetailStatus.loading,
+      isAuthenticated: event.isAuthenticated,
+    ));
     try {
       final project = await _repository.getProject(event.id);
       emit(
