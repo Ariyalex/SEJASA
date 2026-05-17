@@ -15,5 +15,3 @@ class LoadProject extends ProjectDetailEvent {
   @override
   List<Object?> get props => [id, isAuthenticated];
 }
-
-class ToggleProjectBookmark extends ProjectDetailEvent {}

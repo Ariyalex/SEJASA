@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/data/payloads/register_payload.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
@@ -32,9 +33,12 @@ class RegisterScreen extends HookWidget {
               context,
             ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.red));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
         child: SingleChildScrollView(
@@ -47,14 +51,18 @@ class RegisterScreen extends HookWidget {
                   controller: nameController,
                   title: "Nama",
                   hint: "Masukkan nama lengkap",
-                  validator: (value) => value == null || value.isEmpty ? "Nama tidak boleh kosong" : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? "Nama tidak boleh kosong"
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 MyTextField(
                   controller: emailController,
                   title: "Email",
                   hint: "Masukkan email",
-                  validator: (value) => value == null || value.isEmpty ? "Email tidak boleh kosong" : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? "Email tidak boleh kosong"
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 MyTextField(
@@ -62,7 +70,9 @@ class RegisterScreen extends HookWidget {
                   title: "Password",
                   hint: "Masukkan password",
                   obscureText: true,
-                  validator: (value) => value == null || value.isEmpty ? "Password tidak boleh kosong" : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? "Password tidak boleh kosong"
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 MyTextField(
@@ -71,8 +81,10 @@ class RegisterScreen extends HookWidget {
                   hint: "Masukkan kembali password",
                   obscureText: true,
                   validator: (value) {
-                    if (value == null || value.isEmpty) return "Konfirmasi password tidak boleh kosong";
-                    if (value != pass1Controller.text) return "Password tidak cocok";
+                    if (value == null || value.isEmpty)
+                      return "Konfirmasi password tidak boleh kosong";
+                    if (value != pass1Controller.text)
+                      return "Password tidak cocok";
                     return null;
                   },
                 ),
@@ -81,13 +93,18 @@ class RegisterScreen extends HookWidget {
                   controller: accountTypeController,
                   title: "Tipe Akun",
                   hint: "personal / company",
-                  validator: (value) => value == null || value.isEmpty ? "Tipe akun tidak boleh kosong" : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? "Tipe akun tidak boleh kosong"
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 MyTextField(
                   controller: genderController,
                   title: "Jenis Kelamin (Optional)",
                   hint: "male / female",
+                  validator: (value) => value == null || value.isEmpty
+                      ? "gender tidak boleh kosong"
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 MyTextField(
@@ -114,21 +131,22 @@ class RegisterScreen extends HookWidget {
                           child: FilledButton(
                             onPressed: () {
                               if (formKey.currentState?.validate() ?? false) {
+                                final payload = RegisterPayload(
+                                  name: nameController.text,
+                                  email: emailController.text,
+                                  password1: pass1Controller.text,
+                                  password2: pass2Controller.text,
+                                  accountType: accountTypeController.text,
+                                  gender: genderController.text,
+                                  latitude:
+                                      double.tryParse(latController.text) ??
+                                      0.0,
+                                  longitude:
+                                      double.tryParse(lngController.text) ??
+                                      0.0,
+                                );
                                 context.read<AuthBloc>().add(
-                                  AuthRegisterRequested(
-                                    name: nameController.text,
-                                    email: emailController.text,
-                                    passowrd1: pass1Controller.text,
-                                    passowrd2: pass2Controller.text,
-                                    accountType: accountTypeController.text,
-                                    gender: genderController.text.isEmpty
-                                        ? null
-                                        : genderController.text,
-                                    latitude:
-                                        double.tryParse(latController.text) ?? 0.0,
-                                    longitude:
-                                        double.tryParse(lngController.text) ?? 0.0,
-                                  ),
+                                  AuthRegisterRequested(payload),
                                 );
                               }
                             },

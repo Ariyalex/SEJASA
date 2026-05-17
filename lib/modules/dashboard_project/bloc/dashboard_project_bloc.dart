@@ -1,5 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/wrappers/pagination_result.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.dart';
@@ -33,17 +35,14 @@ class DashboardProjectBloc
     );
 
     try {
-      final newProjects = await _repository.getProjects(
-        pages: 1,
-        type: event.tabType.name,
-      );
+      final result = await _getProjectsByTabType(event.tabType, 1, 10);
 
       final updatedTabState = _getCurrentTabPagingState(event.tabType, state)
           .copyWith(
-            projects: newProjects,
-            currentPage: 1,
+            projects: result.data,
+            currentPage: result.meta.currentPage,
             isFetchingMore: false,
-            hasReachedMax: newProjects.isEmpty,
+            hasReachedMax: result.meta.currentPage >= result.meta.totalPages,
             isFetchingInitial: false,
           );
 
@@ -88,21 +87,16 @@ class DashboardProjectBloc
     );
     try {
       final nextPage = currentTabState.currentPage + 1;
-      final newProjects = await _repository.getProjects(
-        pages: nextPage,
-        type: event.tabType.name,
-      );
+      final result = await _getProjectsByTabType(event.tabType, nextPage, 10);
 
-      final updatedTabState = _getCurrentTabPagingState(event.tabType, state)
-          .copyWith(
-            projects: [
-              ..._getCurrentTabPagingState(event.tabType, state).projects,
-              ...newProjects,
-            ],
-            currentPage: nextPage,
-            isFetchingMore: false,
-            hasReachedMax: newProjects.isEmpty,
-          );
+      final currentTab = _getCurrentTabPagingState(event.tabType, state);
+
+      final updatedTabState = currentTab.copyWith(
+        projects: [...currentTab.projects, ...result.data],
+        currentPage: result.meta.currentPage,
+        isFetchingMore: false,
+        hasReachedMax: result.meta.currentPage >= result.meta.totalPages,
+      );
 
       emit(
         _updateTabState(
@@ -165,6 +159,22 @@ class DashboardProjectBloc
         return state.latest;
       case DashboardProjectTabType.popular:
         return state.popular;
+    }
+  }
+
+  Future<PaginatedResult<ProjectEntity>> _getProjectsByTabType(
+    DashboardProjectTabType type,
+    int page,
+    int limit,
+  ) async {
+    switch (type) {
+      case DashboardProjectTabType.closest:
+        return await _repository.getNearestProjects(page, limit);
+      case DashboardProjectTabType.latest:
+        return await _repository.getNewestProjects(page, limit);
+      case DashboardProjectTabType.popular:
+        //sementara gini dulu, nuggu dari be perbaikan
+        return await _repository.getNearestProjects(page, limit);
     }
   }
 }

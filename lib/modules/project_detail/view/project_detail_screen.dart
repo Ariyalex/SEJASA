@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
@@ -30,6 +33,7 @@ class ProjectDetailScreen extends HookWidget {
     final scrollController = useScrollController();
 
     final projectDetailBloc = context.read<ProjectDetailBloc>();
+    final locationService = getIt<LocationService>();
 
     final seeMoreDescription = useState<bool>(false);
     final isScrolled = useState<bool>(false);
@@ -66,12 +70,13 @@ class ProjectDetailScreen extends HookWidget {
               },
               builder: (context, project) {
                 if (project == null) return SizedBox.shrink();
+
                 if (isScrolled.value) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        project.title,
+                        project.name,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleLarge,
                       ),
@@ -95,31 +100,6 @@ class ProjectDetailScreen extends HookWidget {
               },
             ),
         actions: [
-          BlocSelector<ProjectDetailBloc, ProjectDetailState, bool?>(
-            selector: (state) {
-              return state.project?.isBookmark;
-            },
-            builder: (context, isBookmark) {
-              if (isBookmark == null) {
-                return IconButton(
-                  onPressed: null,
-                  icon: Icon(
-                    Icons.bookmark_outline,
-                    color: theme.colorScheme.primary,
-                  ),
-                );
-              }
-              return IconButton(
-                onPressed: () {
-                  projectDetailBloc.add(ToggleProjectBookmark());
-                },
-                icon: Icon(
-                  isBookmark ? Icons.bookmark : Icons.bookmark_outline,
-                  color: theme.colorScheme.primary,
-                ),
-              );
-            },
-          ),
           IconButton(
             onPressed: () {},
             icon: Icon(LucideIcons.share2, color: theme.colorScheme.primary),
@@ -154,6 +134,18 @@ class ProjectDetailScreen extends HookWidget {
                 final isSkeleton =
                     state.status != ProjectDetailStatus.success &&
                     state.project == null;
+
+                String projectAddress = "";
+                if (project.detailAddress == null) {
+                  locationService
+                      .getAddressFromLatLng(
+                        LatLng(project.latitude, project.longitude),
+                      )
+                      .then((value) {
+                        projectAddress = value;
+                      });
+                }
+
                 return Skeletonizer(
                   enabled: isSkeleton,
                   child: Column(
@@ -163,7 +155,7 @@ class ProjectDetailScreen extends HookWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            project.title,
+                            project.name,
                             style: theme.textTheme.headlineMedium,
                             overflow: TextOverflow.visible,
                           ),
@@ -181,7 +173,7 @@ class ProjectDetailScreen extends HookWidget {
                                     ),
                                     Expanded(
                                       child: Text(
-                                        project.distance,
+                                        "${round(project.distance / 1000, decimals: 2)} KM",
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.textTheme.bodyLarge,
                                       ),
@@ -200,7 +192,7 @@ class ProjectDetailScreen extends HookWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  "${project.participant} Pelamar",
+                                  "${project.currentParticipant}/${project.maxParticipant} Pelamar",
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.primary,
                                     fontWeight: FontWeight.bold,
@@ -211,7 +203,7 @@ class ProjectDetailScreen extends HookWidget {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            project.address,
+                            project.detailAddress ?? projectAddress,
                             style: theme.textTheme.bodyLarge,
                           ),
                           SizedBox(height: 8),

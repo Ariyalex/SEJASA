@@ -47,12 +47,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     SearchTypeChanged event,
     Emitter<SearchState> emit,
   ) {
-    emit(state.copyWith(
-      isProject: event.isProject,
-      projectResults: [],
-      userResults: [],
-      status: SearchStatus.initial,
-    ));
+    emit(
+      state.copyWith(
+        isProject: event.isProject,
+        projectResults: [],
+        userResults: [],
+        status: SearchStatus.initial,
+      ),
+    );
   }
 
   Future<void> _onPerformSearch(
@@ -61,7 +63,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   ) async {
     if (event.keyword.isEmpty) return;
 
-    emit(state.copyWith(status: SearchStatus.loading, lastKeyword: event.keyword));
+    emit(
+      state.copyWith(status: SearchStatus.loading, lastKeyword: event.keyword),
+    );
 
     try {
       if (state.isProject) {
@@ -70,25 +74,30 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           sort: state.selectedSort,
           status: state.selectedStatus,
           category: state.selectedCategory,
+          page: 1,
+          limit: 100,
         );
-        emit(state.copyWith(
-          status: SearchStatus.success,
-          projectResults: results,
-        ));
+        emit(
+          state.copyWith(
+            status: SearchStatus.success,
+            projectResults: results.data,
+          ),
+        );
       } else {
         final results = await userRepository.searchUsers(event.keyword);
-        emit(state.copyWith(
-          status: SearchStatus.success,
-          userResults: results,
-        ));
+        emit(
+          state.copyWith(status: SearchStatus.success, userResults: results),
+        );
       }
 
       add(AddHistory(event.keyword));
     } catch (e) {
-      emit(state.copyWith(
-        status: SearchStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: SearchStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -97,7 +106,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     final currentHistory = List<String>.from(state.history);
-    
+
     // Remove if already exists to move it to the top
     currentHistory.remove(event.keyword);
     currentHistory.insert(0, event.keyword);
@@ -123,11 +132,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     ApplyProjectFilter event,
     Emitter<SearchState> emit,
   ) {
-    emit(state.copyWith(
-      selectedSort: event.sort,
-      selectedStatus: event.status,
-      selectedCategory: event.category,
-    ));
+    emit(
+      state.copyWith(
+        selectedSort: event.sort,
+        selectedStatus: event.status,
+        selectedCategory: event.category,
+      ),
+    );
 
     if (state.lastKeyword.isNotEmpty) {
       add(PerformSearch(state.lastKeyword));

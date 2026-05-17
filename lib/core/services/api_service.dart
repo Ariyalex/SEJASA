@@ -168,6 +168,7 @@ class ApiService {
 
           LogUtils.d('❌ Error: $statusCode $path');
           LogUtils.d('❌ message: $message');
+          LogUtils.d('❌ detail: ${error.error}');
 
           // ✅ Handle 401 with better logic
           if (statusCode == 401 && !_isAuthEndpoint(path)) {

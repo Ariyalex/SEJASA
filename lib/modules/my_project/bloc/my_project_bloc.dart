@@ -9,17 +9,10 @@ import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
 
 class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   final ProjectRepository _repository;
-  late final StreamSubscription<void> _projectUpdateSubscription;
   MyProjectBloc(this._repository) : super(MyProjectState()) {
     on<LoadMyTakenProjects>(_onLoadTakenProject);
     on<LoadMyUploadedProjects>(_onLoadUploadedProject);
     on<SetMyProjectFilterType>(_onSetProjectFilterType);
-
-    _projectUpdateSubscription = _repository.projectUpdateStream.listen((
-      event,
-    ) {
-      add(LoadMyUploadedProjects());
-    });
   }
 
   Future<void> _onLoadUploadedProject(
@@ -105,11 +98,5 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         filteredUploadedProjects: uploadedProjects,
       ),
     );
-  }
-
-  @override
-  Future<void> close() {
-    _projectUpdateSubscription.cancel();
-    return super.close();
   }
 }

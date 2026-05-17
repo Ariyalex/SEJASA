@@ -1,19 +1,22 @@
+import 'package:sejasa/core/wrappers/pagination_meta.dart';
+import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/data/models/project_model.dart';
+import 'package:sejasa/data/payloads/project_create_payload.dart';
+import 'package:sejasa/data/payloads/project_update_payload.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class MockProjectProvider extends RemoteProjectProvider {
-  @override
   Future<List<ProjectModel>> searchProjects({
     required String keyword,
     String? sort,
     ProjectStatus? status,
     String? category,
   }) async {
-    final allProjects = await getProjects();
-    return allProjects.where((project) {
+    final allProjects = await getProjects(null, page: 1, limit: 10);
+    return allProjects.data.where((project) {
       final matchesKeyword =
-          project.title.toLowerCase().contains(keyword.toLowerCase()) ||
+          project.name.toLowerCase().contains(keyword.toLowerCase()) ||
           (project.description?.toLowerCase().contains(keyword.toLowerCase()) ??
               false);
       final matchesStatus = status == null || project.status == status;
@@ -24,7 +27,11 @@ class MockProjectProvider extends RemoteProjectProvider {
   }
 
   @override
-  Future<List<ProjectModel>> getProjects() async {
+  Future<PaginatedResult<ProjectModel>> getProjects(
+    Map<String, dynamic>? queryParameters, {
+    required int page,
+    required int limit,
+  }) async {
     await Future.delayed(const Duration(seconds: 2));
 
     final json = {
@@ -229,7 +236,16 @@ class MockProjectProvider extends RemoteProjectProvider {
 
     final data = json['data'] as List<Map<String, dynamic>>;
 
-    return data.map((e) => ProjectModel.fromJson(e)).toList();
+    final projects = data.map((e) => ProjectModel.fromJson(e)).toList();
+    return PaginatedResult(
+      data: projects,
+      meta: PaginationMeta(
+        currentPage: 1,
+        limitPage: 1,
+        totalItems: projects.length,
+        totalPages: 1,
+      ),
+    );
   }
 
   @override
@@ -271,5 +287,26 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
 
     final data = json['data'] as Map<String, dynamic>;
     return ProjectModel.fromJson(data);
+  }
+
+  @override
+  Future<ProjectModel> createProject(ProjectCreatePayload payload) {
+    // TODO: implement createProject
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<PaginatedResult<ProjectModel>> getNearestProjects(
+    int page,
+    int limit,
+  ) {
+    // TODO: implement getNearestProjects
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProjectModel> updateProject(ProjectUpdatePayload payload) {
+    // TODO: implement updateProject
+    throw UnimplementedError();
   }
 }

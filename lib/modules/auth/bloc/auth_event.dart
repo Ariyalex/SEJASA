@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/data/payloads/register_payload.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -18,37 +19,12 @@ class AuthLoginRequested extends AuthEvent {
 }
 
 class AuthRegisterRequested extends AuthEvent {
-  final String name;
-  final String email;
-  final String passowrd1;
-  final String passowrd2;
-  final String? gender;
-  final String accountType;
-  final double latitude;
-  final double longitude;
+  final RegisterPayload payload;
 
-  const AuthRegisterRequested({
-    required this.name,
-    required this.email,
-    required this.passowrd1,
-    required this.passowrd2,
-    this.gender,
-    required this.accountType,
-    required this.latitude,
-    required this.longitude,
-  });
+  const AuthRegisterRequested(this.payload);
 
   @override
-  List<Object?> get props => [
-        name,
-        email,
-        passowrd1,
-        passowrd2,
-        gender,
-        accountType,
-        latitude,
-        longitude,
-      ];
+  List<Object?> get props => [payload];
 }
 
 class AuthLogoutRequested extends AuthEvent {

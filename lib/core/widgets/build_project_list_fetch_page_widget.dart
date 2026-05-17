@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListFetchPageWidget extends HookWidget {
@@ -47,20 +46,7 @@ class BuildProjectListFetchPageWidget extends HookWidget {
           }
           if (index >= projects.length || isLoading) {
             return Skeletonizer(
-              child: ProjectItemWidget(
-                project: ProjectEntity(
-                  id: "",
-                  title: 'loading data',
-                  address: "ngawi",
-                  status: ProjectStatus.going,
-                  distance: '100km',
-                  participant: '6/7 peserta',
-                  category: 'random',
-                  ownerName: "gatawu",
-                  ownerRating: 5,
-                  isBookmark: false,
-                ),
-              ),
+              child: ProjectItemWidget(project: ProjectEntity.dummyProject()),
             );
           }
           return ProjectItemWidget(

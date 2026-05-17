@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 
-class ProjectItemWidget extends StatelessWidget {
+class ProjectItemWidget extends HookWidget {
   final ProjectEntity project;
   final bool isMyProject;
   const ProjectItemWidget({
@@ -17,6 +21,19 @@ class ProjectItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locationService = getIt<LocationService>();
+    String projcetAddress = "";
+    useEffect(() {
+      if (project.detailAddress == null) {
+        locationService
+            .getAddressFromLatLng(LatLng(project.latitude, project.longitude))
+            .then((value) {
+              projcetAddress = value;
+            });
+      }
+      return null;
+    }, [project]);
+
     return InkWell(
       onTap: () {
         context.pushNamed(
@@ -41,10 +58,7 @@ class ProjectItemWidget extends StatelessWidget {
               spacing: 8,
               children: [
                 Expanded(
-                  child: Text(
-                    project.title,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  child: Text(project.name, style: theme.textTheme.titleMedium),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -58,7 +72,7 @@ class ProjectItemWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    "${project.participant} Pelamar",
+                    "${project.currentParticipant}/${project.maxParticipant} Pelamar",
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -80,7 +94,7 @@ class ProjectItemWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        project.address,
+                        project.detailAddress ?? projcetAddress,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -91,7 +105,7 @@ class ProjectItemWidget extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: 4),
-                    Text(project.distance),
+                    Text(" ${round(project.distance / 1000)} KM"),
                   ],
                 ),
                 const SizedBox(height: 12),

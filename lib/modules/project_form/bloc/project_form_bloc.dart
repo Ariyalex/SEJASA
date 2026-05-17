@@ -16,7 +16,7 @@ class ProjectFormBloc extends Bloc<ProjectFormEvent, ProjectFormState> {
   ) async {
     emit(state.copyWith(status: ProjectFormStatus.loading));
     try {
-      await _repository.addNewProject(event.newProject);
+      await _repository.createProject(event.payload);
       emit(state.copyWith(status: ProjectFormStatus.success));
     } catch (e) {
       emit(
@@ -31,7 +31,7 @@ class ProjectFormBloc extends Bloc<ProjectFormEvent, ProjectFormState> {
   ) async {
     emit(state.copyWith(status: ProjectFormStatus.loading));
     try {
-      await _repository.updateProject(event.editedProject);
+      await _repository.updateProject(event.payload);
       emit(state.copyWith(status: ProjectFormStatus.success));
     } catch (e) {
       emit(

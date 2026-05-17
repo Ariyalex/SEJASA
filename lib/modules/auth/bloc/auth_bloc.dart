@@ -55,18 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      await _authRepository.register(
-        name: event.name,
-        email: event.email,
-        passowrd1: event.passowrd1,
-        passowrd2: event.passowrd2,
-        gender: event.gender,
-        accountType: event.accountType,
-        latitude: event.latitude,
-        longitude: event.longitude,
-      );
-      final user = await _authRepository.getMyProfile();
-      emit(AuthAuthenticated(user));
+      await _authRepository.register(event.payload);
       emit(const AuthSuccess("Registrasi Berhasil"));
     } catch (e) {
       emit(AuthError(e.toString()));

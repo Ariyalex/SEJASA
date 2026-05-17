@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/services/socket_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/data/providers/remote/remote_auth_provider_impl.dart';
@@ -58,20 +59,24 @@ class DependencyInjection {
 
     // Auth implementation
     getIt.registerLazySingleton<RemoteAuthProvider>(
-      () => RemoteAuthProviderImpl(getIt<ApiService>(), getIt<StorageService>()),
+      () =>
+          RemoteAuthProviderImpl(getIt<ApiService>(), getIt<StorageService>()),
     );
     getIt.registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(getIt<RemoteAuthProvider>()),
     );
     getIt.registerLazySingleton<AuthBloc>(
-      () => AuthBloc(getIt<AuthRepository>(), getIt<StorageService>())
-        ..add(AuthCheckRequested()),
+      () =>
+          AuthBloc(getIt<AuthRepository>(), getIt<StorageService>())
+            ..add(AuthCheckRequested()),
     );
+
+    getIt.registerSingleton<LocationService>(LocationService());
 
     // Project implementation
     getIt.registerLazySingleton<RemoteProjectProvider>(() {
       if (isMocking) return MockProjectProvider();
-      return RemoteProjectProviderImpl();
+      return RemoteProjectProviderImpl(getIt<ApiService>());
     });
     getIt.registerLazySingleton<ProjectRepository>(
       () => ProjectRepositoryImpl(getIt<RemoteProjectProvider>()),

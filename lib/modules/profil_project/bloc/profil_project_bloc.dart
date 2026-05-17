@@ -7,16 +7,9 @@ import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   final ProjectRepository _repository;
-  late final StreamSubscription<void> _projectUpdateSubscription;
   ProfilProjectBloc(this._repository) : super(ProfilProjectState()) {
     on<LoadMyTakenProjects>(_onLoadTakenProject);
     on<LoadMyUploadedProjects>(_onLoadUploadedProject);
-
-    _projectUpdateSubscription = _repository.projectUpdateStream.listen((
-      event,
-    ) {
-      add(LoadMyTakenProjects());
-    });
   }
 
   Future<void> _onLoadUploadedProject(
@@ -73,11 +66,5 @@ class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
         ),
       );
     }
-  }
-
-  @override
-  Future<void> close() {
-    _projectUpdateSubscription.cancel();
-    return super.close();
   }
 }

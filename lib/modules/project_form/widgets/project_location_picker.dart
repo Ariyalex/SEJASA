@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:sejasa/core/services/location_service.dart';
 
 class ProjectLocationPicker extends HookWidget {
   final LatLng? initialLocation;
@@ -17,111 +17,9 @@ class ProjectLocationPicker extends HookWidget {
     required this.onLocationChanged,
   });
 
-  Future<Position?> _getCurrentLocation(BuildContext context) async {
-    try {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return null;
-
-      permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        // Show explanation dialog first
-        if (context.mounted) {
-          final bool? shouldProceed = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Izin Lokasi'),
-              content: const Text(
-                'Aplikasi membutuhkan izin lokasi untuk menentukan titik project Anda di peta dan mendapatkan alamat secara otomatis.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Beri Izin'),
-                ),
-              ],
-            ),
-          );
-
-          if (shouldProceed != true) return null;
-
-          // Berikan sedikit waktu agar animasi transisi dialog selesai
-          await Future.delayed(const Duration(milliseconds: 300));
-        }
-
-        if (permission == LocationPermission.deniedForever) {
-          await Geolocator.openAppSettings();
-          return null;
-        }
-
-        permission = await Geolocator.requestPermission();
-
-        if (permission == LocationPermission.deniedForever) {
-          // Jika OS secara otomatis menolak permanen, arahkan ke pengaturan
-          await Geolocator.openAppSettings();
-          return null;
-        }
-
-        if (permission == LocationPermission.denied) {
-          return null;
-        }
-      }
-
-      return await Geolocator.getCurrentPosition();
-    } catch (e) {
-      debugPrint('Error getting current location: $e');
-      return null;
-    }
-  }
-
-  Future<String> _getAddressFromLatLng(LatLng point) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        point.latitude,
-        point.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-
-        // Use local variables to capture properties and avoid repeated getter calls
-        // which helps with null safety and avoids the need for '!'
-        final street = place.street;
-        final subLocality = place.subLocality;
-        final locality = place.locality;
-        final subAdministrativeArea = place.subAdministrativeArea;
-        final administrativeArea = place.administrativeArea;
-        final postalCode = place.postalCode;
-
-        // Construct a readable address
-        final parts = [
-          if (street != null && street.isNotEmpty) street,
-          if (subLocality != null && subLocality.isNotEmpty) subLocality,
-          if (locality != null && locality.isNotEmpty) locality,
-          if (subAdministrativeArea != null && subAdministrativeArea.isNotEmpty)
-            subAdministrativeArea,
-          if (administrativeArea != null && administrativeArea.isNotEmpty)
-            administrativeArea,
-          if (postalCode != null && postalCode.isNotEmpty) postalCode,
-        ];
-        return parts.join(', ');
-      }
-    } catch (e) {
-      debugPrint('Error getting address: $e');
-    }
-    return 'Alamat tidak ditemukan (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final locationService = getIt<LocationService>();
     final selectedLocation = useState<LatLng?>(initialLocation);
     final mapController = useMemoized(() => MapController());
     final isLoading = useState(false);
@@ -130,7 +28,7 @@ class ProjectLocationPicker extends HookWidget {
     useEffect(() {
       if (initialLocation == null) {
         isLoading.value = true;
-        _getCurrentLocation(context).then((position) {
+        locationService.getCurrentLocation(context).then((position) {
           if (position != null) {
             final userLoc = LatLng(position.latitude, position.longitude);
             mapController.move(userLoc, 15.0);
@@ -165,14 +63,16 @@ class ProjectLocationPicker extends HookWidget {
                 icon: const Icon(Icons.my_location, size: 20),
                 onPressed: () async {
                   isLoading.value = true;
-                  final pos = await _getCurrentLocation(context);
+                  final pos = await locationService.getCurrentLocation(context);
                   if (pos != null) {
                     final loc = LatLng(pos.latitude, pos.longitude);
                     mapController.move(loc, 15.0);
 
                     // Auto select current location and get address
                     selectedLocation.value = loc;
-                    final address = await _getAddressFromLatLng(loc);
+                    final address = await locationService.getAddressFromLatLng(
+                      loc,
+                    );
                     onLocationChanged(loc, address);
                   }
                   isLoading.value = false;
@@ -193,7 +93,9 @@ class ProjectLocationPicker extends HookWidget {
                 onTap: (tapPosition, point) async {
                   selectedLocation.value = point;
                   isLoading.value = true;
-                  final address = await _getAddressFromLatLng(point);
+                  final address = await locationService.getAddressFromLatLng(
+                    point,
+                  );
                   onLocationChanged(point, address);
                   isLoading.value = false;
                 },

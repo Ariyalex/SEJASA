@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 
-class ProjectInfoCard extends StatelessWidget {
+class ProjectInfoCard extends HookWidget {
   final ProjectEntity project;
   const ProjectInfoCard({super.key, required this.project});
 
@@ -13,6 +17,19 @@ class ProjectInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final locationService = getIt<LocationService>();
+
+    String projcetAddress = "";
+    useEffect(() {
+      if (project.detailAddress == null) {
+        locationService
+            .getAddressFromLatLng(LatLng(project.latitude, project.longitude))
+            .then((value) {
+              projcetAddress = value;
+            });
+      }
+      return null;
+    }, [project]);
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -39,7 +56,7 @@ class ProjectInfoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  project.title,
+                  project.name,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -52,7 +69,7 @@ class ProjectInfoCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  "${project.participant} Pelamar",
+                  "${project.currentParticipant}/${project.maxParticipant} Pelamar",
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -71,7 +88,7 @@ class ProjectInfoCard extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  project.address,
+                  project.detailAddress ?? projcetAddress,
                   style: theme.textTheme.bodySmall,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -79,7 +96,10 @@ class ProjectInfoCard extends StatelessWidget {
               const SizedBox(width: 8),
               Icon(Icons.route_outlined, size: 18, color: colorScheme.primary),
               const SizedBox(width: 4),
-              Text(project.distance, style: theme.textTheme.bodySmall),
+              Text(
+                "${round(project.distance / 1000, decimals: 2)} KM",
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ),
           Row(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListWidget extends StatelessWidget {
@@ -30,18 +29,7 @@ class BuildProjectListWidget extends StatelessWidget {
             return Skeletonizer(
               child: ProjectItemWidget(
                 isMyProject: isMyProjects,
-                project: ProjectEntity(
-                  id: "",
-                  title: 'loading data',
-                  address: "ngawi",
-                  status: ProjectStatus.going,
-                  distance: '100km',
-                  participant: '6/7 peserta',
-                  category: 'random',
-                  ownerName: "gatawu",
-                  ownerRating: 5,
-                  isBookmark: false,
-                ),
+                project: ProjectEntity.dummyProject(),
               ),
             );
           }

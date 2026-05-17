@@ -1,6 +1,7 @@
 import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/data/models/user_model.dart';
+import 'package:sejasa/data/payloads/register_payload.dart';
 import 'package:sejasa/domain/providers/remote_auth_provider.dart';
 
 class RemoteAuthProviderImpl extends RemoteAuthProvider {
@@ -57,30 +58,7 @@ class RemoteAuthProviderImpl extends RemoteAuthProvider {
   }
 
   @override
-  Future<void> register({
-    required String name,
-    required String email,
-    required String passowrd1,
-    required String passowrd2,
-    String? gender,
-    required String accountType,
-    required double latitude,
-    required double longitude,
-  }) async {
-    final requestData = <String, dynamic>{
-      'name': name,
-      'email': email,
-      'passowrd1': passowrd1,
-      'passowrd2': passowrd2,
-      'latitude': latitude,
-      'longitude': longitude,
-      'account_type': accountType,
-    };
-
-    if (gender != null && gender.isNotEmpty) {
-      requestData['gender'] = gender;
-    }
-
-    await _apiService.post('/register', data: requestData);
+  Future<void> register(RegisterPayload payload) async {
+    await _apiService.post('/register', data: payload.toJson());
   }
 }

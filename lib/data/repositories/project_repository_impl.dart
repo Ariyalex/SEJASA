@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:sejasa/core/wrappers/pagination_result.dart';
+import 'package:sejasa/data/payloads/project_create_payload.dart';
+import 'package:sejasa/data/payloads/project_update_payload.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
@@ -9,24 +12,21 @@ class ProjectRepositoryImpl extends ProjectRepository {
   final RemoteProjectProvider _provider;
   ProjectRepositoryImpl(this._provider);
 
-  final _projectUpdateController = StreamController.broadcast();
-
   @override
-  Stream<void> get projectUpdateStream => _projectUpdateController.stream;
+  Future<PaginatedResult<ProjectEntity>> getNearestProjects(
+    int page,
+    int limit,
+  ) async {
+    final result = await _provider.getNearestProjects(page, limit);
 
-  @override
-  Future<List<ProjectEntity>> getProjects({
-    required int pages,
-    required String type,
-  }) async {
-    final data = await _provider.getProjects();
-    return data.map((e) => e.toEntity()).toList();
+    final projects = result.data.map((e) => e.toEntity()).toList();
+
+    return PaginatedResult<ProjectEntity>(data: projects, meta: result.meta);
   }
 
   @override
-  Future<List<ProjectEntity>> getMyProjects() async {
-    final data = await _provider.getProjects();
-    return data.map((e) => e.toEntity()).toList();
+  Future<List<ProjectEntity>> getMyProjects() {
+    throw UnimplementedError();
   }
 
   @override
@@ -36,42 +36,92 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<List<ProjectEntity>> searchProjects({
+  Future<PaginatedResult<ProjectEntity>> searchProjects({
     required String keyword,
     String? sort,
     ProjectStatus? status,
     String? category,
+    required int page,
+    required int limit,
   }) async {
-    final data = await _provider.searchProjects(
-      keyword: keyword,
-      sort: sort,
-      status: status,
-      category: category,
-    );
-    return data.map((e) => e.toEntity()).toList();
-  }
-
-  @override
-  Future<void> addNewProject(ProjectEntity project) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      _projectUpdateController.add(null);
+      final Map<String, dynamic> queryParameter = {'q': keyword};
+      if (sort != null) queryParameter['sort'] = sort;
+      if (status != null) queryParameter['status'] = status.jsonValue;
+      if (category != null) queryParameter['category'] = category;
+
+      final result = await _provider.getProjects(
+        queryParameter,
+        page: page,
+        limit: limit,
+      );
+
+      final entities = result.data.map((e) => e.toEntity()).toList();
+
+      return PaginatedResult(data: entities, meta: result.meta);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
   @override
-  Future<void> updateProject(ProjectEntity project) async {
+  Future<ProjectEntity> createProject(ProjectCreatePayload payload) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      _projectUpdateController.add(null);
+      final response = await _provider.createProject(payload);
+
+      return response.toEntity();
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
-  void dispose() {
-    _projectUpdateController.close();
+  @override
+  Future<ProjectEntity> updateProject(ProjectUpdatePayload payload) async {
+    try {
+      final response = await _provider.updateProject(payload);
+      return response.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PaginatedResult<ProjectEntity>> getNewestProjects(
+    int page,
+    int limit,
+  ) async {
+    try {
+      final response = await _provider.getProjects(
+        {'sort': 'newest'},
+        page: page,
+        limit: limit,
+      );
+      final List<ProjectEntity> projects = List<ProjectEntity>.from(
+        response.data.map((e) => e.toEntity()),
+      );
+      return PaginatedResult(data: projects, meta: response.meta);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PaginatedResult<ProjectEntity>> getPopularProjects(
+    int page,
+    int limit,
+  ) async {
+    try {
+      final response = await _provider.getProjects(
+        {'sort': 'popular'},
+        page: page,
+        limit: limit,
+      );
+      final List<ProjectEntity> projects = response.data
+          .map((e) => e.toEntity())
+          .toList();
+      return PaginatedResult(data: projects, meta: response.meta);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

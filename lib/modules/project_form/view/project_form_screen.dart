@@ -4,8 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/data/payloads/project_create_payload.dart';
+import 'package:sejasa/data/payloads/project_update_payload.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
@@ -27,15 +31,14 @@ class ProjectFormScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final locationService = getIt<LocationService>();
 
     // Hooks for state management
     final titleController = useTextEditingController(
-      text: initialProject?.title,
+      text: initialProject?.name,
     );
 
-    final addressController = useTextEditingController(
-      text: initialProject?.address,
-    );
+    final addressController = useTextEditingController();
 
     final detailAddressController = useTextEditingController(
       text: initialProject?.detailAddress,
@@ -50,6 +53,17 @@ class ProjectFormScreen extends HookWidget {
             )
           : null,
     );
+
+    useEffect(() {
+      if (selectedLocation.value != null) {
+        locationService.getAddressFromLatLng(selectedLocation.value!).then((
+          value,
+        ) {
+          addressController.text = value;
+        });
+      }
+      return null;
+    }, [initialProject]);
 
     final requirements = useState<List<String>>(
       initialProject?.requirements ?? [],
@@ -263,34 +277,45 @@ class ProjectFormScreen extends HookWidget {
                         quillController.document.toDelta().toJson(),
                       );
 
-                      final project = ProjectEntity(
-                        id:
-                            initialProject?.id ??
-                            DateTime.now().millisecondsSinceEpoch.toString(),
-                        title: titleController.text,
-                        address: addressController.text,
-                        detailAddress: detailAddressController.text,
-                        latitude: selectedLocation.value?.latitude,
-                        longitude: selectedLocation.value?.longitude,
-                        status: initialProject?.status ?? ProjectStatus.hiring,
-                        distance: initialProject?.distance ?? '0 km',
-                        participant: initialProject?.participant ?? '0',
-                        category: selectedCategory.value ?? '',
-                        description: descriptionJson,
-                        requirements: requirements.value,
-                        hastags: hashtags.value,
-                        ownerName: initialProject?.ownerName ?? 'User', // Mock
-                        ownerRating: initialProject?.ownerRating ?? 5.0,
-                        isBookmark: initialProject?.isBookmark ?? false,
-                      );
-
                       if (isEditMode) {
+                        final payload = ProjectUpdatePayload(
+                          id: initialProject!.id,
+                          name: titleController.text,
+                          address: addressController.text,
+                          status:
+                              initialProject?.status.jsonValue ??
+                              ProjectStatus.hiring.jsonValue,
+                          maxParticipant: initialProject?.maxParticipant ?? 0,
+
+                          descriptions: descriptionJson,
+                          requirements: requirements.value,
+                          latitude: selectedLocation.value?.latitude ?? 0,
+                          longitude: selectedLocation.value?.longitude ?? 0,
+                          categoryId: 1,
+                          hastags: hashtags.value,
+                        );
                         context.read<ProjectFormBloc>().add(
-                          EditProject(project),
+                          EditProject(payload),
                         );
                       } else {
+                        final payload = ProjectCreatePayload(
+                          name: titleController.text,
+                          address: addressController.text,
+                          status:
+                              initialProject?.status.jsonValue ??
+                              ProjectStatus.hiring.jsonValue,
+                          maxParticipant: initialProject?.maxParticipant ?? 0,
+
+                          descriptions: descriptionJson,
+                          requirements: requirements.value,
+                          latitude: selectedLocation.value?.latitude ?? 0,
+                          longitude: selectedLocation.value?.longitude ?? 0,
+                          categoryId: 1,
+                          hastags: hashtags.value,
+                        );
+
                         context.read<ProjectFormBloc>().add(
-                          AddNewProject(project),
+                          AddNewProject(payload),
                         );
                       }
                     }

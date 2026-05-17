@@ -4,11 +4,10 @@ import 'package:sejasa/domain/value_objects/project_status.dart';
 class ProjectModel extends ProjectEntity {
   const ProjectModel({
     required super.id,
-    required super.title,
-    required super.address,
+    required super.name,
     required super.status,
     required super.distance,
-    required super.participant,
+    super.detailAddress,
     required super.category,
     super.description,
     super.requirements,
@@ -16,44 +15,54 @@ class ProjectModel extends ProjectEntity {
     required super.ownerName,
     required super.ownerRating,
     super.ownerImagePath,
-    required super.isBookmark,
+    required super.ownerId,
+    required super.maxParticipant,
+    required super.currentParticipant,
+    required super.latitude,
+    required super.longitude,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
       id: json['id'],
-      title: json['title'],
-      address: json['address'],
+      name: json['name'],
+      detailAddress: json['address'],
       status: ProjectStatus.stringToEnum(json['status']),
       distance: json['distance'],
-      participant: json['participant'],
-      category: json['category'],
-      ownerName: json['owner'],
+      maxParticipant: json['max_participant'],
+      currentParticipant: json['cur_participant'],
+      category: json['category_name'],
+      ownerName: json['owner_name'],
       ownerRating: json['owner_rating'],
       ownerImagePath: json['owner_iamge'],
-      description: json['description'],
+      description: json['descriptions'],
       hastags: json['hastags'],
       requirements: json['requirements'],
-      isBookmark: json['bookmark'],
+      ownerId: json['user_id'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
     );
   }
 
   ProjectEntity toEntity() {
     return ProjectEntity(
       id: id,
-      title: title,
+      name: name,
       description: description,
       hastags: hastags,
       requirements: requirements,
-      address: address,
+      currentParticipant: currentParticipant,
+      maxParticipant: maxParticipant,
       status: status,
       distance: distance,
-      participant: participant,
+      detailAddress: detailAddress,
+      ownerId: ownerId,
+      latitude: latitude,
+      longitude: longitude,
       category: category,
       ownerName: ownerName,
       ownerRating: ownerRating,
       ownerImagePath: ownerImagePath,
-      isBookmark: isBookmark,
     );
   }
 }
