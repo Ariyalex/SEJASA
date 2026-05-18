@@ -16,8 +16,19 @@ class ProjectRepositoryImpl extends ProjectRepository {
   Future<PaginatedResult<ProjectEntity>> getNearestProjects(
     int page,
     int limit,
+    double latitude,
+    double longitude,
   ) async {
-    final result = await _provider.getNearestProjects(page, limit);
+    final result = await _provider.getProjects(
+      {
+        'distance': 25000,
+        'most_distance': 'nearest',
+        'lat': latitude,
+        'lon': longitude,
+      },
+      page: page,
+      limit: limit,
+    );
 
     final projects = result.data.map((e) => e.toEntity()).toList();
 

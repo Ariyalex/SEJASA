@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
@@ -26,7 +27,8 @@ class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
           isFetchingProjectUploaded: false,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
@@ -57,7 +59,8 @@ class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
           isFetchingProjectTaken: false,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),

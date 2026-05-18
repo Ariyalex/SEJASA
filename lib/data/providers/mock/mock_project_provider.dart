@@ -296,15 +296,6 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
   }
 
   @override
-  Future<PaginatedResult<ProjectModel>> getNearestProjects(
-    int page,
-    int limit,
-  ) {
-    // TODO: implement getNearestProjects
-    throw UnimplementedError();
-  }
-
-  @override
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload) {
     // TODO: implement updateProject
     throw UnimplementedError();

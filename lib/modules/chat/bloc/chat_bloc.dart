@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
@@ -42,7 +43,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       // Fetch history (stubbed)
       final history = await _chatRepository.getChatHistory(event.projectId);
       emit(state.copyWith(status: ChatStatus.loaded, messages: history));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(status: ChatStatus.error, errorMessage: e.toString()),
       );

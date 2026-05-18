@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/services/storage_service.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
 import 'search_event.dart';
@@ -91,7 +92,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       }
 
       add(AddHistory(event.keyword));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           status: SearchStatus.failure,

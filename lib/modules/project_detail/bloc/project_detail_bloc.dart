@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_state.dart';
@@ -24,7 +25,8 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
       emit(
         state.copyWith(project: project, status: ProjectDetailStatus.success),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),

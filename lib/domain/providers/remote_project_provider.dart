@@ -9,7 +9,6 @@ abstract class RemoteProjectProvider {
     required int page,
     required int limit,
   });
-  Future<PaginatedResult<ProjectModel>> getNearestProjects(int page, int limit);
   Future<ProjectModel> getProject(String id);
   Future<ProjectModel> createProject(ProjectCreatePayload payload);
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload);

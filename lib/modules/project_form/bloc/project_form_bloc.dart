@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_event.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_state.dart';
@@ -18,7 +19,8 @@ class ProjectFormBloc extends Bloc<ProjectFormEvent, ProjectFormState> {
     try {
       await _repository.createProject(event.payload);
       emit(state.copyWith(status: ProjectFormStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(status: ProjectFormStatus.error, message: e.toString()),
       );
@@ -33,7 +35,8 @@ class ProjectFormBloc extends Bloc<ProjectFormEvent, ProjectFormState> {
     try {
       await _repository.updateProject(event.payload);
       emit(state.copyWith(status: ProjectFormStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(status: ProjectFormStatus.error, message: e.toString()),
       );

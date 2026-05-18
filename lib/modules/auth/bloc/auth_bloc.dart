@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/services/storage_service.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
@@ -29,7 +30,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authRepository.getMyProfile();
       emit(AuthAuthenticated(user));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(AuthUnauthenticated());
     }
   }
@@ -44,7 +46,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await _authRepository.getMyProfile();
       emit(AuthAuthenticated(user));
       emit(const AuthSuccess("Login Berhasil"));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(AuthError(e.toString()));
     }
   }
@@ -57,7 +60,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.register(event.payload);
       emit(const AuthSuccess("Registrasi Berhasil"));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(AuthError(e.toString()));
     }
   }
@@ -73,7 +77,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _storageService.delete('refresh_token');
       emit(AuthUnauthenticated());
       emit(const AuthSuccess("Logout Berhasil"));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(AuthError(e.toString()));
     }
   }

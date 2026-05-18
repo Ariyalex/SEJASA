@@ -1,5 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
@@ -17,12 +18,42 @@ class DashboardProjectBloc
       _onLoadMoreProjectEvent,
       transformer: droppable(),
     );
+    on<UpdateDashboardLocationEvent>(_onUpdateDashboardLocationEvent);
+  }
+
+  Future<void> _onUpdateDashboardLocationEvent(
+    UpdateDashboardLocationEvent event,
+    Emitter<DashboardProjectState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        latitude: event.latitude,
+        longitude: event.longitude,
+        address: event.address,
+      ),
+    );
+
+    // Refresh the closest tab when location changes
+    add(
+      LoadInitialProjectsEvent(
+        tabType: DashboardProjectTabType.closest,
+        latitude: event.latitude,
+        longitude: event.longitude,
+      ),
+    );
   }
 
   Future<void> _onLoadInitialProjectsEvent(
     LoadInitialProjectsEvent event,
     Emitter<DashboardProjectState> emit,
   ) async {
+    // If it's closest tab and we don't have coordinates in event or state, we can't fetch yet
+    if (event.tabType == DashboardProjectTabType.closest &&
+        event.latitude == null &&
+        state.latitude == null) {
+      return;
+    }
+
     emit(
       _updateTabState(
         currentState: state,
@@ -35,7 +66,13 @@ class DashboardProjectBloc
     );
 
     try {
-      final result = await _getProjectsByTabType(event.tabType, 1, 10);
+      final result = await _getProjectsByTabType(
+        event.tabType,
+        1,
+        10,
+        event.latitude,
+        event.longitude,
+      );
 
       final updatedTabState = _getCurrentTabPagingState(event.tabType, state)
           .copyWith(
@@ -53,7 +90,8 @@ class DashboardProjectBloc
       );
 
       emit(newState.copyWith(status: DashboardProjectStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       final currentTabState = _getCurrentTabPagingState(event.tabType, state);
       if (_getCurrentTabPagingState(event.tabType, state).projects.isEmpty) {
         emit(
@@ -87,7 +125,13 @@ class DashboardProjectBloc
     );
     try {
       final nextPage = currentTabState.currentPage + 1;
-      final result = await _getProjectsByTabType(event.tabType, nextPage, 10);
+      final result = await _getProjectsByTabType(
+        event.tabType,
+        nextPage,
+        10,
+        event.latitude,
+        event.longitude,
+      );
 
       final currentTab = _getCurrentTabPagingState(event.tabType, state);
 
@@ -105,7 +149,8 @@ class DashboardProjectBloc
           newTabState: updatedTabState,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         _updateTabState(
           currentState: state,
@@ -166,15 +211,24 @@ class DashboardProjectBloc
     DashboardProjectTabType type,
     int page,
     int limit,
+    double? latitude,
+    double? longitude,
   ) async {
     switch (type) {
       case DashboardProjectTabType.closest:
-        return await _repository.getNearestProjects(page, limit);
+        final lat = latitude ?? state.latitude;
+        final lon = longitude ?? state.longitude;
+
+        if (lat == null || lon == null) {
+          throw Exception("Lokasi tidak ditentukan untuk pencarian terdekat");
+        }
+
+        return await _repository.getNearestProjects(page, limit, lat, lon);
       case DashboardProjectTabType.latest:
         return await _repository.getNewestProjects(page, limit);
       case DashboardProjectTabType.popular:
         //sementara gini dulu, nuggu dari be perbaikan
-        return await _repository.getNearestProjects(page, limit);
+        return await _repository.getPopularProjects(page, limit);
     }
   }
 }

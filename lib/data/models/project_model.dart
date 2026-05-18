@@ -24,23 +24,25 @@ class ProjectModel extends ProjectEntity {
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       detailAddress: json['address'],
-      status: ProjectStatus.stringToEnum(json['status']),
-      distance: json['distance'],
-      maxParticipant: json['max_participant'],
-      currentParticipant: json['cur_participant'],
-      category: json['category_name'],
-      ownerName: json['owner_name'],
-      ownerRating: json['owner_rating'],
-      ownerImagePath: json['owner_iamge'],
-      description: json['descriptions'],
-      hastags: json['hastags'],
-      requirements: json['requirements'],
-      ownerId: json['user_id'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      status: ProjectStatus.stringToEnum(json['status'] ?? 'hiring'),
+      distance: (json['distance_meters'] as num?)?.toDouble() ?? 0.0,
+      maxParticipant: json['max_participant'] ?? 0,
+      currentParticipant: json['cur_participant'] ?? 0,
+      category: json['category_name'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      ownerRating: (json['owner_rating'] as num?)?.toDouble() ?? 0.0,
+      ownerImagePath: json['owner_image'],
+      description: json['descriptions'] is String 
+          ? json['descriptions'] 
+          : null, // Handle potential JSON object/string variance
+      hastags: (json['hastags'] as List?)?.map((e) => e.toString()).toList(),
+      requirements: (json['requirements'] as List?)?.map((e) => e.toString()).toList(),
+      ownerId: json['user_id'] ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

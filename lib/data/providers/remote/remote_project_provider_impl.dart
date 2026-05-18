@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sejasa/core/services/api_service.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/wrappers/pagination_meta.dart';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/data/models/project_model.dart';
@@ -27,32 +28,6 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
   }
 
   @override
-  Future<PaginatedResult<ProjectModel>> getNearestProjects(
-    int page,
-    int limit,
-  ) async {
-    final response = await _apiService.get(
-      '/project/nearest',
-      queryParameters: {'distance': 25000, 'page': page, 'limit': limit},
-    );
-    final metaRaw = response.data['meta'];
-    final meta = metaRaw != null
-        ? PaginationMeta.fromJson(metaRaw)
-        : PaginationMeta(
-            currentPage: page,
-            limitPage: limit,
-            totalItems: 0,
-            totalPages: 1,
-          );
-    final data = response.data['data'] as List? ?? [];
-
-    final projects = List<ProjectModel>.from(
-      data.map((e) => ProjectModel.fromJson(e)),
-    );
-    return PaginatedResult<ProjectModel>(data: projects, meta: meta);
-  }
-
-  @override
   Future<PaginatedResult<ProjectModel>> getProjects(
     Map<String, dynamic>? queryParameters, {
     required int page,
@@ -64,6 +39,8 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
 
     final response = await _apiService.get('/project', queryParameters: params);
 
+    LogUtils.d("response getProjects: ${response.data}");
+
     final metaRaw = response.data['meta'];
     final meta = metaRaw != null
         ? PaginationMeta.fromJson(metaRaw)
@@ -73,6 +50,7 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
             totalItems: 0,
             totalPages: 1,
           );
+
     final data = response.data['data'] as List? ?? [];
     final projects = List<ProjectModel>.from(
       data.map((e) => ProjectModel.fromJson(e)),

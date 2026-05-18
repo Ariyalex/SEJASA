@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,6 +12,8 @@ import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_state.dart';
@@ -39,9 +43,45 @@ class ProjectDetailScreen extends HookWidget {
     final isScrolled = useState<bool>(false);
 
     useEffect(() {
-      projectDetailBloc.add(LoadProject(id));
+      projectDetailBloc.add(
+        LoadProject(
+          id,
+          isAuthenticated: context.read<AuthBloc>().state is AuthAuthenticated,
+        ),
+      );
       return null;
     }, [id]);
+
+    final currentDescription = context.select(
+      (ProjectDetailBloc bloc) => bloc.state.project?.description,
+    );
+
+    // Quill Controller hook
+    final quillController = useMemoized(() {
+      final description = projectDetailBloc.state.project?.description;
+      late QuillController controller;
+      if (description != null) {
+        try {
+          final doc = Document.fromJson(jsonDecode(description));
+          controller = QuillController(
+            document: doc,
+            selection: const TextSelection.collapsed(offset: 0),
+            readOnly: true,
+          );
+        } catch (_) {
+          controller = QuillController.basic()..document.insert(0, description);
+        }
+      } else {
+        controller = QuillController.basic();
+      }
+      controller.readOnly = true;
+
+      return controller;
+    }, [currentDescription]);
+
+    useEffect(() {
+      return () => quillController.dispose();
+    }, [quillController]);
 
     useEffect(() {
       void scrollListener() {
@@ -56,6 +96,20 @@ class ProjectDetailScreen extends HookWidget {
 
       return () => scrollController.removeListener(scrollListener);
     }, [scrollController]);
+
+    final hasLongDescription = useMemoized(() {
+      final description = projectDetailBloc.state.project?.description;
+      if (description == null) return false;
+
+      final plainText = quillController.document.toPlainText();
+      final textPainter = TextPainter(
+        text: TextSpan(text: plainText, style: theme.textTheme.bodyMedium),
+        maxLines: 5,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: MediaQuery.of(context).size.width - 16);
+
+      return textPainter.didExceedMaxLines;
+    }, [currentDescription, quillController]);
 
     return Scaffold(
       appBar: AppBar(
@@ -284,14 +338,50 @@ class ProjectDetailScreen extends HookWidget {
                         children: [
                           Text("Deskripsi", style: theme.textTheme.titleLarge),
                           SizedBox(height: 6),
-                          Text(
-                            "${project.description}",
-                            overflow: seeMoreDescription.value
-                                ? TextOverflow.visible
-                                : TextOverflow.fade,
-                            maxLines: seeMoreDescription.value ? null : 10,
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: ShaderMask(
+                              shaderCallback: (rect) {
+                                return LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black,
+                                    (hasLongDescription &&
+                                            !seeMoreDescription.value)
+                                        ? Colors.transparent
+                                        : Colors.black,
+                                  ],
+                                  stops: const [0.8, 1.0],
+                                ).createShader(
+                                  Rect.fromLTRB(0, 0, rect.width, rect.height),
+                                );
+                              },
+                              blendMode: BlendMode.dstIn,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxHeight:
+                                      (hasLongDescription &&
+                                          !seeMoreDescription.value)
+                                      ? 120
+                                      : double.infinity,
+                                ),
+                                child: QuillEditor.basic(
+                                  controller: quillController,
+                                  config: const QuillEditorConfig(
+                                    readOnlyMouseCursor: MouseCursor.defer,
+                                    scrollable: false,
+                                    showCursor: false,
+                                    autoFocus: false,
+                                    expands: false,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          if (!seeMoreDescription.value)
+                          if (hasLongDescription && !seeMoreDescription.value)
                             TextButton(
                               style: ButtonStyle(
                                 shape: WidgetStatePropertyAll(

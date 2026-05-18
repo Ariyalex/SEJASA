@@ -9,9 +9,10 @@ import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 
 class AppProviders {
-  static List<RepositoryProvider> get repositoryProviers => [
+  static List<RepositoryProvider> get repositoryProviders => [
     RepositoryProvider<RemoteAuthProvider>.value(
       value: getIt<RemoteAuthProvider>(),
     ),
@@ -41,6 +42,9 @@ class AppProviders {
   static List<BlocProvider> get blocProviders => [
     BlocProvider<AuthBloc>.value(
       value: getIt<AuthBloc>(),
+    ),
+    BlocProvider<MainTabBloc>.value(
+      value: getIt<MainTabBloc>(),
     ),
   ];
 }

@@ -22,7 +22,6 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dar
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
-import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/view/project_detail_screen.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/view/project_form_screen.dart';
@@ -31,15 +30,20 @@ import 'package:sejasa/modules/search/bloc/search_event.dart';
 import 'package:sejasa/modules/search/view/search_initial_screen.dart';
 import 'package:sejasa/modules/search/view/search_result_screen.dart';
 
+import 'package:sejasa/modules/splash/view/splash_screen.dart';
+
 class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(getIt<AuthBloc>().stream),
     redirect: (context, state) {
-      final authState = context.read<AuthBloc>().state;
+      final authState = getIt<AuthBloc>().state;
       final isLoggingIn =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
+
+      // Jangan redirect jika sedang di splash screen, biarkan SplashScreen yang menangani navigasi pertama
+      if (state.matchedLocation == '/splash') return null;
 
       if (authState is AuthUnauthenticated || authState is AuthInitial) {
         if (state.matchedLocation == '/guest' || isLoggingIn) return null;
@@ -53,6 +57,11 @@ class AppRouter {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: RouteNamed.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         name: RouteNamed.login,
@@ -73,7 +82,7 @@ class AppRouter {
       ),
       GoRoute(
         path: "/",
-        name: RouteNamed.dashboard,
+        name: RouteNamed.mainTab,
         builder: (context, state) => MainTab(),
       ),
       ShellRoute(
@@ -152,21 +161,13 @@ class AppRouter {
           final id = state.pathParameters['id'];
           final extra = state.extra as Map<String, dynamic>;
           if (id == null) {
-            LogUtils.e(
-              "id tidak ada ada di parameter, jangan lupa tambahin id",
-            );
+            LogUtils.e("id tidak ada di parameter, jangan lupa tambahin id");
           }
           final isReadMore = extra['read_more'] as bool?;
 
           return BlocProvider(
             create: (context) =>
-                ProjectDetailBloc(context.read<ProjectRepository>())..add(
-                  LoadProject(
-                    id,
-                    isAuthenticated:
-                        context.read<AuthBloc>().state is AuthAuthenticated,
-                  ),
-                ),
+                ProjectDetailBloc(context.read<ProjectRepository>()),
             child: ProjectDetailScreen(
               id: id!,
               isOwner: extra['is_owner'],

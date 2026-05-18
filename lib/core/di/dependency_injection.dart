@@ -10,6 +10,7 @@ import 'package:sejasa/domain/providers/remote_auth_provider.dart';
 import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 
 import 'package:sejasa/data/providers/mock/mock_chat_socket_provider.dart';
 import 'package:sejasa/data/providers/mock/mock_project_provider.dart';
@@ -70,6 +71,7 @@ class DependencyInjection {
           AuthBloc(getIt<AuthRepository>(), getIt<StorageService>())
             ..add(AuthCheckRequested()),
     );
+    getIt.registerLazySingleton<MainTabBloc>(() => MainTabBloc());
 
     getIt.registerSingleton<LocationService>(LocationService());
 

@@ -8,6 +8,8 @@ abstract class ProjectRepository {
   Future<PaginatedResult<ProjectEntity>> getNearestProjects(
     int page,
     int limit,
+    double latitude,
+    double longitude,
   );
   Future<PaginatedResult<ProjectEntity>> getNewestProjects(int page, int limit);
   Future<PaginatedResult<ProjectEntity>> getPopularProjects(

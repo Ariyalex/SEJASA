@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
@@ -30,7 +31,8 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         ),
       );
       add(SetMyProjectFilterType(state.filterType));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
@@ -56,7 +58,8 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         ),
       );
       add(SetMyProjectFilterType(state.filterType));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
