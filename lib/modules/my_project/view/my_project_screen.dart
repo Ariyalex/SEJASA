@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
 import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
@@ -16,10 +17,11 @@ class MyProjectScreen extends HookWidget {
     final tabBarController = useTabController(initialLength: 2);
 
     final projectBloc = context.read<MyProjectBloc>();
+    final authBloc = context.read<AuthBloc>();
 
     useEffect(() {
       projectBloc.add(LoadMyUploadedProjects());
-      projectBloc.add(LoadMyTakenProjects());
+      projectBloc.add(LoadMyTakenProjects(authBloc.state.user!.id));
       return null;
     }, []);
 
@@ -111,7 +113,9 @@ class MyProjectScreen extends HookWidget {
                   BuildProjectListWidget(
                     projects: state.filteredTakenProjects,
                     onRefresh: () async {
-                      projectBloc.add(LoadMyTakenProjects());
+                      projectBloc.add(
+                        LoadMyTakenProjects(authBloc.state.user!.id),
+                      );
                     },
                     isLoading:
                         state.status != MyProjectStatus.error &&

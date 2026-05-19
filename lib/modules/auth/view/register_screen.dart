@@ -28,14 +28,14 @@ class RegisterScreen extends HookWidget {
       appBar: AppBar(title: const Text("Register")),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthSuccess) {
+          if (state.status == AuthStatus.success) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is AuthError) {
+            ).showSnackBar(SnackBar(content: Text(state.message ?? "Berhasil")));
+          } else if (state.status == AuthStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(state.message ?? "Terjadi kesalahan"),
                 backgroundColor: Colors.red,
               ),
             );
@@ -121,7 +121,7 @@ class RegisterScreen extends HookWidget {
                 const SizedBox(height: 24),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
-                    if (state is AuthLoading) {
+                    if (state.status == AuthStatus.loading) {
                       return const CircularProgressIndicator();
                     }
                     return Column(

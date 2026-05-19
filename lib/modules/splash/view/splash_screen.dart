@@ -57,10 +57,12 @@ class SplashScreen extends HookWidget {
     final authBloc = context.read<AuthBloc>();
 
     // Tunggu jika AuthBloc masih dalam state awal/loading
-    if (authBloc.state is AuthInitial || authBloc.state is AuthLoading) {
+    if (authBloc.state.status == AuthStatus.initial ||
+        authBloc.state.status == AuthStatus.loading) {
       try {
         await for (final state in authBloc.stream) {
-          if (state is AuthAuthenticated || state is AuthUnauthenticated) {
+          if (state.status == AuthStatus.authenticated ||
+              state.status == AuthStatus.unauthenticated) {
             break;
           }
         }
@@ -72,7 +74,7 @@ class SplashScreen extends HookWidget {
     // 3. Routing
     if (context.mounted) {
       final state = authBloc.state;
-      if (state is AuthAuthenticated) {
+      if (state.status == AuthStatus.authenticated) {
         context.goNamed(RouteNamed.mainTab);
       } else {
         context.go('/guest');

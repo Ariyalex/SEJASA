@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 enum ProjectStatus {
   hiring('hiring', 'Merekrut'),
   going('on_going', 'Sedang Berlangsung'),
-  cancled('cancled', 'Dibatalkan'),
-  completed('completed', 'Selesai');
+  cancled('cancel', 'Dibatalkan'),
+  completed('done', 'Selesai');
 
   final String jsonValue;
   final String label;

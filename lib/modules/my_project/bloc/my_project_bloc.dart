@@ -22,7 +22,7 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   ) async {
     emit(state.copyWith(isFetchingProjectUploaded: true));
     try {
-      final projects = await _repository.getMyProjects();
+      final projects = await _repository.getUploadedProjects();
       emit(
         state.copyWith(
           uploadedProjects: projects,
@@ -49,7 +49,7 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   ) async {
     emit(state.copyWith(isFetchingProjectTaken: true));
     try {
-      final projects = await _repository.getMyProjects();
+      final projects = await _repository.getUserProjects(event.userId);
       emit(
         state.copyWith(
           takenProjects: projects,

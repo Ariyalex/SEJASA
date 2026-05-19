@@ -24,3 +24,5 @@ class EditProject extends ProjectFormEvent {
   @override
   List<Object?> get props => [payload];
 }
+
+class LoadAllProjectCategories extends ProjectFormEvent {}

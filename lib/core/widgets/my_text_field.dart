@@ -154,7 +154,9 @@ class _MyTextFieldState extends State<MyTextField> {
               widget.title,
               style:
                   widget.titleStyle ??
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             SizedBox(height: widget.gap),
           ],

@@ -21,10 +21,10 @@ class LoginScreen extends HookWidget {
       appBar: AppBar(title: const Text("Login")),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          if (state.status == AuthStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(state.message ?? "Terjadi kesalahan"),
                 backgroundColor: Colors.red,
               ),
             );
@@ -64,7 +64,7 @@ class LoginScreen extends HookWidget {
                   const SizedBox(height: 24),
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
-                      if (state is AuthLoading) {
+                      if (state.status == AuthStatus.loading) {
                         return const CircularProgressIndicator();
                       }
                       return Column(

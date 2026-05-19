@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/domain/entities/project_category_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
@@ -36,8 +37,23 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<List<ProjectEntity>> getMyProjects() {
-    throw UnimplementedError();
+  Future<List<ProjectEntity>> getUserProjects(String userId) async {
+    try {
+      final result = await _provider.getUserProjects(userId);
+      return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ProjectEntity>> getUploadedProjects() async {
+    try {
+      final result = await _provider.getUploadedProjects();
+      return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -131,6 +147,19 @@ class ProjectRepositoryImpl extends ProjectRepository {
           .map((e) => e.toEntity())
           .toList();
       return PaginatedResult(data: projects, meta: response.meta);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ProjectCategoryEntity>> getAllCategory() async {
+    try {
+      final response = await _provider.getAllCategory();
+
+      return List<ProjectCategoryEntity>.from(
+        response.map((e) => e.toEntity()),
+      );
     } catch (e) {
       rethrow;
     }

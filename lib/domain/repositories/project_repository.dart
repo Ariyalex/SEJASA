@@ -1,6 +1,7 @@
 import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/domain/entities/project_category_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 
@@ -17,7 +18,8 @@ abstract class ProjectRepository {
     int limit,
   );
 
-  Future<List<ProjectEntity>> getMyProjects();
+  Future<List<ProjectEntity>> getUserProjects(String userId);
+  Future<List<ProjectEntity>> getUploadedProjects();
 
   Future<ProjectEntity> getProject(String id);
 
@@ -33,4 +35,6 @@ abstract class ProjectRepository {
   Future<ProjectEntity> createProject(ProjectCreatePayload payload);
 
   Future<ProjectEntity> updateProject(ProjectUpdatePayload payload);
+
+  Future<List<ProjectCategoryEntity>> getAllCategory();
 }

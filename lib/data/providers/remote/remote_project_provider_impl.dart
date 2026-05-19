@@ -4,6 +4,7 @@ import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/wrappers/pagination_meta.dart';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
+import 'package:sejasa/data/models/project_category_model.dart';
 import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
@@ -67,5 +68,37 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
     );
     final data = response.data['data'];
     return ProjectModel.fromJson(data);
+  }
+
+  @override
+  Future<List<ProjectModel>> getUploadedProjects() async {
+    final response = await _apiService.get('/project/user');
+
+    final rawData = response.data['data'] as List?;
+
+    return List<ProjectModel>.from(
+      rawData?.map((e) => ProjectModel.fromJson(e)) ?? [],
+    );
+  }
+
+  @override
+  Future<List<ProjectModel>> getUserProjects(String userId) async {
+    final response = await _apiService.get('/project/user/$userId');
+
+    final rawData = response.data['data'] as List?;
+
+    return List<ProjectModel>.from(
+      rawData?.map((e) => ProjectModel.fromJson(e)) ?? [],
+    );
+  }
+
+  @override
+  Future<List<ProjectCategoryModel>> getAllCategory() async {
+    final response = await _apiService.get('/project/category');
+    final rawData = response.data['data'] as List?;
+
+    return List<ProjectCategoryModel>.from(
+      rawData?.map((e) => ProjectCategoryModel.fromJson(e)) ?? [],
+    );
   }
 }

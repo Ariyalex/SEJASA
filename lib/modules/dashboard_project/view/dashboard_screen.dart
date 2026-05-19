@@ -12,6 +12,7 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.da
 import 'package:sejasa/core/widgets/build_project_list_fetch_page_widget.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/modules/dashboard_project/widgets/location_picker_trigger.dart';
 import 'package:sejasa/modules/project_form/widgets/project_location_picker.dart';
 
 class DashboardScreen extends HookWidget {
@@ -28,12 +29,12 @@ class DashboardScreen extends HookWidget {
     useEffect(() {
       // Handle initial location for authenticated users
       final authState = authBloc.state;
-      if (authState is AuthAuthenticated) {
+      if (authState.status == AuthStatus.authenticated && authState.user != null) {
         dashboardBloc.add(
           UpdateDashboardLocationEvent(
-            latitude: authState.user.latitude,
-            longitude: authState.user.longitude,
-            address: authState.user.address ?? "Lokasi Anda",
+            latitude: authState.user!.latitude,
+            longitude: authState.user!.longitude,
+            address: authState.user!.address ?? "Lokasi Anda",
           ),
         );
       }
@@ -129,7 +130,7 @@ class DashboardScreen extends HookWidget {
                         color: theme.colorScheme.onPrimary,
                       ),
                     ),
-                    if (authState is AuthUnauthenticated)
+                    if (authState.status == AuthStatus.unauthenticated)
                       MyOutlineButton(
                         onPressed: () {
                           context.pushNamed(RouteNamed.login);
@@ -201,7 +202,8 @@ class DashboardScreen extends HookWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Text(
-                            state.message ?? "Terjadi kesalahan yang tidak diketahui",
+                            state.message ??
+                                "Terjadi kesalahan yang tidak diketahui",
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Colors.grey),
                           ),
@@ -338,62 +340,6 @@ class DashboardScreen extends HookWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class LocationPickerTrigger extends StatelessWidget {
-  final String address;
-  final VoidCallback onTap;
-
-  const LocationPickerTrigger({
-    super.key,
-    required this.address,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          border: Border.all(color: theme.dividerColor),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
-              blurRadius: 9,
-              offset: const Offset(-20, 0),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(LucideIcons.mapPin, size: 16, color: theme.primaryColor),
-            const SizedBox(width: 4),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 120),
-              child: Text(
-                address,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: theme.primaryColor,
-                ),
-              ),
-            ),
-            Icon(Icons.arrow_drop_down, color: theme.primaryColor),
-          ],
-        ),
       ),
     );
   }

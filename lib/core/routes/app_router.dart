@@ -45,12 +45,13 @@ class AppRouter {
       // Jangan redirect jika sedang di splash screen, biarkan SplashScreen yang menangani navigasi pertama
       if (state.matchedLocation == '/splash') return null;
 
-      if (authState is AuthUnauthenticated || authState is AuthInitial) {
+      if (authState.status == AuthStatus.unauthenticated ||
+          authState.status == AuthStatus.initial) {
         if (state.matchedLocation == '/guest' || isLoggingIn) return null;
         return '/guest';
       }
 
-      if (authState is AuthAuthenticated) {
+      if (authState.status == AuthStatus.authenticated) {
         if (isLoggingIn || state.matchedLocation == '/guest') return '/';
       }
 

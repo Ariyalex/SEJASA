@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
@@ -9,7 +10,9 @@ import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/modules/profil_project/widgets/profil_information.dart';
 
 class ProfilScreen extends HookWidget {
-  const ProfilScreen({super.key});
+  final bool isMyProfile;
+  final UserEntity user;
+  const ProfilScreen({super.key, this.isMyProfile = false, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +23,7 @@ class ProfilScreen extends HookWidget {
 
     useEffect(() {
       profilBloc.add(LoadMyUploadedProjects());
-      profilBloc.add(LoadMyTakenProjects());
-      // profilBloc.add(LoadAllMyProjects());
+      profilBloc.add(LoadUserProjects(user.id));
       return null;
     }, []);
 
@@ -48,31 +50,22 @@ class ProfilScreen extends HookWidget {
                       child: Row(
                         spacing: 12,
                         children: [
-                          Icon(LucideIcons.bookmark, size: 20),
-                          const Text("Simpan"),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      onTap: () {},
-                      child: Row(
-                        spacing: 12,
-                        children: [
                           Icon(LucideIcons.share2, size: 20),
                           const Text("Bagikan"),
                         ],
                       ),
                     ),
-                    PopupMenuItem(
-                      onTap: () {},
-                      child: Row(
-                        spacing: 12,
-                        children: [
-                          Icon(LucideIcons.pencil, size: 20),
-                          const Text("Edit Profil"),
-                        ],
+                    if (isMyProfile)
+                      PopupMenuItem(
+                        onTap: () {},
+                        child: Row(
+                          spacing: 12,
+                          children: [
+                            Icon(LucideIcons.pencil, size: 20),
+                            const Text("Edit Profil"),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                   icon: Icon(
                     LucideIcons.ellipsisVertical,
@@ -87,7 +80,7 @@ class ProfilScreen extends HookWidget {
               ],
             ),
 
-            SliverToBoxAdapter(child: UserProfileHeaderWidget()),
+            SliverToBoxAdapter(child: UserProfileHeaderWidget(user: user)),
 
             SliverAppBar(
               pinned: true,
@@ -126,7 +119,7 @@ class ProfilScreen extends HookWidget {
                   BuildProjectListWidget(
                     projects: state.takenProjects,
                     onRefresh: () async {
-                      profilBloc.add(LoadMyTakenProjects());
+                      profilBloc.add(LoadUserProjects(user.id));
                     },
                     isLoading:
                         state.status != ProfilProjectStatus.error &&
@@ -135,7 +128,7 @@ class ProfilScreen extends HookWidget {
                   BuildProjectListWidget(
                     projects: state.takenProjects,
                     onRefresh: () async {
-                      profilBloc.add(LoadMyTakenProjects());
+                      profilBloc.add(LoadUserProjects(user.id));
                     },
                     isLoading:
                         state.status != ProfilProjectStatus.error &&

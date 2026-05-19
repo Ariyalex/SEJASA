@@ -46,7 +46,8 @@ class ProjectDetailScreen extends HookWidget {
       projectDetailBloc.add(
         LoadProject(
           id,
-          isAuthenticated: context.read<AuthBloc>().state is AuthAuthenticated,
+          isAuthenticated:
+              context.read<AuthBloc>().state.status == AuthStatus.authenticated,
         ),
       );
       return null;

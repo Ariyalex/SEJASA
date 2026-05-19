@@ -1,5 +1,6 @@
 import 'package:sejasa/core/wrappers/pagination_meta.dart';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
+import 'package:sejasa/data/models/project_category_model.dart';
 import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
@@ -298,6 +299,24 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
   @override
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload) {
     // TODO: implement updateProject
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ProjectModel>> getUploadedProjects() {
+    // TODO: implement getUploadedProjects
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ProjectModel>> getUserProjects(String userId) {
+    // TODO: implement getUserProjects
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ProjectCategoryModel>> getAllCategory() {
+    // TODO: implement getAllCategory
     throw UnimplementedError();
   }
 }

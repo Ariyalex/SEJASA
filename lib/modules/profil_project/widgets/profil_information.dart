@@ -1,37 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/config/app_config.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:sejasa/core/services/location_service.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
+import 'package:sejasa/domain/entities/user_entity.dart';
+import 'package:sejasa/domain/value_objects/gender_type.dart';
 
-class UserProfileHeaderWidget extends StatelessWidget {
-  final String name;
-  final String gender;
-  final double rating;
-  final int completedProjects;
-  final int createdProjects;
-  final String location;
-  final String bio;
-  final List<String> skills;
-  final String phoneNumber;
-  final String email;
+class UserProfileHeaderWidget extends HookWidget {
+  final UserEntity user;
 
-  const UserProfileHeaderWidget({
-    super.key,
-    this.name = "Yuusha Himmel",
-    this.gender = "laki-laki",
-    this.rating = 4,
-    this.completedProjects = 18,
-    this.createdProjects = 18,
-    this.location = "Benua Barat, Isekai",
-    this.bio =
-        "Si pria amal jariyah yang sampe meninggal gak menemukan my kisah.",
-    this.skills = const ["berpedang", "gombal", "tampan"],
-    this.phoneNumber = "0888888888",
-    this.email = "yuusha.himmel@gmail.com",
-  });
+  const UserProfileHeaderWidget({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
+    final locationService = getIt<LocationService>();
+    final address = useState<String>('');
+    useEffect(() {
+      if (user.address == null) {
+        locationService
+            .getAddressFromLatLng(LatLng(user.latitude, user.longitude))
+            .then((value) {
+              address.value = value;
+            });
+      } else {
+        address.value = user.address!;
+      }
+      return null;
+    }, [user]);
+
+    // final photoProfile = useMemoized<ImageProvider?>(() {
+    //   if (user.profilePicture != null) {
+    //     return NetworkImage(AppConfig.baseUrl + user.profilePicture!);
+    //   } else {
+    //     return null;
+    //   }
+    // }, []);
+
+    final photoProfile = useState<ImageProvider?>(null);
+    useEffect(() {
+      if (user.profilePicture != null) {
+        photoProfile.value = NetworkImage(
+          AppConfig.baseUrl + user.profilePicture!,
+        );
+      }
+      return null;
+    }, [user]);
+
+    LogUtils.d("user skill: ${user.skills?.length}");
+
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -46,9 +67,11 @@ class UserProfileHeaderWidget extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
                       backgroundColor: Color(0xFFD9D9D9),
+                      backgroundImage: photoProfile.value,
+                      child: Icon(Icons.person, color: Colors.white, size: 45),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -60,7 +83,7 @@ class UserProfileHeaderWidget extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  "fasdfdas fdsf dsa  ",
+                                  user.name,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -69,13 +92,13 @@ class UserProfileHeaderWidget extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
 
-                              if (gender == "laki-laki")
+                              if (user.gender == GenderType.male)
                                 const Icon(
                                   LucideIcons.mars,
                                   size: 16,
                                   color: Colors.blue,
                                 )
-                              else if (gender == "perempuan")
+                              else if (user.gender == GenderType.female)
                                 const Icon(
                                   LucideIcons.venus,
                                   size: 16,
@@ -91,7 +114,8 @@ class UserProfileHeaderWidget extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "$completedProjects diselesaikan - $createdProjects dibuat",
+                            // "$completedProjects diselesaikan - $createdProjects dibuat",
+                            "67 diselesaikan - 67 dibuat",
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black87,
@@ -105,11 +129,11 @@ class UserProfileHeaderWidget extends StatelessWidget {
                                   return Icon(Icons.star, color: Colors.amber);
                                 },
                                 itemCount: 5,
-                                rating: rating,
+                                rating: user.rating,
                                 itemSize: 20,
                               ),
                               Text(
-                                rating.toString(),
+                                user.rating.toString(),
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -131,7 +155,10 @@ class UserProfileHeaderWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(location, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        address.value,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -144,7 +171,10 @@ class UserProfileHeaderWidget extends StatelessWidget {
           // Bagian 2: Deskripsi / Bio
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(bio, style: const TextStyle(fontSize: 14)),
+            child: Text(
+              user.description ?? "User malas mengisi bio....",
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
 
           const Divider(),
@@ -162,17 +192,20 @@ class UserProfileHeaderWidget extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: skills
-                      .map(
+                  children: [
+                    if (user.skills == null || user.skills!.isEmpty)
+                      Text("User sangat malas hingga tidak punya skill...")
+                    else
+                      ...user.skills!.map(
                         (skill) => MyVisualChip(
-                          title: skill,
+                          title: skill.name,
                           backgroundColor: theme.colorScheme.primary.withValues(
                             alpha: 0.1,
                           ),
                           textColor: theme.colorScheme.primary,
                         ),
-                      )
-                      .toList(),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -190,17 +223,18 @@ class UserProfileHeaderWidget extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      LucideIcons.phone,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(phoneNumber),
-                  ],
-                ),
+                if (user.contact != null)
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.phone,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(user.contact!),
+                    ],
+                  ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -210,7 +244,7 @@ class UserProfileHeaderWidget extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text(email),
+                    Text(user.email),
                   ],
                 ),
               ],

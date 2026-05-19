@@ -9,7 +9,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
   final StorageService _storageService;
 
-  AuthBloc(this._authRepository, this._storageService) : super(AuthInitial()) {
+  AuthBloc(this._authRepository, this._storageService) : super(const AuthState()) {
     on<AuthCheckRequested>(_onCheckRequested);
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
@@ -22,17 +22,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final token = await _storageService.read('access_token');
     if (token == null || token.isEmpty) {
-      emit(AuthUnauthenticated());
+      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null));
       return;
     }
 
-    emit(AuthLoading());
+    emit(state.copyWith(status: AuthStatus.loading, clearMessage: true));
     try {
       final user = await _authRepository.getMyProfile();
-      emit(AuthAuthenticated(user));
+      emit(state.copyWith(status: AuthStatus.authenticated, user: user));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
-      emit(AuthUnauthenticated());
+      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null));
     }
   }
 
@@ -40,15 +40,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(state.copyWith(status: AuthStatus.loading, clearMessage: true));
     try {
       await _authRepository.login(event.email, event.password);
       final user = await _authRepository.getMyProfile();
-      emit(AuthAuthenticated(user));
-      emit(const AuthSuccess("Login Berhasil"));
+      emit(state.copyWith(status: AuthStatus.authenticated, user: user));
+      emit(state.copyWith(status: AuthStatus.success, message: "Login Berhasil"));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
-      emit(AuthError(e.toString()));
+      emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
     }
   }
 
@@ -56,13 +56,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthRegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(state.copyWith(status: AuthStatus.loading, clearMessage: true));
     try {
       await _authRepository.register(event.payload);
-      emit(const AuthSuccess("Registrasi Berhasil"));
+      emit(state.copyWith(status: AuthStatus.success, message: "Registrasi Berhasil"));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
-      emit(AuthError(e.toString()));
+      emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
     }
   }
 
@@ -70,16 +70,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(state.copyWith(status: AuthStatus.loading, clearMessage: true));
     try {
       await _authRepository.logout(event.refreshToken);
       await _storageService.delete('access_token');
       await _storageService.delete('refresh_token');
-      emit(AuthUnauthenticated());
-      emit(const AuthSuccess("Logout Berhasil"));
+      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null));
+      emit(state.copyWith(status: AuthStatus.success, message: "Logout Berhasil"));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
-      emit(AuthError(e.toString()));
+      emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
     }
   }
 }

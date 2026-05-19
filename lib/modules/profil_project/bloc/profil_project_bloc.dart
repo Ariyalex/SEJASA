@@ -9,7 +9,7 @@ import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   final ProjectRepository _repository;
   ProfilProjectBloc(this._repository) : super(ProfilProjectState()) {
-    on<LoadMyTakenProjects>(_onLoadTakenProject);
+    on<LoadUserProjects>(_onLoadTakenProject);
     on<LoadMyUploadedProjects>(_onLoadUploadedProject);
   }
 
@@ -19,7 +19,7 @@ class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   ) async {
     emit(state.copyWith(isFetchingProjectUploaded: true));
     try {
-      final projects = await _repository.getMyProjects();
+      final projects = await _repository.getUploadedProjects();
       emit(
         state.copyWith(
           uploadedProjects: projects,
@@ -40,12 +40,12 @@ class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   }
 
   Future<void> _onLoadTakenProject(
-    LoadMyTakenProjects event,
+    LoadUserProjects event,
     Emitter<ProfilProjectState> emit,
   ) async {
     emit(state.copyWith(isFetchingProjectTaken: true));
     try {
-      final projects = await _repository.getMyProjects();
+      final projects = await _repository.getUserProjects(event.userId);
       final completedProjects = projects
           .where(
             (element) =>

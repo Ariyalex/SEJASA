@@ -1,4 +1,5 @@
 import 'package:sejasa/core/wrappers/pagination_result.dart';
+import 'package:sejasa/data/models/project_category_model.dart';
 import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
@@ -10,6 +11,10 @@ abstract class RemoteProjectProvider {
     required int limit,
   });
   Future<ProjectModel> getProject(String id);
+  Future<List<ProjectModel>> getUserProjects(String userId);
+  Future<List<ProjectModel>> getUploadedProjects();
   Future<ProjectModel> createProject(ProjectCreatePayload payload);
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload);
+
+  Future<List<ProjectCategoryModel>> getAllCategory();
 }

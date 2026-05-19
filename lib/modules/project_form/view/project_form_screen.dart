@@ -6,10 +6,13 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
+import 'package:sejasa/core/widgets/my_dropdown_field.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/domain/entities/project_category_entity.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
@@ -20,6 +23,7 @@ import 'package:sejasa/modules/project_form/widgets/project_description_editor.d
 import 'package:sejasa/modules/project_form/widgets/project_hashtags_input.dart';
 import 'package:sejasa/modules/project_form/widgets/project_location_picker.dart';
 import 'package:sejasa/modules/project_form/widgets/project_requirements_list.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class ProjectFormScreen extends HookWidget {
   final ProjectEntity? initialProject;
@@ -32,10 +36,20 @@ class ProjectFormScreen extends HookWidget {
   Widget build(BuildContext context) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final locationService = getIt<LocationService>();
+    final projectFormBloc = context.read<ProjectFormBloc>();
+
+    useEffect(() {
+      projectFormBloc.add(LoadAllProjectCategories());
+      return null;
+    }, []);
 
     // Hooks for state management
     final titleController = useTextEditingController(
       text: initialProject?.name,
+    );
+
+    final participantController = useTextEditingController(
+      text: initialProject?.maxParticipant.toString(),
     );
 
     final addressController = useTextEditingController();
@@ -44,7 +58,29 @@ class ProjectFormScreen extends HookWidget {
       text: initialProject?.detailAddress,
     );
 
-    final selectedCategory = useState<String?>(initialProject?.category);
+    final selectedStatus = useState<ProjectStatus?>(initialProject?.status);
+
+    final List<ProjectCategoryEntity> allCategories = context.select(
+      (ProjectFormBloc value) => value.state.projectCategories,
+    );
+
+    final selectedCategory = useState<ProjectCategoryEntity?>(null);
+
+    useEffect(() {
+      if (allCategories.isNotEmpty &&
+          initialProject != null &&
+          selectedCategory.value == null) {
+        try {
+          selectedCategory.value = allCategories.firstWhere(
+            (element) => element.name == initialProject?.category,
+          );
+        } catch (e) {
+          LogUtils.e(e.toString());
+        }
+      }
+      return null;
+    }, [allCategories]);
+
     final selectedLocation = useState<LatLng?>(
       initialProject?.latitude != null && initialProject?.longitude != null
           ? LatLng(
@@ -103,9 +139,7 @@ class ProjectFormScreen extends HookWidget {
             );
             Navigator.pop(context, true);
           } else if (state.status == ProjectFormStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Terjadi kesalahan')),
-            );
+            MySnackbar.error(message: state.message ?? 'Terjadi kesalahan');
           }
         },
         child: SingleChildScrollView(
@@ -124,13 +158,44 @@ class ProjectFormScreen extends HookWidget {
                       (v?.isEmpty ?? true) ? 'Nama project wajib diisi' : null,
                 ),
                 const SizedBox(height: 16),
+                MyDropdownField<ProjectStatus>(
+                  entries: ProjectStatus.values
+                      .map((e) => DropdownMenuEntry(value: e, label: e.display))
+                      .toList(),
+                  labelText: "Status Project",
+                  initialSelection: selectedStatus.value,
+                  onSelected: (value) => selectedStatus.value = value,
+                  hintText: "Isi status proyek...",
+                ),
+                const SizedBox(height: 16),
+
+                MyTextField(
+                  title: 'Jumlah Partisipan',
+                  hint: 'Masukkan maksimal jumlah partisipan',
+                  controller: participantController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Participan tidak boleh kosong';
+                    } else if (int.tryParse(value ?? '') == null) {
+                      return "Participan harus berupa angka";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
 
                 // Category Dropdown
-                ProjectCategoryDropdown(
-                  initialValue: selectedCategory.value,
-                  onChanged: (val) => selectedCategory.value = val,
-                  validator: (v) =>
-                      (v?.isEmpty ?? true) ? 'Kategori wajib dipilih' : null,
+                Skeletonizer(
+                  enabled: allCategories.isEmpty,
+
+                  child: ProjectCategoryDropdown(
+                    initialValue: selectedCategory.value,
+                    onChanged: (val) => selectedCategory.value = val,
+                    validator: (v) =>
+                        (v == null) ? 'Kategori wajib dipilih' : null,
+                    categories: allCategories,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -283,9 +348,10 @@ class ProjectFormScreen extends HookWidget {
                           name: titleController.text,
                           address: addressController.text,
                           status:
-                              initialProject?.status.jsonValue ??
+                              selectedStatus.value?.jsonValue ??
                               ProjectStatus.hiring.jsonValue,
-                          maxParticipant: initialProject?.maxParticipant ?? 0,
+                          maxParticipant:
+                              int.tryParse(participantController.text) ?? 0,
 
                           descriptions: descriptionJson,
                           requirements: requirements.value,
@@ -302,15 +368,16 @@ class ProjectFormScreen extends HookWidget {
                           name: titleController.text,
                           address: addressController.text,
                           status:
-                              initialProject?.status.jsonValue ??
+                              selectedStatus.value?.jsonValue ??
                               ProjectStatus.hiring.jsonValue,
-                          maxParticipant: initialProject?.maxParticipant ?? 0,
+                          maxParticipant:
+                              int.tryParse(participantController.text) ?? 0,
 
                           descriptions: descriptionJson,
                           requirements: requirements.value,
                           latitude: selectedLocation.value?.latitude ?? 0,
                           longitude: selectedLocation.value?.longitude ?? 0,
-                          categoryId: 1,
+                          categoryId: selectedCategory.value?.id ?? 0,
                           hastags: hashtags.value,
                         );
 

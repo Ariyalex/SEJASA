@@ -20,6 +20,7 @@ class ProjectLocationPicker extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final locationService = getIt<LocationService>();
+    final isMounted = useIsMounted();
     final selectedLocation = useState<LatLng?>(initialLocation);
     final mapController = useMemoized(() => MapController());
     final isLoading = useState(false);
@@ -29,6 +30,7 @@ class ProjectLocationPicker extends HookWidget {
       if (initialLocation == null) {
         isLoading.value = true;
         locationService.getCurrentLocation(context).then((position) {
+          if (!isMounted()) return;
           if (position != null) {
             final userLoc = LatLng(position.latitude, position.longitude);
             mapController.move(userLoc, 15.0);
@@ -64,6 +66,7 @@ class ProjectLocationPicker extends HookWidget {
                 onPressed: () async {
                   isLoading.value = true;
                   final pos = await locationService.getCurrentLocation(context);
+                  if (!isMounted()) return;
                   if (pos != null) {
                     final loc = LatLng(pos.latitude, pos.longitude);
                     mapController.move(loc, 15.0);
@@ -73,6 +76,7 @@ class ProjectLocationPicker extends HookWidget {
                     final address = await locationService.getAddressFromLatLng(
                       loc,
                     );
+                    if (!isMounted()) return;
                     onLocationChanged(loc, address);
                   }
                   isLoading.value = false;
@@ -96,6 +100,7 @@ class ProjectLocationPicker extends HookWidget {
                   final address = await locationService.getAddressFromLatLng(
                     point,
                   );
+                  if (!isMounted()) return;
                   onLocationChanged(point, address);
                   isLoading.value = false;
                 },

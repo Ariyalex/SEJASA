@@ -1,39 +1,39 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/data/models/user_model.dart';
 
-abstract class AuthState extends Equatable {
-  const AuthState();
-
-  @override
-  List<Object?> get props => [];
+enum AuthStatus {
+  initial,
+  loading,
+  authenticated,
+  unauthenticated,
+  success,
+  error,
 }
 
-class AuthInitial extends AuthState {}
+class AuthState extends Equatable {
+  final AuthStatus status;
+  final UserModel? user;
+  final String? message;
 
-class AuthLoading extends AuthState {}
+  const AuthState({
+    this.status = AuthStatus.initial,
+    this.user,
+    this.message,
+  });
 
-class AuthAuthenticated extends AuthState {
-  final UserModel user;
-  const AuthAuthenticated(this.user);
-
-  @override
-  List<Object?> get props => [user];
-}
-
-class AuthUnauthenticated extends AuthState {}
-
-class AuthSuccess extends AuthState {
-  final String message;
-  const AuthSuccess(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class AuthError extends AuthState {
-  final String message;
-  const AuthError(this.message);
+  AuthState copyWith({
+    AuthStatus? status,
+    UserModel? user,
+    String? message,
+    bool clearMessage = false,
+  }) {
+    return AuthState(
+      status: status ?? this.status,
+      user: user ?? this.user,
+      message: clearMessage ? null : (message ?? this.message),
+    );
+  }
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [status, user, message];
 }

@@ -10,7 +10,12 @@ class MyProjectEvent extends Equatable {
 
 class LoadMyUploadedProjects extends MyProjectEvent {}
 
-class LoadMyTakenProjects extends MyProjectEvent {}
+class LoadMyTakenProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyTakenProjects(this.userId);
+  @override
+  List<Object?> get props => [userId];
+}
 
 class SetMyProjectFilterType extends MyProjectEvent {
   final ProjectFilterType projectFilterType;
