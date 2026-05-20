@@ -95,11 +95,13 @@ class ProjectInfoCard extends HookWidget {
               ),
               const SizedBox(width: 8),
               Icon(Icons.route_outlined, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 4),
-              Text(
-                "${round(project.distance / 1000, decimals: 2)} KM",
-                style: theme.textTheme.bodySmall,
-              ),
+              if (project.distance != null) ...[
+                const SizedBox(width: 4),
+                Text(
+                  "${round(project.distance! / 1000, decimals: 2)} KM",
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
             ],
           ),
           Row(
@@ -111,7 +113,7 @@ class ProjectInfoCard extends HookWidget {
                 backgroundColor: project.status.getBackgroundColor(theme),
               ),
               MyVisualChip(
-                title: project.category,
+                title: project.category.name,
                 backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                 textColor: colorScheme.primary,
               ),

@@ -5,22 +5,22 @@ import 'package:uuid/uuid.dart';
 
 class ProjectCreatePayload {
   final String name;
-  final String address;
+  final String? address;
   final String status;
   final int maxParticipant;
-  final String descriptions;
+  final String? descriptions;
   final List<String> requirements; // Menggunakan class yang dibuat di atas
   final double latitude;
   final double longitude;
   final int categoryId;
-  final List<String>? hastags;
+  final List<String> hastags;
 
   ProjectCreatePayload({
     required this.name,
-    required this.address,
+    this.address,
     required this.status,
     required this.maxParticipant,
-    required this.descriptions,
+    this.descriptions,
     required this.requirements,
     required this.latitude,
     required this.longitude,

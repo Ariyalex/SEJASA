@@ -37,7 +37,7 @@ class LocationPickerTrigger extends StatelessWidget {
             Icon(LucideIcons.mapPin, size: 16, color: theme.primaryColor),
             const SizedBox(width: 4),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 120),
+              constraints: const BoxConstraints(maxWidth: 100),
               child: Text(
                 address,
                 maxLines: 1,

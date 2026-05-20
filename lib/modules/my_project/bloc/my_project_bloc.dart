@@ -11,23 +11,24 @@ import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
 class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   final ProjectRepository _repository;
   MyProjectBloc(this._repository) : super(MyProjectState()) {
-    on<LoadMyTakenProjects>(_onLoadTakenProject);
-    on<LoadMyUploadedProjects>(_onLoadUploadedProject);
+    on<LoadMyPendingProjects>(_onLoadPendingProjects);
+    on<LoadMyRejectedProjects>(_onLoadRejectedProjects);
+    on<LoadMyAcceptedProjects>(_onLoadAcceptedProjects);
     on<SetMyProjectFilterType>(_onSetProjectFilterType);
   }
 
-  Future<void> _onLoadUploadedProject(
-    LoadMyUploadedProjects event,
+  Future<void> _onLoadPendingProjects(
+    LoadMyPendingProjects event,
     Emitter<MyProjectState> emit,
   ) async {
-    emit(state.copyWith(isFetchingProjectUploaded: true));
+    emit(state.copyWith(isFetchingPendingProjects: true));
     try {
-      final projects = await _repository.getUploadedProjects();
+      final projects = await _repository.getPendingProjects(event.userId);
       emit(
         state.copyWith(
-          uploadedProjects: projects,
+          pendingProjects: projects,
           status: MyProjectStatus.success,
-          isFetchingProjectUploaded: false,
+          isFetchingPendingProjects: false,
         ),
       );
       add(SetMyProjectFilterType(state.filterType));
@@ -37,24 +38,24 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         state.copyWith(
           message: e.toString(),
           status: MyProjectStatus.error,
-          isFetchingProjectUploaded: false,
+          isFetchingPendingProjects: false,
         ),
       );
     }
   }
 
-  Future<void> _onLoadTakenProject(
-    LoadMyTakenProjects event,
+  Future<void> _onLoadAcceptedProjects(
+    LoadMyAcceptedProjects event,
     Emitter<MyProjectState> emit,
   ) async {
-    emit(state.copyWith(isFetchingProjectTaken: true));
+    emit(state.copyWith(isFetchingAcceptedProjects: true));
     try {
-      final projects = await _repository.getUserProjects(event.userId);
+      final projects = await _repository.getAcceptedProjects(event.userId);
       emit(
         state.copyWith(
-          takenProjects: projects,
+          acceptedProjects: projects,
           status: MyProjectStatus.success,
-          isFetchingProjectTaken: false,
+          isFetchingAcceptedProjects: false,
         ),
       );
       add(SetMyProjectFilterType(state.filterType));
@@ -64,7 +65,34 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         state.copyWith(
           message: e.toString(),
           status: MyProjectStatus.error,
-          isFetchingProjectTaken: false,
+          isFetchingAcceptedProjects: false,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onLoadRejectedProjects(
+    LoadMyRejectedProjects event,
+    Emitter<MyProjectState> emit,
+  ) async {
+    emit(state.copyWith(isFetchingRejectedProjects: true));
+    try {
+      final projects = await _repository.getRejectedProjects(event.userId);
+      emit(
+        state.copyWith(
+          rejectedProjects: projects,
+          status: MyProjectStatus.success,
+          isFetchingRejectedProjects: false,
+        ),
+      );
+      add(SetMyProjectFilterType(state.filterType));
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
+      emit(
+        state.copyWith(
+          message: e.toString(),
+          status: MyProjectStatus.error,
+          isFetchingRejectedProjects: false,
         ),
       );
     }
@@ -74,19 +102,27 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
     SetMyProjectFilterType event,
     Emitter<MyProjectState> emit,
   ) async {
-    final List<ProjectEntity> takenProjects;
-    final List<ProjectEntity> uploadedProjects;
+    final List<ProjectEntity> pendingProjects;
+    final List<ProjectEntity> acceptedProjects;
+    final List<ProjectEntity> rejectedProjects;
     if (event.projectFilterType == ProjectFilterType.all) {
-      takenProjects = state.takenProjects;
-      uploadedProjects = state.uploadedProjects;
+      pendingProjects = state.pendingProjects;
+      acceptedProjects = state.acceptedProjects;
+      rejectedProjects = state.rejectedProjects;
     } else {
-      takenProjects = state.takenProjects
+      pendingProjects = state.pendingProjects
           .where(
             (element) =>
                 element.status.toJson == event.projectFilterType.toJson,
           )
           .toList();
-      uploadedProjects = state.uploadedProjects
+      acceptedProjects = state.acceptedProjects
+          .where(
+            (element) =>
+                element.status.toJson == event.projectFilterType.toJson,
+          )
+          .toList();
+      rejectedProjects = state.rejectedProjects
           .where(
             (element) =>
                 element.status.toJson == event.projectFilterType.toJson,
@@ -97,8 +133,9 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
     emit(
       state.copyWith(
         filterType: event.projectFilterType,
-        filteredTakenProjects: takenProjects,
-        filteredUploadedProjects: uploadedProjects,
+        filteredPendingProjects: pendingProjects,
+        filteredAcceptedProjects: acceptedProjects,
+        filteredRejectedProjects: rejectedProjects,
       ),
     );
   }

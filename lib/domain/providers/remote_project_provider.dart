@@ -11,8 +11,10 @@ abstract class RemoteProjectProvider {
     required int limit,
   });
   Future<ProjectModel> getProject(String id);
-  Future<List<ProjectModel>> getUserProjects(String userId);
-  Future<List<ProjectModel>> getUploadedProjects();
+  Future<List<ProjectModel>> getUserProjects(
+    Map<String, dynamic>? queryParameters, {
+    required String userId,
+  });
   Future<ProjectModel> createProject(ProjectCreatePayload payload);
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload);
 

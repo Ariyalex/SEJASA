@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/domain/entities/project_category_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ProjectEntity extends Equatable {
@@ -7,27 +8,29 @@ class ProjectEntity extends Equatable {
   final String? detailAddress;
   final double latitude;
   final double longitude;
+  final double projectRating;
   final ProjectStatus status;
-  final double distance;
+  final double? distance;
   final int maxParticipant;
-  final int currentParticipant;
-  final String category;
+  final int? currentParticipant;
+  final ProjectCategoryEntity category;
   final String? description;
   final List<String>? requirements;
   final List<String>? hastags;
   final String ownerId;
-  final String ownerName;
   final double ownerRating;
+  final String ownerName;
   final String? ownerImagePath;
 
   const ProjectEntity({
     required this.id,
     required this.name,
+    required this.projectRating,
     this.detailAddress,
     required this.latitude,
     required this.longitude,
     required this.status,
-    required this.distance,
+    this.distance,
     required this.category,
     this.description,
     this.requirements,
@@ -37,7 +40,7 @@ class ProjectEntity extends Equatable {
     this.ownerImagePath,
     required this.ownerId,
     required this.maxParticipant,
-    required this.currentParticipant,
+    this.currentParticipant,
   });
 
   ProjectEntity copyWith({
@@ -45,11 +48,12 @@ class ProjectEntity extends Equatable {
     final String? detailAddress,
     final double? latitude,
     final double? longitude,
+    final double? projectRating,
     final ProjectStatus? status,
     final double? distance,
     final int? maxParticipant,
     final int? currentParticipant,
-    final String? category,
+    final ProjectCategoryEntity? category,
     final String? description,
     final List<String>? requirements,
     final List<String>? hastags,
@@ -65,6 +69,7 @@ class ProjectEntity extends Equatable {
       detailAddress: detailAddress ?? this.detailAddress,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      projectRating: projectRating ?? this.projectRating,
       status: status ?? this.status,
       distance: distance ?? this.distance,
       currentParticipant: currentParticipant ?? this.currentParticipant,
@@ -86,13 +91,14 @@ class ProjectEntity extends Equatable {
       detailAddress: 'Blok A No. 123',
       latitude: -6.2088,
       longitude: 106.8456,
+      projectRating: 5,
       status: ProjectStatus.hiring,
       currentParticipant: 1,
       maxParticipant: 10,
       distance: 10000,
       ownerId: 'fasdfnasf',
       ownerImagePath: null,
-      category: 'Kategori Dummy',
+      category: ProjectCategoryEntity(id: 0, name: "testing "),
       ownerName: 'Nama Owner Skeleton',
       ownerRating: 5.0,
       description:
@@ -116,6 +122,7 @@ class ProjectEntity extends Equatable {
     detailAddress,
     latitude,
     longitude,
+    projectRating,
     status,
     distance,
     category,

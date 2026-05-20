@@ -18,8 +18,10 @@ abstract class ProjectRepository {
     int limit,
   );
 
-  Future<List<ProjectEntity>> getUserProjects(String userId);
-  Future<List<ProjectEntity>> getUploadedProjects();
+  Future<List<ProjectEntity>> getAcceptedProjects(String userId);
+  Future<List<ProjectEntity>> getUploadedProjects(String userId);
+  Future<List<ProjectEntity>> getPendingProjects(String userId);
+  Future<List<ProjectEntity>> getRejectedProjects(String userId);
 
   Future<ProjectEntity> getProject(String id);
 

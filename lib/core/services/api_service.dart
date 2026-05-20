@@ -120,19 +120,29 @@ class ApiService {
             } else {
               LogUtils.d('❌ No token for: ${options.path}');
 
-              // If no token and not auth endpoint, reject immediately
-              _pendingRequests.remove(requestId);
-              handler.reject(
-                DioException(
-                  requestOptions: options,
-                  response: Response(
+              // If it's a public GET request (except get profile /me), proceed without token
+              final isPublicGet =
+                  options.method == 'GET' && !options.path.contains('/me');
+
+              if (isPublicGet) {
+                LogUtils.d(
+                  '🔓 Proceeding without token for public GET: ${options.path}',
+                );
+              } else {
+                // If no token and not public GET, reject immediately
+                _pendingRequests.remove(requestId);
+                handler.reject(
+                  DioException(
                     requestOptions: options,
-                    statusCode: 401,
-                    statusMessage: 'No access token',
+                    response: Response(
+                      requestOptions: options,
+                      statusCode: 401,
+                      statusMessage: 'No access token',
+                    ),
                   ),
-                ),
-              );
-              return;
+                );
+                return;
+              }
             }
           } else {
             LogUtils.d('🔐 Auth endpoint (no token): ${options.path}');
@@ -319,7 +329,7 @@ class ApiService {
   /// Checking is this path is auth endpoint or not.
   /// It will return [bool]
   bool _isAuthEndpoint(String path) {
-    final authEndpoints = ['/login', '/register', '/logout', '/refresh'];
+    final authEndpoints = ['/login', '/register', '/refresh'];
     return authEndpoints.any((endpoint) => path.contains(endpoint));
   }
 

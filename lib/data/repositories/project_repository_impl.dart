@@ -37,9 +37,11 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<List<ProjectEntity>> getUserProjects(String userId) async {
+  Future<List<ProjectEntity>> getAcceptedProjects(String userId) async {
     try {
-      final result = await _provider.getUserProjects(userId);
+      final result = await _provider.getUserProjects({
+        'sort': 'accepted',
+      }, userId: userId);
       return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
     } catch (e) {
       rethrow;
@@ -47,9 +49,35 @@ class ProjectRepositoryImpl extends ProjectRepository {
   }
 
   @override
-  Future<List<ProjectEntity>> getUploadedProjects() async {
+  Future<List<ProjectEntity>> getUploadedProjects(String userId) async {
     try {
-      final result = await _provider.getUploadedProjects();
+      final result = await _provider.getUserProjects({
+        'sort': 'uploaded',
+      }, userId: userId);
+      return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ProjectEntity>> getPendingProjects(String userId) async {
+    try {
+      final result = await _provider.getUserProjects({
+        'sort': 'pending',
+      }, userId: userId);
+      return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ProjectEntity>> getRejectedProjects(String userId) async {
+    try {
+      final result = await _provider.getUserProjects({
+        'sort': 'rejected',
+      }, userId: userId);
       return List<ProjectEntity>.from(result.map((e) => e.toEntity()));
     } catch (e) {
       rethrow;

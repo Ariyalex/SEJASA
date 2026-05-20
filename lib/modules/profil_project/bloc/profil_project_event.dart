@@ -8,17 +8,21 @@ class ProfilProjectEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// class LoadAllMyProjects extends ProfilProjectEvent {}
-
-class LoadUserProjects extends ProfilProjectEvent {
+class LoadMyUploadedProjects extends ProfilProjectEvent {
   final String userId;
-  const LoadUserProjects(this.userId);
+  const LoadMyUploadedProjects(this.userId);
 
   @override
   List<Object?> get props => [userId];
 }
 
-class LoadMyUploadedProjects extends ProfilProjectEvent {}
+class LoadMyTakenProjects extends ProfilProjectEvent {
+  final String userId;
+  const LoadMyTakenProjects(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
 
 class SetCompletedProjects extends ProfilProjectEvent {
   final ProjectFilterType projectFilterType;

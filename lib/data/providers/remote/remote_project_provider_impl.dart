@@ -66,24 +66,20 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
       '/project/${payload.id}',
       data: payload.toJson(),
     );
+    LogUtils.i("response: $response");
     final data = response.data['data'];
     return ProjectModel.fromJson(data);
   }
 
   @override
-  Future<List<ProjectModel>> getUploadedProjects() async {
-    final response = await _apiService.get('/project/user');
-
-    final rawData = response.data['data'] as List?;
-
-    return List<ProjectModel>.from(
-      rawData?.map((e) => ProjectModel.fromJson(e)) ?? [],
+  Future<List<ProjectModel>> getUserProjects(
+    Map<String, dynamic>? queryParameter, {
+    required String userId,
+  }) async {
+    final response = await _apiService.get(
+      '/project/user/$userId',
+      queryParameters: queryParameter,
     );
-  }
-
-  @override
-  Future<List<ProjectModel>> getUserProjects(String userId) async {
-    final response = await _apiService.get('/project/user/$userId');
 
     final rawData = response.data['data'] as List?;
 

@@ -8,11 +8,25 @@ class MyProjectEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadMyUploadedProjects extends MyProjectEvent {}
-
-class LoadMyTakenProjects extends MyProjectEvent {
+class LoadMyPendingProjects extends MyProjectEvent {
   final String userId;
-  const LoadMyTakenProjects(this.userId);
+  const LoadMyPendingProjects(this.userId);
+  @override
+  List<Object?> get props => [userId];
+}
+
+class LoadMyAcceptedProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyAcceptedProjects(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class LoadMyRejectedProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyRejectedProjects(this.userId);
+
   @override
   List<Object?> get props => [userId];
 }

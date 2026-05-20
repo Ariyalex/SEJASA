@@ -303,13 +303,10 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
   }
 
   @override
-  Future<List<ProjectModel>> getUploadedProjects() {
-    // TODO: implement getUploadedProjects
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ProjectModel>> getUserProjects(String userId) {
+  Future<List<ProjectModel>> getUserProjects(
+    Map<String, dynamic>? queryParameters, {
+    required String userId,
+  }) {
     // TODO: implement getUserProjects
     throw UnimplementedError();
   }

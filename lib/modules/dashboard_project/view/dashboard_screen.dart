@@ -13,7 +13,7 @@ import 'package:sejasa/core/widgets/build_project_list_fetch_page_widget.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/dashboard_project/widgets/location_picker_trigger.dart';
-import 'package:sejasa/modules/project_form/widgets/project_location_picker.dart';
+import 'package:sejasa/core/widgets/global_location_picker_sheet.dart';
 
 class DashboardScreen extends HookWidget {
   const DashboardScreen({super.key});
@@ -29,7 +29,7 @@ class DashboardScreen extends HookWidget {
     useEffect(() {
       // Handle initial location for authenticated users
       final authState = authBloc.state;
-      if (authState.status == AuthStatus.authenticated && authState.user != null) {
+      if (authState.user != null) {
         dashboardBloc.add(
           UpdateDashboardLocationEvent(
             latitude: authState.user!.latitude,
@@ -48,62 +48,25 @@ class DashboardScreen extends HookWidget {
       return null;
     }, []);
 
-    Future<void> showLocationPicker() async {
-      await showModalBottomSheet(
+    void showLocationPicker() {
+      showGlobalLocationPicker(
         context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (context) => DraggableScrollableSheet(
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) => SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ProjectLocationPicker(
-                  initialLocation: dashboardBloc.state.latitude != null
-                      ? LatLng(
-                          dashboardBloc.state.latitude!,
-                          dashboardBloc.state.longitude!,
-                        )
-                      : null,
-                  initialAddress: dashboardBloc.state.address,
-                  onLocationChanged: (location, address) {
-                    dashboardBloc.add(
-                      UpdateDashboardLocationEvent(
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        address: address,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: const Text("Selesai"),
-                ),
-                const SizedBox(height: 16),
-              ],
+        initialLocation: dashboardBloc.state.latitude != null
+            ? LatLng(
+                dashboardBloc.state.latitude!,
+                dashboardBloc.state.longitude!,
+              )
+            : null,
+        initialAddress: dashboardBloc.state.address,
+        onLocationSelected: (location, address) {
+          dashboardBloc.add(
+            UpdateDashboardLocationEvent(
+              latitude: location.latitude,
+              longitude: location.longitude,
+              address: address,
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
@@ -130,7 +93,7 @@ class DashboardScreen extends HookWidget {
                         color: theme.colorScheme.onPrimary,
                       ),
                     ),
-                    if (authState.status == AuthStatus.unauthenticated)
+                    if (authState.user == null)
                       MyOutlineButton(
                         onPressed: () {
                           context.pushNamed(RouteNamed.login);
@@ -139,43 +102,50 @@ class DashboardScreen extends HookWidget {
                       ),
                   ],
                   bottom: PreferredSize(
-                    preferredSize: const Size.fromHeight(48),
-                    child: Stack(
-                      children: [
-                        TabBar(
-                          controller: tabBarController,
-                          isScrollable: true,
-                          tabAlignment: TabAlignment.start,
-                          splashBorderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(8),
-                            topLeft: Radius.circular(8),
-                          ),
-                          dividerColor: Colors.transparent,
-                          padding: EdgeInsets.only(right: 200),
-                          tabs: const [
-                            Tab(text: "Terdekat"),
-                            Tab(text: "Terbaru"),
-                            Tab(text: "Terpopuler"),
-                          ],
-                        ),
-                        Positioned(
-                          right: 4,
-                          top: 0,
-                          bottom: 0,
-                          child:
-                              BlocBuilder<
-                                DashboardProjectBloc,
-                                DashboardProjectState
-                              >(
-                                builder: (context, state) {
-                                  return LocationPickerTrigger(
-                                    address: state.address ?? "Pilih Lokasi",
-                                    onTap: showLocationPicker,
-                                  );
-                                },
+                    preferredSize: const Size.fromHeight(50),
+                    child: SizedBox(
+                      height: 50,
+                      child: Row(
+                        spacing: 4,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: TabBar(
+                              controller: tabBarController,
+                              isScrollable: true,
+                              tabAlignment: TabAlignment.start,
+                              splashBorderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                topLeft: Radius.circular(8),
                               ),
-                        ),
-                      ],
+                              dividerColor: Colors.transparent,
+                              tabs: const [
+                                Tab(text: "Terdekat"),
+                                Tab(text: "Terbaru"),
+                                Tab(text: "Terpopuler"),
+                              ],
+                            ),
+                          ),
+                          BlocBuilder<
+                            DashboardProjectBloc,
+                            DashboardProjectState
+                          >(
+                            builder: (context, state) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 6,
+                                  bottom: 6,
+                                  right: 8,
+                                ),
+                                child: LocationPickerTrigger(
+                                  address: state.address ?? "Pilih Lokasi",
+                                  onTap: showLocationPicker,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

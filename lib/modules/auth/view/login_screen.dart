@@ -21,7 +21,15 @@ class LoginScreen extends HookWidget {
       appBar: AppBar(title: const Text("Login")),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.error) {
+          if (state.status == AuthStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message ?? "Login Berhasil"),
+                backgroundColor: Colors.green,
+              ),
+            );
+            context.goNamed(RouteNamed.mainTab);
+          } else if (state.status == AuthStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message ?? "Terjadi kesalahan"),

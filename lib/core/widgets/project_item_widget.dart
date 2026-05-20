@@ -8,6 +8,9 @@ import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ProjectItemWidget extends HookWidget {
   final ProjectEntity project;
@@ -36,11 +39,16 @@ class ProjectItemWidget extends HookWidget {
 
     return InkWell(
       onTap: () {
-        context.pushNamed(
-          RouteNamed.projectDetail,
-          pathParameters: {'id': project.id},
-          extra: {'is_owner': isMyProject},
-        );
+        final isLoggedIn = context.read<AuthBloc>().state.user != null;
+        if (!isLoggedIn) {
+          context.pushNamed(RouteNamed.login);
+        } else {
+          context.pushNamed(
+            RouteNamed.projectDetail,
+            pathParameters: {'id': project.id},
+            extra: {'is_owner': isMyProject},
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -51,7 +59,7 @@ class ProjectItemWidget extends HookWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 8,
+          // spacing: 8,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -81,6 +89,29 @@ class ProjectItemWidget extends HookWidget {
                 ),
               ],
             ),
+            if (project.status != ProjectStatus.hiring &&
+                project.status != ProjectStatus.pending)
+              Row(
+                spacing: 6,
+                children: [
+                  RatingBarIndicator(
+                    itemBuilder: (context, index) {
+                      return Icon(Icons.star, color: Colors.amber);
+                    },
+                    itemCount: 5,
+
+                    rating: project.projectRating,
+                    itemSize: 18,
+                  ),
+                  Text(
+                    project.projectRating.toString(),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -99,13 +130,17 @@ class ProjectItemWidget extends HookWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.route_outlined,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(" ${round(project.distance / 1000)} KM"),
+                    if (project.distance != null) ...[
+                      Icon(
+                        Icons.route_outlined,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        " ${round(project.distance! / 1000, decimals: 2)} KM",
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -118,7 +153,7 @@ class ProjectItemWidget extends HookWidget {
                       backgroundColor: project.status.getBackgroundColor(theme),
                     ),
                     MyVisualChip(
-                      title: project.category,
+                      title: project.category.name,
                       backgroundColor: theme.colorScheme.primary.withValues(
                         alpha: 0.1,
                       ),

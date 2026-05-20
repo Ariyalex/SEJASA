@@ -6,7 +6,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
-import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_dropdown_field.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
@@ -21,7 +20,7 @@ import 'package:sejasa/modules/project_form/bloc/project_form_state.dart';
 import 'package:sejasa/modules/project_form/widgets/project_category_dropdown.dart';
 import 'package:sejasa/modules/project_form/widgets/project_description_editor.dart';
 import 'package:sejasa/modules/project_form/widgets/project_hashtags_input.dart';
-import 'package:sejasa/modules/project_form/widgets/project_location_picker.dart';
+import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/modules/project_form/widgets/project_requirements_list.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -70,13 +69,7 @@ class ProjectFormScreen extends HookWidget {
       if (allCategories.isNotEmpty &&
           initialProject != null &&
           selectedCategory.value == null) {
-        try {
-          selectedCategory.value = allCategories.firstWhere(
-            (element) => element.name == initialProject?.category,
-          );
-        } catch (e) {
-          LogUtils.e(e.toString());
-        }
+        selectedCategory.value = initialProject!.category;
       }
       return null;
     }, [allCategories]);

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
@@ -29,9 +31,10 @@ class RegisterScreen extends HookWidget {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.success) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message ?? "Berhasil")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message ?? "Berhasil")),
+            );
+            context.pop();
           } else if (state.status == AuthStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -107,16 +110,14 @@ class RegisterScreen extends HookWidget {
                       : null,
                 ),
                 const SizedBox(height: 16),
-                MyTextField(
-                  controller: latController,
-                  title: "Latitude",
-                  hint: "0.0",
-                ),
-                const SizedBox(height: 16),
-                MyTextField(
-                  controller: lngController,
-                  title: "Longitude",
-                  hint: "0.0",
+                ProjectLocationPicker(
+                  title: "Lokasi Anda",
+                  description:
+                      "Ketuk peta untuk memilih lokasi Anda secara presisi.",
+                  onLocationChanged: (LatLng location, String address) {
+                    latController.text = location.latitude.toString();
+                    lngController.text = location.longitude.toString();
+                  },
                 ),
                 const SizedBox(height: 24),
                 BlocBuilder<AuthBloc, AuthState>(

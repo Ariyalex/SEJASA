@@ -11,9 +11,9 @@ import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
+import 'package:sejasa/core/widgets/project_location_view_sheet.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
-import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_state.dart';
@@ -42,12 +42,32 @@ class ProjectDetailScreen extends HookWidget {
     final seeMoreDescription = useState<bool>(false);
     final isScrolled = useState<bool>(false);
 
+    final project = context.select(
+      (ProjectDetailBloc bloc) => bloc.state.project,
+    );
+    final projectAddressState = useState<String>("");
+
+    useEffect(() {
+      if (project != null && project.detailAddress == null) {
+        locationService
+            .getAddressFromLatLng(
+              LatLng(project.latitude, project.longitude),
+            )
+            .then((value) {
+              projectAddressState.value = value;
+            });
+      } else {
+        projectAddressState.value = "";
+      }
+      return null;
+    }, [project?.latitude, project?.longitude, project?.detailAddress]);
+
     useEffect(() {
       projectDetailBloc.add(
         LoadProject(
           id,
           isAuthenticated:
-              context.read<AuthBloc>().state.status == AuthStatus.authenticated,
+              context.read<AuthBloc>().state.user != null,
         ),
       );
       return null;
@@ -190,16 +210,7 @@ class ProjectDetailScreen extends HookWidget {
                     state.status != ProjectDetailStatus.success &&
                     state.project == null;
 
-                String projectAddress = "";
-                if (project.detailAddress == null) {
-                  locationService
-                      .getAddressFromLatLng(
-                        LatLng(project.latitude, project.longitude),
-                      )
-                      .then((value) {
-                        projectAddress = value;
-                      });
-                }
+                final projectAddress = project.detailAddress ?? projectAddressState.value;
 
                 return Skeletonizer(
                   enabled: isSkeleton,
@@ -226,13 +237,14 @@ class ProjectDetailScreen extends HookWidget {
                                       size: 24,
                                       color: theme.colorScheme.primary,
                                     ),
-                                    Expanded(
-                                      child: Text(
-                                        "${round(project.distance / 1000, decimals: 2)} KM",
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodyLarge,
+                                    if (project.distance != null)
+                                      Expanded(
+                                        child: Text(
+                                          "${round(project.distance! / 1000, decimals: 2)} KM",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: theme.textTheme.bodyLarge,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -257,9 +269,42 @@ class ProjectDetailScreen extends HookWidget {
                             ],
                           ),
                           SizedBox(height: 8),
-                          Text(
-                            project.detailAddress ?? projectAddress,
-                            style: theme.textTheme.bodyLarge,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  project.detailAddress ?? projectAddress,
+                                  style: theme.textTheme.bodyLarge,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              FilledButton.icon(
+                                onPressed: () {
+                                  showProjectLocationView(
+                                    context: context,
+                                    projectLocation: LatLng(
+                                      project.latitude,
+                                      project.longitude,
+                                    ),
+                                    projectAddress:
+                                        project.detailAddress ?? projectAddress,
+                                    projectName: project.name,
+                                  );
+                                },
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                                icon: const Icon(LucideIcons.map, size: 16),
+                                label: const Text("Lokasi"),
+                              ),
+                            ],
                           ),
                           SizedBox(height: 8),
                           Row(
@@ -272,7 +317,7 @@ class ProjectDetailScreen extends HookWidget {
                                     .getBackgroundColor(theme),
                               ),
                               MyVisualChip(
-                                title: project.category,
+                                title: project.category.name,
                                 backgroundColor: theme.colorScheme.primary
                                     .withValues(alpha: 0.1),
                                 textColor: theme.colorScheme.primary,

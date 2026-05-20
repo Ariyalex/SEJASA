@@ -74,7 +74,7 @@ class SplashScreen extends HookWidget {
     // 3. Routing
     if (context.mounted) {
       final state = authBloc.state;
-      if (state.status == AuthStatus.authenticated) {
+      if (state.user != null) {
         context.goNamed(RouteNamed.mainTab);
       } else {
         context.go('/guest');

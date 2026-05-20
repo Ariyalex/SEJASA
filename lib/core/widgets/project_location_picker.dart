@@ -8,19 +8,22 @@ import 'package:sejasa/core/services/location_service.dart';
 class ProjectLocationPicker extends HookWidget {
   final LatLng? initialLocation;
   final String? initialAddress;
+  final String title;
+  final String description;
   final Function(LatLng location, String address) onLocationChanged;
 
   const ProjectLocationPicker({
     super.key,
     this.initialLocation,
     this.initialAddress,
+    this.title = 'Lokasi Project',
+    this.description = 'Ketuk peta untuk memilih lokasi secara presisi.',
     required this.onLocationChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final locationService = getIt<LocationService>();
-    final isMounted = useIsMounted();
     final selectedLocation = useState<LatLng?>(initialLocation);
     final mapController = useMemoized(() => MapController());
     final isLoading = useState(false);
@@ -30,7 +33,7 @@ class ProjectLocationPicker extends HookWidget {
       if (initialLocation == null) {
         isLoading.value = true;
         locationService.getCurrentLocation(context).then((position) {
-          if (!isMounted()) return;
+          if (!context.mounted) return;
           if (position != null) {
             final userLoc = LatLng(position.latitude, position.longitude);
             mapController.move(userLoc, 15.0);
@@ -50,9 +53,9 @@ class ProjectLocationPicker extends HookWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Lokasi Project',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             if (isLoading.value)
               const SizedBox(
@@ -66,7 +69,7 @@ class ProjectLocationPicker extends HookWidget {
                 onPressed: () async {
                   isLoading.value = true;
                   final pos = await locationService.getCurrentLocation(context);
-                  if (!isMounted()) return;
+                  if (!context.mounted) return;
                   if (pos != null) {
                     final loc = LatLng(pos.latitude, pos.longitude);
                     mapController.move(loc, 15.0);
@@ -76,7 +79,7 @@ class ProjectLocationPicker extends HookWidget {
                     final address = await locationService.getAddressFromLatLng(
                       loc,
                     );
-                    if (!isMounted()) return;
+                    if (!context.mounted) return;
                     onLocationChanged(loc, address);
                   }
                   isLoading.value = false;
@@ -100,7 +103,7 @@ class ProjectLocationPicker extends HookWidget {
                   final address = await locationService.getAddressFromLatLng(
                     point,
                   );
-                  if (!isMounted()) return;
+                  if (!context.mounted) return;
                   onLocationChanged(point, address);
                   isLoading.value = false;
                 },
@@ -130,9 +133,9 @@ class ProjectLocationPicker extends HookWidget {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Ketuk peta untuk memilih lokasi project secara presisi.',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+        Text(
+          description,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
     );
