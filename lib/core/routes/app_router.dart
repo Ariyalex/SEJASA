@@ -5,14 +5,15 @@ import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
-import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
-import 'package:sejasa/modules/chat/bloc/chat_event.dart';
-import 'package:sejasa/modules/chat/view/chat_screen.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/view/project_detail_screen.dart';
 import 'package:sejasa/modules/project_form/bloc/project_form_bloc.dart';
 import 'package:sejasa/modules/project_form/view/project_form_screen.dart';
+import 'package:sejasa/modules/auth/view/login_screen.dart';
+import 'package:sejasa/modules/auth/view/register_screen.dart';
+import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
+import 'package:sejasa/modules/chat/view/chat_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -22,6 +23,21 @@ class AppRouter {
         path: "/",
         name: RouteNamed.dashboard,
         builder: (context, state) => MainTab(),
+      ),
+      GoRoute(
+        path: '/login',
+        name: RouteNamed.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        name: RouteNamed.register,
+        builder: (context, state) {
+          final type = state.extra is AccountType
+              ? state.extra as AccountType
+              : AccountType.perorangan;
+          return RegisterScreen(accountType: type);
+        },
       ),
       GoRoute(
         path: '/project/add',
@@ -58,7 +74,7 @@ class AppRouter {
             create: (context) => ChatBloc(
               context.read<ChatRepository>(),
               context.read<ProjectRepository>(),
-            )..add(ChatStarted(projectId)),
+            ),
             child: ChatScreen(
               id: id,
               name: extra['name'] ?? 'Unknown',

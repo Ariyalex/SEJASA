@@ -23,7 +23,7 @@ class ProjectHashtagsInput extends HookWidget {
     // Regex to detect hashtags in real-time
     final hashtagRegex = RegExp(r'#(\w+)');
 
-    void _updateHashtags(String text) {
+    void updateHashtags(String text) {
       final matches = hashtagRegex.allMatches(text);
       final tags = matches.map((m) => m.group(1)).whereType<String>().toList();
       onHashtagsChanged(tags);
@@ -37,7 +37,7 @@ class ProjectHashtagsInput extends HookWidget {
           hint: 'Masukkan hashtag (misal: #flutter #dart)',
           controller: controller,
           prefixIcon: const Icon(Icons.tag),
-          onChanged: _updateHashtags,
+          onChanged: updateHashtags,
           validator: (v) => (v?.isEmpty ?? true) ? 'Minimal 1 hashtag' : null,
         ),
         if (hashtags.isNotEmpty) ...[

@@ -7,6 +7,8 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dar
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_state.dart';
 import 'package:sejasa/core/widgets/build_project_list_fetch_page_widget.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 
 class DashboardScreen extends HookWidget {
   const DashboardScreen({super.key});
@@ -50,7 +52,10 @@ class DashboardScreen extends HookWidget {
                     color: theme.colorScheme.onPrimary,
                   ),
                 ),
-                MyOutlineButton(onPressed: () {}, child: Text("Masuk")),
+                MyOutlineButton(
+                  onPressed: () => context.pushNamed(RouteNamed.login),
+                  child: Text("Masuk"),
+                ),
               ],
               bottom: TabBar(
                 controller: tabBarController,
