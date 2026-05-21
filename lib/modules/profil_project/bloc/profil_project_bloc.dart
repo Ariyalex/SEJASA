@@ -1,41 +1,42 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/utils/log_utils.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
 
-class ProfilProjectBloc
-  extends Bloc<ProfilProjectEvent, ProfilProjectState> {
+class ProfilProjectBloc extends Bloc<ProfilProjectEvent, ProfilProjectState> {
   final ProjectRepository _repository;
-  late final StreamSubscription<void> _projectUpdateSubscription;
-  ProfilProjectBloc(this._repository)
-    : super(ProfilProjectState()) {
-    on<LoadMyTakenProjects>(_onLoadTakenProject);
-    on<LoadMyUploadedProjects>(_onLoadUploadedProject);
-
-    _projectUpdateSubscription = _repository.projectUpdateStream.listen((
-      event,
-    ) {
-      add(LoadMyTakenProjects());
-    });
+  ProfilProjectBloc(this._repository) : super(ProfilProjectState()) {
+    on<LoadMyUploadedProjects>(_onLoadUploadedProjects);
+    on<LoadMyTakenProjects>(_onLoadTakenProjects);
+    on<SetCompletedProjects>(_onSetCompletedProjects);
   }
 
-  Future<void> _onLoadUploadedProject(
+  Future<void> _onLoadUploadedProjects(
     LoadMyUploadedProjects event,
     Emitter<ProfilProjectState> emit,
   ) async {
-    emit(state.copyWith(isFetchingProjectUploaded: true));
+    emit(state.copyWith(
+      isFetchingProjectUploaded: true,
+      status: ProfilProjectStatus.loading,
+    ));
     try {
-      final projects = await _repository.getMyProjects();
+      final projects = await _repository.getUploadedProjects(event.userId);
+      final filtered = _filterProjects(projects, state.filterType);
       emit(
         state.copyWith(
           uploadedProjects: projects,
+          filteredUploadedProjects: filtered,
           status: ProfilProjectStatus.success,
           isFetchingProjectUploaded: false,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
@@ -46,24 +47,25 @@ class ProfilProjectBloc
     }
   }
 
-  Future<void> _onLoadTakenProject(
+  Future<void> _onLoadTakenProjects(
     LoadMyTakenProjects event,
     Emitter<ProfilProjectState> emit,
   ) async {
-    emit(state.copyWith(isFetchingProjectTaken: true));
+    emit(state.copyWith(
+      isFetchingProjectTaken: true,
+      status: ProfilProjectStatus.loading,
+    ));
     try {
-      final projects = await _repository.getMyProjects();
-      final completedProjects = projects.where((element) =>
-        element.status.toJson == ProjectFilterType.completed.toJson,
-      ).toList();
+      final projects = await _repository.getAcceptedProjects(event.userId);
       emit(
         state.copyWith(
-          takenProjects: completedProjects,
+          takenProjects: projects,
           status: ProfilProjectStatus.success,
           isFetchingProjectTaken: false,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
@@ -74,9 +76,46 @@ class ProfilProjectBloc
     }
   }
 
-  @override
-  Future<void> close() {
-    _projectUpdateSubscription.cancel();
-    return super.close();
+  void _onSetCompletedProjects(
+    SetCompletedProjects event,
+    Emitter<ProfilProjectState> emit,
+  ) {
+    final filtered = _filterProjects(state.uploadedProjects, event.projectFilterType);
+    emit(
+      state.copyWith(
+        filterType: event.projectFilterType,
+        filteredUploadedProjects: filtered,
+      ),
+    );
+  }
+
+  List<ProjectEntity> _filterProjects(
+    List<ProjectEntity> allProjects,
+    ProjectFilterType filterType,
+  ) {
+    if (filterType == ProjectFilterType.all) {
+      return allProjects;
+    }
+    ProjectStatus? statusToMatch;
+    switch (filterType) {
+      case ProjectFilterType.hiring:
+        statusToMatch = ProjectStatus.hiring;
+        break;
+      case ProjectFilterType.going:
+        statusToMatch = ProjectStatus.going;
+        break;
+      case ProjectFilterType.completed:
+        statusToMatch = ProjectStatus.completed;
+        break;
+      case ProjectFilterType.cancled:
+        statusToMatch = ProjectStatus.cancled;
+        break;
+      default:
+        break;
+    }
+    if (statusToMatch != null) {
+      return allProjects.where((p) => p.status == statusToMatch).toList();
+    }
+    return allProjects;
   }
 }

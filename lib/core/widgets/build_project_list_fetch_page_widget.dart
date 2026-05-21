@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListFetchPageWidget extends HookWidget {
@@ -30,6 +30,45 @@ class BuildProjectListFetchPageWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!isLoading && projects.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.folderOpen,
+                    size: 64,
+                    color: Colors.grey.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Proyek tidak ditemukan",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Coba cari dengan kata kunci lain atau refresh halaman",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.separated(
@@ -47,20 +86,7 @@ class BuildProjectListFetchPageWidget extends HookWidget {
           }
           if (index >= projects.length || isLoading) {
             return Skeletonizer(
-              child: ProjectItemWidget(
-                project: ProjectEntity(
-                  id: "",
-                  title: 'loading data',
-                  address: "ngawi",
-                  status: ProjectStatus.going,
-                  distance: '100km',
-                  participant: '6/7 peserta',
-                  category: 'random',
-                  ownerName: "gatawu",
-                  ownerRating: 5,
-                  isBookmark: false,
-                ),
-              ),
+              child: ProjectItemWidget(project: ProjectEntity.dummyProject()),
             );
           }
           return ProjectItemWidget(

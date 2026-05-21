@@ -78,6 +78,7 @@ class _AddRequirementForm extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final controller = useTextEditingController();
 
     return Padding(
@@ -91,9 +92,11 @@ class _AddRequirementForm extends HookWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'Tambah Requirement Baru',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(

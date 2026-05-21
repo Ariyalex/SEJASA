@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 enum ProjectStatus {
   hiring('hiring', 'Merekrut'),
-  going('on_going', 'Sedang Berlangsung'),
-  cancled('cancled', 'Dibatalkan'),
-  completed('completed', 'Selesai');
+  going('ongoing', 'Sedang Berlangsung'),
+  pending('pending', 'Ditunda'),
+  cancled('cancel', 'Dibatalkan'),
+  completed('done', 'Selesai');
 
   final String jsonValue;
   final String label;
@@ -30,6 +31,8 @@ enum ProjectStatus {
         return Colors.white;
       case ProjectStatus.cancled:
         return theme.colorScheme.onError;
+      case ProjectStatus.pending:
+        return Colors.white;
     }
   }
 
@@ -43,6 +46,8 @@ enum ProjectStatus {
         return Colors.green;
       case ProjectStatus.cancled:
         return theme.colorScheme.error;
+      case ProjectStatus.pending:
+        return Colors.deepOrange;
     }
   }
 }

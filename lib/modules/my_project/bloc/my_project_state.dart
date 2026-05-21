@@ -1,77 +1,96 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 enum MyProjectStatus { initial, loading, success, error }
 
 class MyProjectState extends Equatable {
-  final List<ProjectEntity> takenProjects;
-  final List<ProjectEntity> uploadedProjects;
-  final bool isFetchingProjectTaken;
-  final bool isFetchingProjectUploaded;
+  final List<ProjectEntity> pendingProjects;
+  final List<ProjectEntity> acceptedProjects;
+  final List<ProjectEntity> rejectedProjects;
+
+  final bool isFetchingPendingProjects;
+  final bool isFetchingAcceptedProjects;
+  final bool isFetchingRejectedProjects;
 
   final MyProjectStatus status;
   final String? message;
 
-  final List<ProjectEntity> filteredTakenProjects;
-  final List<ProjectEntity> filteredUploadedProjects;
+  final List<ProjectEntity> filteredPendingProjects;
+  final List<ProjectEntity> filteredAcceptedProjects;
+  final List<ProjectEntity> filteredRejectedProjects;
   final ProjectFilterType filterType;
 
   const MyProjectState({
-    this.takenProjects = const [],
-    this.uploadedProjects = const [],
-    this.isFetchingProjectTaken = false,
-    this.isFetchingProjectUploaded = false,
+    this.pendingProjects = const [],
+    this.acceptedProjects = const [],
+    this.rejectedProjects = const [],
+
+    this.isFetchingPendingProjects = false,
+    this.isFetchingAcceptedProjects = false,
+    this.isFetchingRejectedProjects = false,
 
     this.status = MyProjectStatus.initial,
     this.message,
 
-    this.filteredTakenProjects = const [],
-    this.filteredUploadedProjects = const [],
+    this.filteredPendingProjects = const [],
+    this.filteredAcceptedProjects = const [],
+    this.filteredRejectedProjects = const [],
     this.filterType = ProjectFilterType.all,
   });
 
   MyProjectState copyWith({
-    final List<ProjectEntity>? takenProjects,
-    final List<ProjectEntity>? uploadedProjects,
-    final bool? isFetchingProjectTaken,
-    final bool? isFetchingProjectUploaded,
+    final List<ProjectEntity>? pendingProjects,
+    final List<ProjectEntity>? acceptedProjects,
+    final List<ProjectEntity>? rejectedProjects,
+    final bool? isFetchingPendingProjects,
+    final bool? isFetchingAcceptedProjects,
+    final bool? isFetchingRejectedProjects,
 
     final MyProjectStatus? status,
     final String? message,
 
-    final List<ProjectEntity>? filteredTakenProjects,
-    final List<ProjectEntity>? filteredUploadedProjects,
+    final List<ProjectEntity>? filteredPendingProjects,
+    final List<ProjectEntity>? filteredAcceptedProjects,
+    final List<ProjectEntity>? filteredRejectedProjects,
     final ProjectFilterType? filterType,
   }) {
     return MyProjectState(
-      takenProjects: takenProjects ?? this.takenProjects,
-      uploadedProjects: uploadedProjects ?? this.uploadedProjects,
-      isFetchingProjectTaken:
-          isFetchingProjectTaken ?? this.isFetchingProjectTaken,
-      isFetchingProjectUploaded:
-          isFetchingProjectUploaded ?? this.isFetchingProjectUploaded,
+      pendingProjects: pendingProjects ?? this.pendingProjects,
+      acceptedProjects: acceptedProjects ?? this.acceptedProjects,
+      rejectedProjects: rejectedProjects ?? this.rejectedProjects,
+      isFetchingPendingProjects:
+          isFetchingPendingProjects ?? this.isFetchingPendingProjects,
+      isFetchingAcceptedProjects:
+          isFetchingAcceptedProjects ?? this.isFetchingAcceptedProjects,
+      isFetchingRejectedProjects:
+          isFetchingRejectedProjects ?? this.isFetchingRejectedProjects,
       status: status ?? this.status,
       message: message ?? this.message,
 
-      filteredTakenProjects:
-          filteredTakenProjects ?? this.filteredTakenProjects,
-      filteredUploadedProjects:
-          filteredUploadedProjects ?? this.filteredUploadedProjects,
+      filteredPendingProjects:
+          filteredPendingProjects ?? this.filteredPendingProjects,
+      filteredAcceptedProjects:
+          filteredAcceptedProjects ?? this.filteredAcceptedProjects,
+      filteredRejectedProjects:
+          filteredRejectedProjects ?? this.filteredRejectedProjects,
       filterType: filterType ?? this.filterType,
     );
   }
 
   @override
   List<Object?> get props => [
-    takenProjects,
-    uploadedProjects,
-    isFetchingProjectTaken,
-    isFetchingProjectUploaded,
+    pendingProjects,
+    acceptedProjects,
+    rejectedProjects,
+    isFetchingPendingProjects,
+    isFetchingAcceptedProjects,
+    isFetchingRejectedProjects,
     status,
     message,
     filterType,
-    filteredTakenProjects,
-    filteredUploadedProjects,
+    filteredPendingProjects,
+    filteredAcceptedProjects,
+    filteredRejectedProjects,
   ];
 }

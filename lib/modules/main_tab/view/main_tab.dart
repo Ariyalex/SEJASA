@@ -6,6 +6,8 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
@@ -25,7 +27,8 @@ class MainTab extends StatelessWidget {
     final mainTabBloc = context.read<MainTabBloc>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
+
       body: SafeArea(
         child: BlocBuilder<MainTabBloc, MainTabState>(
           buildWhen: (previous, current) => false,
@@ -79,7 +82,17 @@ class MainTab extends StatelessWidget {
                   screen: BlocProvider(
                     create: (context) =>
                         ProfilProjectBloc(context.read<ProjectRepository>()),
-                    child: ProfilScreen(),
+                    child: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        final user = state.user;
+                        if (user == null) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return ProfilScreen(isMyProfile: true, user: user);
+                      },
+                    ),
                   ),
                   item: ItemConfig(
                     icon: const Icon(Icons.person_outline_rounded),

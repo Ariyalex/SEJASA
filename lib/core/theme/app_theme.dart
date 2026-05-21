@@ -4,15 +4,11 @@ import 'package:flutter/material.dart';
 
 /// The [AppTheme] defines light and dark themes for the app.
 ///
-/// Palette: Himmel (Frieren).
-/// - primary           : baju Himmel
-/// - primaryContainer  : rambut Himmel
-/// - secondary         : mata Himmel (gelap)
-/// - secondaryContainer: mata Himmel
-/// - tertiary          : jubah Himmel (gelap)
-/// - tertiaryContainer : jubah Himmel
-///
-/// Dark mode di-generate otomatis dari light scheme via `.toDark(...)`.
+/// Theme setup for FlexColorScheme package v8.
+/// Use same major flex_color_scheme package version. If you use a
+/// lower minor version, some properties may not be supported.
+/// In that case, remove them after copying this theme to your
+/// app or upgrade the package to version 8.4.0.
 ///
 /// Use it in a [MaterialApp] like this:
 ///
@@ -21,23 +17,23 @@ import 'package:flutter/material.dart';
 ///   darkTheme: AppTheme.dark,
 /// );
 abstract final class AppTheme {
-  // Custom palette — Himmel (sesuai brief tugas UAS).
-  static const _himmelColors = FlexSchemeColor(
-    primary: Color(0xFF4D5B8C),           // East Bay — baju Himmel
-    primaryContainer: Color(0xFFA8C6E2),  // Spindle — rambut Himmel
-    secondary: Color(0xFF89957B),         // Battleship Gray — mata Himmel (gelap)
-    secondaryContainer: Color(0xFFE0ECCF), // Kidnapper — mata Himmel
-    tertiary: Color(0xFF99988E),          // Star Dust — jubah Himmel (gelap)
-    tertiaryContainer: Color(0xFFE5E3D7), // Satin Linen — jubah Himmel
-    appBarColor: Color(0xFFE0ECCF),
-    error: Color(0xFFBA1A1A),             // Thunderbird
-    errorContainer: Color(0xFFFFDAD6),    // Peach Schnapps
-  );
-
   // The FlexColorScheme defined light mode ThemeData.
   static ThemeData light = FlexThemeData.light(
-    colors: _himmelColors,
+    // User defined custom colors made with FlexSchemeColor() API.
+    colors: const FlexSchemeColor(
+      primary: Color(0xFF355B96),
+      primaryContainer: Color(0xFFA8C6E2),
+      secondary: Color(0xFFA8C6E2),
+      secondaryContainer: Color(0xFFD5F9FF),
+      tertiary: Color(0xFFE5E3D7),
+      tertiaryContainer: Color(0xFFE5E3D7),
+      appBarColor: Color(0xFFD5F9FF),
+      error: Color(0xFFBA1A1A),
+      errorContainer: Color(0xFFFFDAD6),
+    ),
+    // Input color modifiers.
     usedColors: 7,
+    // Component theme configurations for light mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -47,16 +43,30 @@ abstract final class AppTheme {
       alignedDropdown: true,
       navigationRailUseIndicator: true,
     ),
+    // Direct ThemeData properties.
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
   );
 
   // The FlexColorScheme defined dark mode ThemeData.
-  // Computed from light scheme using defaultError and toDark() methods.
   static ThemeData dark = FlexThemeData.dark(
-    colors: _himmelColors.defaultError.toDark(10, true),
+    // Computing from light scheme using defaultError and toDark() methods.
+    // User defined custom colors made with FlexSchemeColor() API.
+    colors: const FlexSchemeColor(
+      primary: Color(0xFF355B96),
+      primaryContainer: Color(0xFFA8C6E2),
+      secondary: Color(0xFFA8C6E2),
+      secondaryContainer: Color(0xFFD5F9FF),
+      tertiary: Color(0xFFE5E3D7),
+      tertiaryContainer: Color(0xFFE5E3D7),
+      appBarColor: Color(0xFFD5F9FF),
+      error: Color(0xFFBA1A1A),
+      errorContainer: Color(0xFFFFDAD6),
+    ).defaultError.toDark(10, true),
+    // Input color modifiers.
     usedColors: 7,
     swapColors: true,
+    // Component theme configurations for dark mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -67,6 +77,7 @@ abstract final class AppTheme {
       alignedDropdown: true,
       navigationRailUseIndicator: true,
     ),
+    // Direct ThemeData properties.
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
   );

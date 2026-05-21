@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 class MyProjectEvent extends Equatable {
   const MyProjectEvent();
@@ -8,9 +8,28 @@ class MyProjectEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadMyUploadedProjects extends MyProjectEvent {}
+class LoadMyPendingProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyPendingProjects(this.userId);
+  @override
+  List<Object?> get props => [userId];
+}
 
-class LoadMyTakenProjects extends MyProjectEvent {}
+class LoadMyAcceptedProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyAcceptedProjects(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class LoadMyRejectedProjects extends MyProjectEvent {
+  final String userId;
+  const LoadMyRejectedProjects(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
 
 class SetMyProjectFilterType extends MyProjectEvent {
   final ProjectFilterType projectFilterType;
