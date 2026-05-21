@@ -23,15 +23,15 @@ class UserUpdatePayload {
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'email': email,
-      'descriptions': description,
-      'contact': contact,
-      'gender': gender,
-      'address': detailAddress,
-      'latitude': latitude,
-      'longitude': longitude,
-      'image': imagePath,
+      if (name != null) 'name': name,
+      if (email != null) 'email': email,
+      if (description != null) 'descriptions': description,
+      if (contact != null) 'contact': contact,
+      if (gender != null) 'gender': gender,
+      if (detailAddress != null) 'address': detailAddress,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (imagePath != null) 'image': imagePath,
     };
   }
 }

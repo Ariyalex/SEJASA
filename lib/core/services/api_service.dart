@@ -485,6 +485,31 @@ class ApiService {
     }
   }
 
+  /// Http request download for file.
+  /// Downloads a file from the remote [urlPath] and saves it locally at [savePath].
+  Future<Response> download(
+    String urlPath,
+    String savePath, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      await isReady;
+      return await _dio.download(
+        urlPath,
+        savePath,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+      );
+    } on DioException catch (error) {
+      throw _handleDioError(error);
+    }
+  }
+
   /// Keep the rest of error handling methods stay the same
   ApiException _handleDioError(DioException error) {
     switch (error.type) {

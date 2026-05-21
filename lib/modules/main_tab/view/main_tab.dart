@@ -27,7 +27,8 @@ class MainTab extends StatelessWidget {
     final mainTabBloc = context.read<MainTabBloc>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
+
       body: SafeArea(
         child: BlocBuilder<MainTabBloc, MainTabState>(
           buildWhen: (previous, current) => false,
@@ -83,10 +84,13 @@ class MainTab extends StatelessWidget {
                         ProfilProjectBloc(context.read<ProjectRepository>()),
                     child: BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
-                        return ProfilScreen(
-                          isMyProfile: true,
-                          user: state.user!,
-                        );
+                        final user = state.user;
+                        if (user == null) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return ProfilScreen(isMyProfile: true, user: user);
                       },
                     ),
                   ),

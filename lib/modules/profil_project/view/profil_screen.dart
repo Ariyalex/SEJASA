@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
@@ -30,14 +31,10 @@ class ProfilScreen extends HookWidget {
     final profilBloc = context.read<ProfilProjectBloc>();
 
     useEffect(() {
-      if (isMyProfile) {
-        profilBloc.add(LoadMyUploadedProjects(user.id));
-      } else {
-        profilBloc.add(LoadMyUploadedProjects(user.id));
-        profilBloc.add(LoadMyTakenProjects(user.id));
-      }
+      profilBloc.add(LoadMyUploadedProjects(user.id));
+      profilBloc.add(LoadMyTakenProjects(user.id));
       return null;
-    }, [user.id, isMyProfile]);
+    }, [user.id]);
 
     return Scaffold(
       body: NestedScrollView(
@@ -77,7 +74,12 @@ class ProfilScreen extends HookWidget {
                     ),
                     if (isMyProfile) ...[
                       PopupMenuItem(
-                        onTap: () {},
+                        onTap: () {
+                          Future.delayed(Duration.zero, () {
+                            if (!context.mounted) return;
+                            context.pushNamed(RouteNamed.editProfile);
+                          });
+                        },
                         child: const Row(
                           spacing: 12,
                           children: [
@@ -86,7 +88,7 @@ class ProfilScreen extends HookWidget {
                           ],
                         ),
                       ),
-                      PopupMenuDivider(),
+                      const PopupMenuDivider(),
                       PopupMenuItem(
                         onTap: () {
                           // Tap handler for popup menu item: show confirmation dialog
@@ -127,7 +129,8 @@ class ProfilScreen extends HookWidget {
                                     TextButton(
                                       onPressed: () async {
                                         // Ambil references sebelum async gap
-                                        final authBloc = context.read<AuthBloc>();
+                                        final authBloc = context
+                                            .read<AuthBloc>();
                                         final goRouter = GoRouter.of(context);
 
                                         // Tutup dialog
@@ -136,14 +139,14 @@ class ProfilScreen extends HookWidget {
                                         // Ambil refresh token dari StorageService
                                         final storage = getIt<StorageService>();
                                         final refreshToken =
-                                            await storage.read('refresh_token') ??
-                                                '';
+                                            await storage.read(
+                                              'refresh_token',
+                                            ) ??
+                                            '';
 
                                         // Dispatch AuthLogoutRequested
                                         authBloc.add(
-                                          AuthLogoutRequested(
-                                            refreshToken,
-                                          ),
+                                          AuthLogoutRequested(refreshToken),
                                         );
                                         // Navigasi ke dashboard (/guest)
                                         goRouter.go('/guest');

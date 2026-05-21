@@ -14,8 +14,6 @@ import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/dashboard_project/widgets/location_picker_trigger.dart';
 import 'package:sejasa/core/widgets/global_location_picker_sheet.dart';
-import 'package:go_router/go_router.dart';
-import 'package:sejasa/core/routes/route_named.dart';
 
 class DashboardScreen extends HookWidget {
   const DashboardScreen({super.key});

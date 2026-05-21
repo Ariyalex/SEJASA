@@ -16,7 +16,6 @@ import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/auth/view/login_screen.dart';
 import 'package:sejasa/modules/auth/view/register_screen.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
-import 'package:sejasa/modules/chat/bloc/chat_event.dart';
 import 'package:sejasa/modules/chat/view/chat_screen.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
@@ -31,6 +30,7 @@ import 'package:sejasa/modules/search/view/search_initial_screen.dart';
 import 'package:sejasa/modules/search/view/search_result_screen.dart';
 
 import 'package:sejasa/modules/splash/view/splash_screen.dart';
+import 'package:sejasa/modules/profil_project/view/edit_profile_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -149,6 +149,11 @@ class AppRouter {
             child: ProjectFormScreen(initialProject: project),
           );
         },
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        name: RouteNamed.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
         path: '/chat/:id',

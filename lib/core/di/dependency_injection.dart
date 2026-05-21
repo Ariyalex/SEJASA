@@ -21,7 +21,11 @@ import 'package:sejasa/data/providers/remote/remote_user_provider_impl.dart';
 import 'package:sejasa/data/repositories/chat_repository_impl.dart';
 import 'package:sejasa/data/repositories/project_repository_impl.dart';
 import 'package:sejasa/data/repositories/user_repository_impl.dart';
+import 'package:sejasa/data/providers/remote/remote_file_provider_impl.dart';
+import 'package:sejasa/data/repositories/file_repository_impl.dart';
 import 'package:sejasa/domain/providers/chat_socket_provider.dart';
+import 'package:sejasa/domain/providers/remote_file_provider.dart';
+import 'package:sejasa/domain/repositories/file_repository.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 import 'package:sejasa/domain/providers/remote_user_provider.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
@@ -87,10 +91,18 @@ class DependencyInjection {
     // User implementation
     getIt.registerLazySingleton<RemoteUserProvider>(() {
       if (isMocking) return MockUserProvider();
-      return RemoteUserProviderImpl();
+      return RemoteUserProviderImpl(getIt<ApiService>());
     });
     getIt.registerLazySingleton<UserRepository>(
       () => UserRepositoryImpl(getIt<RemoteUserProvider>()),
+    );
+
+    // File implementation
+    getIt.registerLazySingleton<RemoteFileProvider>(
+      () => RemoteFileProviderImpl(getIt<ApiService>()),
+    );
+    getIt.registerLazySingleton<FileRepository>(
+      () => FileRepositoryImpl(getIt<RemoteFileProvider>()),
     );
 
     // Chat implementation

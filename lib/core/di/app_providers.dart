@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/domain/providers/chat_socket_provider.dart';
 import 'package:sejasa/domain/providers/remote_auth_provider.dart';
+import 'package:sejasa/domain/providers/remote_file_provider.dart';
+import 'package:sejasa/domain/repositories/file_repository.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 import 'package:sejasa/domain/providers/remote_user_provider.dart';
 import 'package:sejasa/domain/repositories/auth_repository.dart';
@@ -13,6 +15,12 @@ import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 
 class AppProviders {
   static List<RepositoryProvider> get repositoryProviders => [
+    RepositoryProvider<RemoteFileProvider>.value(
+      value: getIt<RemoteFileProvider>(),
+    ),
+    RepositoryProvider<FileRepository>.value(
+      value: getIt<FileRepository>(),
+    ),
     RepositoryProvider<RemoteAuthProvider>.value(
       value: getIt<RemoteAuthProvider>(),
     ),

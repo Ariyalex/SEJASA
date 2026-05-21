@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/modules/auth/view/register_screen.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 
 class LoginScreen extends HookWidget {
   const LoginScreen({super.key});
@@ -28,6 +33,7 @@ class LoginScreen extends HookWidget {
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final isLoadingState = useState(false);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,109 +46,169 @@ class LoginScreen extends HookWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16),
-
-                // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
-                Center(
-                  child: Text(
-                    'Logo',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 80,
-                    ),
-                  ),
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state.status == AuthStatus.loading) {
+            isLoadingState.value = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const WillPopScope(
+                onWillPop: null, // disables back button while loading
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
-                const SizedBox(height: 48),
+              ),
+            );
+          } else {
+            if (isLoadingState.value) {
+              isLoadingState.value = false;
+              Navigator.of(context, rootNavigator: true).pop();
+            }
 
-                Center(
-                  child: Text(
-                    'Masuk Akun',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
+            if (state.status == AuthStatus.authenticated) {
+              MySnackbar.success(
+                title: "Login Berhasil",
+                message: state.message ?? "Selamat datang kembali!",
+              );
+            } else if (state.status == AuthStatus.error) {
+              MySnackbar.error(
+                title: "Login Gagal",
+                message: state.message ?? "Username atau password salah",
+              );
+            }
+          }
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16),
 
-                MyTextField(
-                  title: 'Email',
-                  hint: 'email kamu...',
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-
-                MyTextField(
-                  title: 'Password',
-                  hint: 'password kamu....',
-                  controller: passwordController,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    // TODO: panggil auth bloc untuk login
-                  },
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      // TODO: navigasi ke forgot password
-                    },
+                  // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
+                  Center(
                     child: Text(
-                      'Lupa password?',
-                      style: TextStyle(
-                        color: colorScheme.primary,
+                      'Logo',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 80,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+
+                  Center(
+                    child: Text(
+                      'Masuk Akun',
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Tidak punya akun? ',
-                        style: theme.textTheme.bodyMedium,
+                  MyTextField(
+                    title: 'Email',
+                    hint: 'email kamu...',
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email wajib diisi';
+                      }
+                      final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      if (!emailRegExp.hasMatch(value.trim())) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  MyTextField(
+                    title: 'Password',
+                    hint: 'password kamu....',
+                    controller: passwordController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password wajib diisi';
+                      }
+                      if (value.length < 6) {
+                        return 'Password minimal 6 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      GestureDetector(
-                        onTap: () => _showAccountTypePicker(context),
-                        child: Text(
-                          'Daftar',
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    ),
+                    onPressed: () {
+                      if (formKey.currentState?.validate() == true) {
+                        context.read<AuthBloc>().add(
+                              AuthLoginRequested(
+                                emailController.text.trim(),
+                                passwordController.text,
+                              ),
+                            );
+                      }
+                    },
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        // TODO: navigasi ke forgot password
+                      },
+                      child: Text(
+                        'Lupa password?',
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Tidak punya akun? ',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        GestureDetector(
+                          onTap: () => _showAccountTypePicker(context),
+                          child: Text(
+                            'Daftar',
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

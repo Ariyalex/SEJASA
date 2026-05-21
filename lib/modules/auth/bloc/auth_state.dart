@@ -15,21 +15,18 @@ class AuthState extends Equatable {
   final UserModel? user;
   final String? message;
 
-  const AuthState({
-    this.status = AuthStatus.initial,
-    this.user,
-    this.message,
-  });
+  const AuthState({this.status = AuthStatus.initial, this.user, this.message});
 
   AuthState copyWith({
     AuthStatus? status,
     UserModel? user,
     String? message,
     bool clearMessage = false,
+    bool clearUser = false,
   }) {
     return AuthState(
       status: status ?? this.status,
-      user: user ?? this.user,
+      user: clearUser ? null : (user ?? this.user),
       message: clearMessage ? null : (message ?? this.message),
     );
   }

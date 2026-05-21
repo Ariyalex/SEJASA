@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/data/models/user_model.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -37,3 +38,13 @@ class AuthLogoutRequested extends AuthEvent {
 }
 
 class AuthCheckRequested extends AuthEvent {}
+
+class AuthUserUpdated extends AuthEvent {
+  final UserModel user;
+  const AuthUserUpdated(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthProfileRefreshed extends AuthEvent {}
