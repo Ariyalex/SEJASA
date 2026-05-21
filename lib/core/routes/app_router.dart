@@ -162,7 +162,7 @@ class AppRouter {
             create: (context) => ChatBloc(
               context.read<ChatRepository>(),
               context.read<ProjectRepository>(),
-            )..add(ChatStarted(projectId)),
+            ),
             child: ChatScreen(
               id: id,
               name: extra['name'] ?? 'Unknown',
