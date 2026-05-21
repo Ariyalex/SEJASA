@@ -9,6 +9,7 @@ import 'package:sejasa/data/payloads/register_payload.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 
 class RegisterScreen extends HookWidget {
   const RegisterScreen({super.key});
@@ -31,16 +32,13 @@ class RegisterScreen extends HookWidget {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? "Berhasil")),
+            MySnackbar.success(
+              message: state.message ?? "Berhasil",
             );
             context.pop();
           } else if (state.status == AuthStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message ?? "Terjadi kesalahan"),
-                backgroundColor: Colors.red,
-              ),
+            MySnackbar.error(
+              message: state.message ?? "Terjadi kesalahan",
             );
           }
         },

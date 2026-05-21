@@ -7,6 +7,7 @@ import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 
 class LoginScreen extends HookWidget {
   const LoginScreen({super.key});
@@ -22,19 +23,13 @@ class LoginScreen extends HookWidget {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message ?? "Login Berhasil"),
-                backgroundColor: Colors.green,
-              ),
+            MySnackbar.success(
+              message: state.message ?? "Login Berhasil",
             );
             context.goNamed(RouteNamed.mainTab);
           } else if (state.status == AuthStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message ?? "Terjadi kesalahan"),
-                backgroundColor: Colors.red,
-              ),
+            MySnackbar.error(
+              message: state.message ?? "Terjadi kesalahan",
             );
           }
         },
