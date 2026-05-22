@@ -55,9 +55,7 @@ class LoginScreen extends HookWidget {
               barrierDismissible: false,
               builder: (context) => const WillPopScope(
                 onWillPop: null, // disables back button while loading
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             );
           } else {
@@ -120,7 +118,9 @@ class LoginScreen extends HookWidget {
                       if (value == null || value.trim().isEmpty) {
                         return 'Email wajib diisi';
                       }
-                      final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      final emailRegExp = RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
                       if (!emailRegExp.hasMatch(value.trim())) {
                         return 'Format email tidak valid';
                       }
@@ -156,16 +156,19 @@ class LoginScreen extends HookWidget {
                     onPressed: () {
                       if (formKey.currentState?.validate() == true) {
                         context.read<AuthBloc>().add(
-                              AuthLoginRequested(
-                                emailController.text.trim(),
-                                passwordController.text,
-                              ),
-                            );
+                          AuthLoginRequested(
+                            emailController.text.trim(),
+                            passwordController.text,
+                          ),
+                        );
                       }
                     },
                     child: const Text(
                       'Login',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -265,20 +268,20 @@ class _AccountTypeSheet extends HookWidget {
           const SizedBox(height: 16),
           _AccountTypeTile(
             label: 'Perorangan',
-            selected: selected.value == AccountType.perorangan,
+            selected: selected.value == AccountType.personal,
             onTap: () {
-              selected.value = AccountType.perorangan;
-              onSelected(AccountType.perorangan);
+              selected.value = AccountType.personal;
+              onSelected(AccountType.personal);
             },
             color: colorScheme.primary,
           ),
           const SizedBox(height: 4),
           _AccountTypeTile(
             label: 'Organisasi',
-            selected: selected.value == AccountType.organisasi,
+            selected: selected.value == AccountType.organization,
             onTap: () {
-              selected.value = AccountType.organisasi;
-              onSelected(AccountType.organisasi);
+              selected.value = AccountType.organization;
+              onSelected(AccountType.organization);
             },
             color: colorScheme.primary,
           ),

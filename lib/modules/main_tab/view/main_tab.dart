@@ -17,6 +17,8 @@ import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
+import 'package:sejasa/domain/repositories/chat_repository.dart';
+import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});
@@ -71,7 +73,11 @@ class MainTab extends StatelessWidget {
                   },
                 ),
                 PersistentTabConfig(
-                  screen: const ChatListScreen(),
+                  screen: BlocProvider(
+                    create: (context) =>
+                        ChatListBloc(context.read<ChatRepository>()),
+                    child: const ChatListScreen(),
+                  ),
                   item: ItemConfig(
                     icon: const Icon(Icons.chat_outlined),
                     title: "Chats",

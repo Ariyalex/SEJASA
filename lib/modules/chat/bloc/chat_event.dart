@@ -31,3 +31,11 @@ class MessageReceived extends ChatEvent {
   @override
   List<Object?> get props => [message];
 }
+
+class LoadChatProject extends ChatEvent {
+  final String projectId;
+  const LoadChatProject(this.projectId);
+
+  @override
+  List<Object?> get props => [projectId];
+}

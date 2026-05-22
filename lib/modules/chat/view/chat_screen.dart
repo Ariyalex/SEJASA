@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_event.dart';
@@ -27,6 +28,15 @@ class ChatScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
+    final chatBloc = context.read<ChatBloc>();
+    final hasProject = projectId != null;
+
+    useEffect(() {
+      if (hasProject) {
+        chatBloc.add(LoadChatProject(projectId!));
+      }
+      return null;
+    }, [projectId]);
 
     return Scaffold(
       appBar: AppBar(
@@ -66,8 +76,6 @@ class ChatScreen extends HookWidget {
             );
           }
 
-          final hasProject = state.project != null;
-
           return Column(
             children: [
               Expanded(
@@ -77,7 +85,16 @@ class ChatScreen extends HookWidget {
                   itemCount: state.messages.length + (hasProject ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (hasProject && index == 0) {
-                      return ProjectInfoCard(project: state.project!);
+                      if (state.isFetchingProject) {
+                        return Skeletonizer(
+                          child: ProjectInfoCard(
+                            project: ProjectEntity.dummyProject(),
+                            isSkeleton: true,
+                          ),
+                        );
+                      } else {
+                        return ProjectInfoCard(project: state.project!);
+                      }
                     }
 
                     final messageIndex = hasProject ? index - 1 : index;
@@ -93,19 +110,29 @@ class ChatScreen extends HookWidget {
                       }
                     }
 
-                    // Mockup logic for file bubble:
-                    // Let's say if message starts with [FILE], it's a file bubble
-                    final isMockFile = chat.message.startsWith('[FILE]');
+                    // Logic for file bubble:
+                    // Supports both actual files and the mockup '[FILE]' prefix
+                    final isFile = chat.file != null || chat.message.startsWith('[FILE]');
+                    String fileName = 'Dokumen_Project_Final.pdf';
+                    String fileType = 'PDF';
+                    String fileSize = '2.4 MB';
+
+                    if (chat.file != null) {
+                      fileName = chat.file!.split('/').last;
+                      final parts = fileName.split('.');
+                      fileType = parts.length > 1 ? parts.last.toUpperCase() : 'FILE';
+                      fileSize = 'Unknown Size';
+                    }
 
                     return Column(
                       children: [
                         if (showDateChip) DateChip(date: chat.timestamp),
-                        if (isMockFile)
+                        if (isFile)
                           ChatBubbleFile(
                             chat: chat,
-                            fileName: 'Dokumen_Project_Final.pdf',
-                            fileSize: '2.4 MB',
-                            fileType: 'PDF',
+                            fileName: fileName,
+                            fileSize: fileSize,
+                            fileType: fileType,
                           )
                         else
                           ChatBubbleText(chat: chat),

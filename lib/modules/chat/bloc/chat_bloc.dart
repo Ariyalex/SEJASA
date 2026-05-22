@@ -17,6 +17,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatStarted>(_onChatStarted);
     on<SendMessage>(_onSendMessage);
     on<MessageReceived>(_onMessageReceived);
+    on<LoadChatProject>(_onLoadChatProject);
   }
 
   Future<void> _onChatStarted(
@@ -25,12 +26,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(state.copyWith(status: ChatStatus.loading));
     try {
-      // Fetch project if projectId is provided
-      if (event.projectId != null && event.projectId!.isNotEmpty) {
-        final project = await _projectRepository.getProject(event.projectId!);
-        emit(state.copyWith(project: project));
-      }
-
       // Connect to WebSocket (using echo server for testing)
       // _chatRepository.connect('ws://echo.websocket.events');
 
@@ -41,8 +36,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       // Fetch history (stubbed)
-      final history = await _chatRepository.getChatHistory(event.projectId);
-      emit(state.copyWith(status: ChatStatus.loaded, messages: history));
+      // final history = await _chatRepository.getChatHistory(event.projectId);
+      emit(state.copyWith(status: ChatStatus.loaded));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(
@@ -76,6 +71,25 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final updatedMessages = List<ChatEntity>.from(state.messages)
       ..add(event.message);
     emit(state.copyWith(messages: updatedMessages));
+  }
+
+  Future<void> _onLoadChatProject(
+    LoadChatProject event,
+    Emitter<ChatState> emit,
+  ) async {
+    emit(state.copyWith(isFetchingProject: true));
+    try {
+      final project = await _projectRepository.getProject(event.projectId);
+      emit(state.copyWith(project: project, isFetchingProject: false));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isFetchingProject: false,
+          status: ChatStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 
   @override

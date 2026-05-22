@@ -17,6 +17,8 @@ import 'package:sejasa/modules/auth/view/login_screen.dart';
 import 'package:sejasa/modules/auth/view/register_screen.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
 import 'package:sejasa/modules/chat/view/chat_screen.dart';
+import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
+import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
@@ -196,6 +198,19 @@ class AppRouter {
               isOwner: extra['is_owner'],
               isReadMore: isReadMore ?? false,
             ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/project/:id/chats',
+        name: RouteNamed.projectChatList,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => ChatListBloc(
+              context.read<ChatRepository>(),
+            ),
+            child: ChatListScreen(projectId: id),
           );
         },
       ),

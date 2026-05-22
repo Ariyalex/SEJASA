@@ -50,9 +50,7 @@ class ProjectDetailScreen extends HookWidget {
     useEffect(() {
       if (project != null && project.detailAddress == null) {
         locationService
-            .getAddressFromLatLng(
-              LatLng(project.latitude, project.longitude),
-            )
+            .getAddressFromLatLng(LatLng(project.latitude, project.longitude))
             .then((value) {
               projectAddressState.value = value;
             });
@@ -66,8 +64,7 @@ class ProjectDetailScreen extends HookWidget {
       projectDetailBloc.add(
         LoadProject(
           id,
-          isAuthenticated:
-              context.read<AuthBloc>().state.user != null,
+          isAuthenticated: context.read<AuthBloc>().state.user != null,
         ),
       );
       return null;
@@ -210,7 +207,8 @@ class ProjectDetailScreen extends HookWidget {
                     state.status != ProjectDetailStatus.success &&
                     state.project == null;
 
-                final projectAddress = project.detailAddress ?? projectAddressState.value;
+                final projectAddress =
+                    project.detailAddress ?? projectAddressState.value;
 
                 return Skeletonizer(
                   enabled: isSkeleton,
@@ -537,6 +535,14 @@ class ProjectDetailScreen extends HookWidget {
                                   "project_id": state.project?.id,
                                 },
                               );
+                            } else {
+                              final project = state.project;
+                              if (project != null) {
+                                context.pushNamed(
+                                  RouteNamed.projectChatList,
+                                  pathParameters: {"id": project.id},
+                                );
+                              }
                             }
                           },
                           child: Text(

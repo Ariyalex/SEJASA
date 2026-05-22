@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// A stateful widget for a custom text field
 /// Includes features like password obscuring, clear button, and real-time validation.
 class MyTextField extends StatefulWidget {
-  final String title;
+  final String? title;
 
   /// the hint text displayed inside the text field when empty.
   final String hint;
@@ -49,7 +49,7 @@ class MyTextField extends StatefulWidget {
 
   const MyTextField({
     super.key,
-    required this.title,
+    this.title,
     required this.hint,
     this.prefixIcon,
     this.suffixIcon,
@@ -149,9 +149,9 @@ class _MyTextFieldState extends State<MyTextField> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.title.isNotEmpty) ...[
+          if (widget.title != null) ...[
             Text(
-              widget.title,
+              widget.title!,
               style:
                   widget.titleStyle ??
                   theme.textTheme.titleSmall?.copyWith(

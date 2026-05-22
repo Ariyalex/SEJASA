@@ -19,4 +19,6 @@ abstract class RemoteProjectProvider {
   Future<ProjectModel> updateProject(ProjectUpdatePayload payload);
 
   Future<List<ProjectCategoryModel>> getAllCategory();
+
+  // Future<
 }

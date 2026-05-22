@@ -1,12 +1,15 @@
 import 'package:sejasa/data/models/chat_model.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
+import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
 import 'package:sejasa/domain/providers/chat_socket_provider.dart';
+import 'package:sejasa/domain/providers/remote_chat_provider.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatSocketProvider _chatSocketProvider;
+  final RemoteChatProvider _chatProvider;
 
-  ChatRepositoryImpl(this._chatSocketProvider);
+  ChatRepositoryImpl(this._chatSocketProvider, this._chatProvider);
 
   @override
   Stream<ChatEntity> get messagesStream {
@@ -27,6 +30,18 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
+  Future<List<ListChatItemEntity>> getListProjectChat(String projectId) async {
+    final response = await _chatProvider.getListProjectChat(projectId);
+    return List<ListChatItemEntity>.from(response.map((e) => e.toEntity()));
+  }
+
+  @override
+  Future<List<ListChatItemEntity>> getListUserChat() async {
+    final response = await _chatProvider.getListUserChat();
+    return List<ListChatItemEntity>.from(response.map((e) => e.toEntity()));
+  }
+
+  @override
   void connect(String url) {
     _chatSocketProvider.connect(url);
   }
@@ -34,11 +49,5 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   void disconnect() {
     _chatSocketProvider.disconnect();
-  }
-
-  @override
-  Future<List<ChatEntity>> getChatHistory(String? projectId) async {
-    // Stubbed implementation
-    return [];
   }
 }
