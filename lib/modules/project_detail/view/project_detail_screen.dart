@@ -10,9 +10,11 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/core/widgets/project_location_view_sheet.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
@@ -38,6 +40,8 @@ class ProjectDetailScreen extends HookWidget {
 
     final projectDetailBloc = context.read<ProjectDetailBloc>();
     final locationService = getIt<LocationService>();
+    final projectRepository = useMemoized(() => getIt<ProjectRepository>());
+    final isApplying = useState<bool>(false);
 
     final seeMoreDescription = useState<bool>(false);
     final isScrolled = useState<bool>(false);
@@ -227,25 +231,45 @@ class ProjectDetailScreen extends HookWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.route_outlined,
-                                      size: 24,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                    if (project.distance != null)
-                                      Expanded(
-                                        child: Text(
-                                          "${round(project.distance! / 1000, decimals: 2)} KM",
-                                          overflow: TextOverflow.ellipsis,
-                                          style: theme.textTheme.bodyLarge,
-                                        ),
+                              if (!isOwner)
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.route_outlined,
+                                        size: 24,
+                                        color: theme.colorScheme.primary,
                                       ),
-                                  ],
+                                      if (project.distance != null)
+                                        Expanded(
+                                          child: Text(
+                                            "${round(project.distance! / 1000, decimals: 2)} KM",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.bodyLarge,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              if (isOwner)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer
+                                        .withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "${project.currentParticipant} Pelamar",
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -257,7 +281,7 @@ class ProjectDetailScreen extends HookWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  "${project.currentParticipant}/${project.maxParticipant} Pelamar",
+                                  "${project.acceptedParticipant}/${project.maxParticipant} Partisipan",
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.primary,
                                     fontWeight: FontWeight.bold,
@@ -271,9 +295,19 @@ class ProjectDetailScreen extends HookWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Text(
-                                  project.detailAddress ?? projectAddress,
-                                  style: theme.textTheme.bodyLarge,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_outlined,
+                                      color: theme.primaryColor,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        project.detailAddress ?? projectAddress,
+                                        style: theme.textTheme.bodyLarge,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -525,29 +559,61 @@ class ProjectDetailScreen extends HookWidget {
                               borderRadius: BorderRadiusGeometry.circular(8),
                             ),
                           ),
-                          onPressed: () {
-                            if (!isOwner) {
-                              context.pushNamed(
-                                RouteNamed.chat,
-                                pathParameters: {"id": '1'},
-                                extra: {
-                                  "name": state.project?.ownerName,
-                                  "project_id": state.project?.id,
+                          onPressed: isApplying.value
+                              ? null
+                              : () async {
+                                  if (!isOwner) {
+                                    try {
+                                      isApplying.value = true;
+                                      final response = await projectRepository
+                                          .applyPorject(id);
+                                      if (context.mounted) {
+                                        context.pushNamed(
+                                          RouteNamed.chat,
+                                          pathParameters: {
+                                            "id": response.chatId,
+                                          },
+                                          extra: {
+                                            "name":
+                                                state.project?.ownerName ??
+                                                'Owner',
+                                            "project_id": response.projectId,
+                                            "participant_status": null,
+                                            "is_owner": false,
+                                          },
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        MySnackbar.error(message: e.toString());
+                                      }
+                                    } finally {
+                                      isApplying.value = false;
+                                    }
+                                  } else {
+                                    final project = state.project;
+                                    if (project != null) {
+                                      context.pushNamed(
+                                        RouteNamed.projectChatList,
+                                        pathParameters: {"id": project.id},
+                                      );
+                                    }
+                                  }
                                 },
-                              );
-                            } else {
-                              final project = state.project;
-                              if (project != null) {
-                                context.pushNamed(
-                                  RouteNamed.projectChatList,
-                                  pathParameters: {"id": project.id},
-                                );
-                              }
-                            }
-                          },
-                          child: Text(
-                            isOwner ? "List pelamar" : "Hubungi sekarang",
-                          ),
+                          child: isApplying.value
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  isOwner ? "List pelamar" : "Gabung Project",
+                                ),
                         ),
                       ),
                     );

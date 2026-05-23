@@ -7,7 +7,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
-import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/domain/value_objects/gender_type.dart';
@@ -43,15 +42,8 @@ class UserProfileHeaderWidget extends HookWidget {
       return null;
     }, [user]);
 
-    // final photoProfile = useMemoized<ImageProvider?>(() {
-    //   if (user.profilePicture != null) {
-    //     return NetworkImage(AppConfig.baseUrl + user.profilePicture!);
-    //   } else {
-    //     return null;
-    //   }
-    // }, []);
-
     final photoProfile = useState<ImageProvider?>(null);
+
     useEffect(() {
       if (user.profilePicture != null) {
         photoProfile.value = NetworkImage(
@@ -60,8 +52,6 @@ class UserProfileHeaderWidget extends HookWidget {
       }
       return null;
     }, [user]);
-
-    LogUtils.d("user skill: ${user.skills?.length}");
 
     final theme = Theme.of(context);
     return Padding(

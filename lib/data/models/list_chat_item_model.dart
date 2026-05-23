@@ -1,4 +1,5 @@
 import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 
 class ListChatUserModel extends ListChatUserEntity {
   const ListChatUserModel({
@@ -16,19 +17,11 @@ class ListChatUserModel extends ListChatUserEntity {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'image': image,
-    };
+    return {'id': id, 'name': name, 'image': image};
   }
 
   ListChatUserEntity toEntity() {
-    return ListChatUserEntity(
-      id: id,
-      name: name,
-      image: image,
-    );
+    return ListChatUserEntity(id: id, name: name, image: image);
   }
 }
 
@@ -41,6 +34,7 @@ class ListChatItemModel extends ListChatItemEntity {
     required super.body,
     required super.unreadMsg,
     required super.timestamp,
+    super.participantStatus,
   });
 
   factory ListChatItemModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +50,9 @@ class ListChatItemModel extends ListChatItemEntity {
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
+      participantStatus: json['participant_status'] != null
+          ? ParticipantStatusType.fromJson(json['participant_status'] as String)
+          : null,
     );
   }
 
@@ -68,6 +65,8 @@ class ListChatItemModel extends ListChatItemEntity {
       'body': body,
       'unread_msg': unreadMsg,
       'timestamp': timestamp.toIso8601String(),
+      if (participantStatus != null)
+        'participant_status': participantStatus!.jsonValue,
     };
   }
 
@@ -80,6 +79,7 @@ class ListChatItemModel extends ListChatItemEntity {
       body: body,
       unreadMsg: unreadMsg,
       timestamp: timestamp,
+      participantStatus: participantStatus,
     );
   }
 }

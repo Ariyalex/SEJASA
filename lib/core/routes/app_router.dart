@@ -8,6 +8,7 @@ import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
@@ -164,6 +165,9 @@ class AppRouter {
           final id = state.pathParameters['id']!;
           final extra = state.extra as Map<String, dynamic>;
           final projectId = extra['project_id'] as String?;
+          final participantStatus = extra['participant_status'] as ParticipantStatusType?;
+          final isOwner = extra['is_owner'] as bool? ?? false;
+          final participantId = extra['user_id'] as String?;
 
           return BlocProvider(
             create: (context) => ChatBloc(
@@ -175,6 +179,9 @@ class AppRouter {
               name: extra['name'] ?? 'Unknown',
               avatarUrl: extra['avatar_url'],
               projectId: projectId,
+              participantStatus: participantStatus,
+              isOwner: isOwner,
+              participantId: participantId,
             ),
           );
         },

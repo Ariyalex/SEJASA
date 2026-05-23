@@ -3,17 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
-import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
-import 'package:sejasa/core/widgets/global_location_picker_sheet.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/data/payloads/profile_update_payload.dart';
 import 'package:sejasa/domain/repositories/file_repository.dart';
 import 'package:sejasa/domain/providers/remote_user_provider.dart';
@@ -38,7 +36,6 @@ class EditProfileScreen extends HookWidget {
     }
 
     // Services & Controllers
-    final locationService = useMemoized(() => getIt<LocationService>());
     final fileRepository = useMemoized(() => getIt<FileRepository>());
     final userProvider = useMemoized(() => getIt<RemoteUserProvider>());
 
@@ -65,20 +62,6 @@ class EditProfileScreen extends HookWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final isSaving = useState(false);
     final isImageUploading = useState(false);
-    final isMapLoading = useState(false);
-
-    final mapController = useMemoized(() => MapController());
-    useEffect(() => mapController.dispose, [mapController]);
-
-    // Sinkronisasi inisialisasi peta jika data user dimuat
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (user.latitude != 0.0 && user.longitude != 0.0) {
-          mapController.move(LatLng(user.latitude, user.longitude), 15.0);
-        }
-      });
-      return null;
-    }, [user.id]);
 
     // Fungsi upload gambar profil
     Future<void> _pickAndUploadImage() async {
@@ -310,7 +293,7 @@ class EditProfileScreen extends HookWidget {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<GenderType>(
-                        value: gender.value,
+                        initialValue: gender.value,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFFEEEEEE),
@@ -362,157 +345,30 @@ class EditProfileScreen extends HookWidget {
                   const SizedBox(height: 16),
 
                   // 7. Alamat + Peta Penentuan Lokasi
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: MyTextField(
-                          title: "Alamat Lengkap",
-                          hint:
-                              "Masukkan alamat lengkap tempat tinggal Anda...",
-                          controller: alamatController,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Alamat wajib diisi";
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: colorScheme.outline),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(LucideIcons.mapPin),
-                            tooltip: "Pilih lokasi di peta",
-                            onPressed: () {
-                              showGlobalLocationPicker(
-                                context: context,
-                                initialLocation: selectedLocation.value,
-                                initialAddress: alamatController.text,
-                                onLocationSelected: (location, address) {
-                                  selectedLocation.value = location;
-                                  alamatController.text = address;
-                                  mapController.move(location, 16.0);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                  MyTextField(
+                    title: "Alamat Lengkap",
+                    hint: "Masukkan alamat lengkap tempat tinggal Anda...",
+                    controller: alamatController,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Alamat wajib diisi";
+                      }
+                      return null;
+                    },
+                    maxLines: 3,
                   ),
                   const SizedBox(height: 16),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Posisikan Lokasi Anda",
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (isMapLoading.value)
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      else
-                        IconButton(
-                          icon: const Icon(LucideIcons.locateFixed),
-                          tooltip: "Gunakan lokasi GPS saat ini",
-                          onPressed: () async {
-                            try {
-                              isMapLoading.value = true;
-                              final pos = await locationService
-                                  .getCurrentLocation(context);
-                              if (context.mounted && pos != null) {
-                                final loc = LatLng(pos.latitude, pos.longitude);
-                                mapController.move(loc, 15.0);
-                                selectedLocation.value = loc;
-                                final address = await locationService
-                                    .getAddressFromLatLng(loc);
-                                if (context.mounted) {
-                                  alamatController.text = address;
-                                }
-                              }
-                            } catch (e) {
-                              MySnackbar.error(
-                                title: "GPS Error",
-                                message:
-                                    "Tidak dapat mengakses lokasi perangkat saat ini.",
-                              );
-                            } finally {
-                              isMapLoading.value = false;
-                            }
-                          },
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      height: 220,
-                      child: FlutterMap(
-                        mapController: mapController,
-                        options: MapOptions(
-                          initialCenter: selectedLocation.value,
-                          initialZoom: 14,
-                          onTap: (tapPosition, latLng) async {
-                            selectedLocation.value = latLng;
-                            try {
-                              isMapLoading.value = true;
-                              final address = await locationService
-                                  .getAddressFromLatLng(latLng);
-                              if (context.mounted) {
-                                alamatController.text = address;
-                              }
-                            } catch (e) {
-                              // Abaikan geocoding error, tetap biarkan koordinat bergeser
-                            } finally {
-                              isMapLoading.value = false;
-                            }
-                          },
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                            userAgentPackageName: "com.sejasa.app",
-                          ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: selectedLocation.value,
-                                width: 36,
-                                height: 36,
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: colorScheme.primary,
-                                  size: 36,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Ketuk peta untuk menentukan koordinat presisi.",
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  ProjectLocationPicker(
+                    key: ValueKey(selectedLocation.value),
+                    initialLocation: selectedLocation.value,
+                    initialAddress: alamatController.text,
+                    title: "Posisikan Lokasi Anda",
+                    description: "Ketuk peta untuk menentukan koordinat presisi.",
+                    onLocationChanged: (location, address) {
+                      selectedLocation.value = location;
+                      alamatController.text = address;
+                    },
                   ),
                   const SizedBox(height: 32),
 

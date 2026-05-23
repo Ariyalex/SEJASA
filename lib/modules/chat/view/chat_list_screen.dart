@@ -4,6 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/widgets/my_tab_chip.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_event.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_state.dart';
@@ -23,6 +25,7 @@ class ChatListScreen extends HookWidget {
 
     final searchController = useTextEditingController();
     final searchQuery = useState('');
+    final selectedStatus = useState<ParticipantStatusType?>(null);
 
     // Sinkronkan controller -> state agar list ter-filter realtime
     useEffect(() {
@@ -100,9 +103,15 @@ class ChatListScreen extends HookWidget {
           final allChats = state.chats;
           final filteredChats = allChats.where((c) {
             final q = searchQuery.value.trim().toLowerCase();
-            if (q.isEmpty) return true;
-            return c.title.toLowerCase().contains(q) ||
-                c.body.toLowerCase().contains(q);
+            if (q.isNotEmpty) {
+              final matchesQuery = c.title.toLowerCase().contains(q) ||
+                  c.body.toLowerCase().contains(q);
+              if (!matchesQuery) return false;
+            }
+            if (projectId != null && selectedStatus.value != null) {
+              return c.participantStatus == selectedStatus.value;
+            }
+            return true;
           }).toList();
 
           return Column(
@@ -131,6 +140,36 @@ class ChatListScreen extends HookWidget {
                   ),
                 ),
               ),
+
+              // Filter chips (hanya jika projectId != null)
+              if (projectId != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        MyTabChip(
+                          title: 'Semua',
+                          selected: selectedStatus.value == null,
+                          onSelected: (_) => selectedStatus.value = null,
+                        ),
+                        const SizedBox(width: 8),
+                        ...ParticipantStatusType.values.map((status) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: MyTabChip(
+                              title: status.display,
+                              selected: selectedStatus.value == status,
+                              onSelected: (_) => selectedStatus.value = status,
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
 
               Expanded(
                 child: RefreshIndicator(
@@ -194,6 +233,9 @@ class ChatListScreen extends HookWidget {
                                     'name': chat.title,
                                     'avatar_url': chat.user.image,
                                     'project_id': chat.projectId,
+                                    'participant_status': chat.participantStatus,
+                                    'is_owner': projectId != null,
+                                    'user_id': chat.user.id,
                                   },
                                 );
                               },

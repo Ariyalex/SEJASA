@@ -17,7 +17,7 @@ class MySnackbar {
       margin: EdgeInsets.all(16),
       type: ToastificationType.success,
       style: ToastificationStyle.fillColored,
-      autoCloseDuration: const Duration(seconds: 3),
+      autoCloseDuration: const Duration(seconds: 5),
       dismissDirection: DismissDirection.horizontal,
     );
   }
@@ -31,7 +31,7 @@ class MySnackbar {
       margin: EdgeInsets.all(16),
       type: ToastificationType.error,
       style: ToastificationStyle.fillColored,
-      autoCloseDuration: const Duration(milliseconds: 2500),
+      autoCloseDuration: const Duration(seconds: 5),
       dismissDirection: DismissDirection.horizontal,
       animationDuration: Duration(milliseconds: 500),
       showProgressBar: true,
@@ -51,7 +51,7 @@ class MySnackbar {
       margin: EdgeInsets.all(16),
       type: ToastificationType.warning,
       style: ToastificationStyle.fillColored,
-      autoCloseDuration: const Duration(seconds: 3),
+      autoCloseDuration: const Duration(seconds: 5),
       dismissDirection: DismissDirection.horizontal,
     );
   }
@@ -68,7 +68,7 @@ class MySnackbar {
       margin: EdgeInsets.all(16),
       type: ToastificationType.info,
       style: ToastificationStyle.fillColored,
-      autoCloseDuration: const Duration(seconds: 3),
+      autoCloseDuration: const Duration(seconds: 5),
       dismissDirection: DismissDirection.horizontal,
     );
   }

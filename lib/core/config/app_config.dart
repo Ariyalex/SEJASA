@@ -11,5 +11,5 @@ class AppConfig {
   static String get baseUrl => dotenv.env['BASE_URL']!;
   static int get timeout =>
       int.tryParse(dotenv.env['API_TIMEOUT'] ?? "10") ?? 10;
-  // static String wsBaseUrl = dotenv.env['WS_BASE_URL']!;
+  static String wsBaseUrl = dotenv.env['WS_BASE_URL']!;
 }

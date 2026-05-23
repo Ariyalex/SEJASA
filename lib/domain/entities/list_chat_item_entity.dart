@@ -1,15 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 
 class ListChatUserEntity extends Equatable {
   final String id;
   final String name;
   final String? image;
 
-  const ListChatUserEntity({
-    required this.id,
-    required this.name,
-    this.image,
-  });
+  const ListChatUserEntity({required this.id, required this.name, this.image});
 
   @override
   List<Object?> get props => [id, name, image];
@@ -23,6 +20,7 @@ class ListChatItemEntity extends Equatable {
   final String body;
   final int unreadMsg;
   final DateTime timestamp;
+  final ParticipantStatusType? participantStatus;
 
   const ListChatItemEntity({
     required this.id,
@@ -32,16 +30,18 @@ class ListChatItemEntity extends Equatable {
     required this.body,
     required this.unreadMsg,
     required this.timestamp,
+    this.participantStatus,
   });
 
   @override
   List<Object?> get props => [
-        id,
-        projectId,
-        user,
-        title,
-        body,
-        unreadMsg,
-        timestamp,
-      ];
+    id,
+    projectId,
+    user,
+    title,
+    body,
+    unreadMsg,
+    timestamp,
+    participantStatus,
+  ];
 }
