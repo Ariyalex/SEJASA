@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 
 class SocketService {
@@ -14,11 +17,25 @@ class SocketService {
   bool get isConnected => _isConnected;
 
   void connect(String url) {
-    _url = url;
+    final cleanUrl = url.replaceAll('#', '');
+    _url = cleanUrl;
+    _connectAsync(cleanUrl);
+  }
+
+  Future<void> _connectAsync(String cleanUrl) async {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(url));
+      final token = await getIt<StorageService>().read('access_token');
+      final headers = {
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
+      _channel = IOWebSocketChannel.connect(
+        Uri.parse(cleanUrl),
+        headers: headers,
+        pingInterval: const Duration(seconds: 50),
+      );
       _isConnected = true;
-      LogUtils.i('Connected to WebSocket: $url');
+      LogUtils.i('Connected to WebSocket: $cleanUrl');
 
       _channel?.stream.listen(
         (data) {

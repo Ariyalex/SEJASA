@@ -40,11 +40,12 @@ class ChatModel extends Equatable {
     };
   }
 
-  factory ChatModel.fromJson(Map<String, dynamic> json) {
+  factory ChatModel.fromJson(Map<String, dynamic> json, {String? currentUserId}) {
+    final senderIdVal = json['sender_id'] as String? ?? '';
     return ChatModel(
       id: json['id'] as String? ?? '',
       chatId: json['chat_id'] as String? ?? '',
-      senderId: json['sender_id'] as String? ?? '',
+      senderId: senderIdVal,
       receiverId: json['receiver_id'] as String? ?? '',
       message: (json['content'] ?? json['message']) as String? ?? '',
       file: json['file'] as String?,
@@ -54,7 +55,9 @@ class ChatModel extends Equatable {
           : (json['timestamp'] != null
               ? DateTime.parse(json['timestamp'] as String)
               : DateTime.now()),
-      isMe: json['is_me'] as bool? ?? false,
+      isMe: currentUserId != null
+          ? (senderIdVal == currentUserId)
+          : (json['is_me'] as bool? ?? false),
     );
   }
 

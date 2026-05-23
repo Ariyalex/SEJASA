@@ -7,11 +7,7 @@ class ChatInputBar extends HookWidget {
   final Function(String) onSend;
   final VoidCallback onAttach;
 
-  const ChatInputBar({
-    super.key,
-    required this.onSend,
-    required this.onAttach,
-  });
+  const ChatInputBar({super.key, required this.onSend, required this.onAttach});
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +29,10 @@ class ChatInputBar extends HookWidget {
       ),
       child: SafeArea(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: MyTextField(
-                title: '',
                 hint: 'Ketik pesan...',
                 controller: controller,
                 borderRadius: 24,

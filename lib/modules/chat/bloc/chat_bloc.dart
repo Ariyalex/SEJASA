@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
@@ -26,8 +27,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(state.copyWith(status: ChatStatus.loading));
     try {
-      // Connect to WebSocket (using echo server for testing)
-      // _chatRepository.connect('ws://echo.websocket.events');
+      final cleanChatId = event.chatId.replaceAll('#', '');
+      LogUtils.i('ChatBloc: cleanChatId = "$cleanChatId", raw = "${event.chatId}"');
+      final wsUrl = "${AppConfig.wsBaseUrl}/chat/$cleanChatId";
+
+      _chatRepository.connect(wsUrl);
 
       // Subscribe to messages
       await _messageSubscription?.cancel();
@@ -35,8 +39,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         (message) => add(MessageReceived(message)),
       );
 
-      // Fetch history (stubbed)
-      // final history = await _chatRepository.getChatHistory(event.projectId);
       emit(state.copyWith(status: ChatStatus.loaded));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
@@ -49,22 +51,24 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _onSendMessage(SendMessage event, Emitter<ChatState> emit) {
     final newMessage = ChatEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: 'me', // Mock
-      receiverId: 'other', // Mock
+      senderId: 'me',
+      receiverId: 'other',
       message: event.message,
+      file: event.file,
       timestamp: DateTime.now(),
       isMe: true,
     );
 
     _chatRepository.sendMessage(newMessage);
-
-    // Optimistically add to UI (optional, since echo will return it)
-    final updatedMessages = List<ChatEntity>.from(state.messages)
-      ..add(newMessage);
-    emit(state.copyWith(messages: updatedMessages));
   }
 
   void _onMessageReceived(MessageReceived event, Emitter<ChatState> emit) {
+    // Ignore empty message payloads to prevent blank chat bubbles from rendering
+    if (event.message.message.trim().isEmpty &&
+        (event.message.file == null || event.message.file!.isEmpty)) {
+      return;
+    }
+
     // If it's already in the list (from optimistic update), don't add again
     if (state.messages.any((m) => m.id == event.message.id)) return;
 

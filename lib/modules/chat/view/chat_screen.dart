@@ -1,8 +1,11 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
+import 'package:sejasa/domain/repositories/file_repository.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/value_objects/participant_status_type.dart';
@@ -42,8 +45,13 @@ class ChatScreen extends HookWidget {
     final chatBloc = context.read<ChatBloc>();
     final hasProject = projectId != null;
     final projectRepository = useMemoized(() => getIt<ProjectRepository>());
+    final fileRepository = useMemoized(() => getIt<FileRepository>());
     final currentStatus = useState<ParticipantStatusType?>(participantStatus);
     final isProcessingAction = useState<bool>(false);
+    useEffect(() {
+      chatBloc.add(ChatStarted(chatId: id.replaceAll('#', ''), isOwner: isOwner));
+      return null;
+    }, []);
 
     useEffect(() {
       if (hasProject) {
@@ -78,8 +86,23 @@ class ChatScreen extends HookWidget {
           ],
         ),
       ),
-      body: BlocBuilder<ChatBloc, ChatState>(
-        builder: (context, state) {
+      body: BlocListener<ChatBloc, ChatState>(
+        listenWhen: (previous, current) =>
+            previous.messages.length != current.messages.length ||
+            (previous.status == ChatStatus.loading && current.status == ChatStatus.loaded),
+        listener: (context, state) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (scrollController.hasClients) {
+              scrollController.animateTo(
+                scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        },
+        child: BlocBuilder<ChatBloc, ChatState>(
+          builder: (context, state) {
           if (state.status == ChatStatus.loading && state.messages.isEmpty) {
             return _buildSkeleton();
           }
@@ -137,17 +160,18 @@ class ChatScreen extends HookWidget {
                     // Logic for file bubble:
                     // Supports both actual files and the mockup '[FILE]' prefix
                     final isFile =
-                        chat.file != null || chat.message.startsWith('[FILE]');
+                        (chat.file != null && chat.file!.isNotEmpty) || chat.message.startsWith('[FILE]');
                     String fileName = 'Dokumen_Project_Final.pdf';
                     String fileType = 'PDF';
                     String fileSize = '2.4 MB';
 
-                    if (chat.file != null) {
-                      fileName = chat.file!.split('/').last;
-                      final parts = fileName.split('.');
-                      fileType = parts.length > 1
-                          ? parts.last.toUpperCase()
-                          : 'FILE';
+                    if (chat.file != null && chat.file!.isNotEmpty) {
+                      final uri = Uri.parse(chat.file!);
+                      final extension = uri.pathSegments.isNotEmpty
+                          ? uri.pathSegments.last.split('.').last
+                          : 'file';
+                      fileName = 'dokumen.$extension';
+                      fileType = extension.toUpperCase();
                       fileSize = 'Unknown Size';
                     }
 
@@ -182,18 +206,47 @@ class ChatScreen extends HookWidget {
                     }
                   });
                 },
-                onAttach: () {
-                  // Attachment mockup: Send a dummy file message
-                  context.read<ChatBloc>().add(
-                    const SendMessage('[FILE] Dokumen_Project_Final.pdf'),
-                  );
+                onAttach: () async {
+                  try {
+                    final result = await FilePicker.pickFiles(
+                      type: FileType.custom,
+                      allowedExtensions: ['jpg', 'png', 'pdf'],
+                    );
+                    if (result == null) return;
+                    final path = result.files.single.path;
+                    if (path == null) return;
+                    
+                    final file = File(path);
+                    final extension = path.split('.').last.toLowerCase();
+                    
+                    final String uploadedUrl;
+                    if (extension == 'jpg' || extension == 'png') {
+                      uploadedUrl = await fileRepository.uploadImage(file);
+                    } else if (extension == 'pdf') {
+                      uploadedUrl = await fileRepository.uploadDocument(file);
+                    } else {
+                      MySnackbar.error(message: 'Hanya berkas JPG, PNG, atau PDF yang didukung');
+                      return;
+                    }
+                    
+                    if (!context.mounted) return;
+                    context.read<ChatBloc>().add(
+                      SendMessage(
+                        'dokumen.$extension',
+                        file: uploadedUrl,
+                      ),
+                    );
+                  } catch (e) {
+                    MySnackbar.error(message: 'Gagal mengunggah berkas: $e');
+                  }
                 },
               ),
             ],
           );
         },
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildSkeleton() {

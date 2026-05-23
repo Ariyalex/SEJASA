@@ -180,7 +180,7 @@ class EditProfileScreen extends HookWidget {
                                                 "http",
                                               )
                                               ? profilePicturePath.value!
-                                              : AppConfig.baseUrl +
+                                              : AppConfig.baseApiUrl +
                                                     profilePicturePath.value!,
                                           fit: BoxFit.cover,
                                           errorBuilder:
@@ -364,7 +364,8 @@ class EditProfileScreen extends HookWidget {
                     initialLocation: selectedLocation.value,
                     initialAddress: alamatController.text,
                     title: "Posisikan Lokasi Anda",
-                    description: "Ketuk peta untuk menentukan koordinat presisi.",
+                    description:
+                        "Ketuk peta untuk menentukan koordinat presisi.",
                     onLocationChanged: (location, address) {
                       selectedLocation.value = location;
                       alamatController.text = address;

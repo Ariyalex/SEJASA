@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
+import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
 import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_event.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_state.dart';
 import 'package:sejasa/modules/chat/widgets/chat_list_empty.dart';
 import 'package:sejasa/modules/chat/widgets/chat_tile.dart';
+import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 /// Screen daftar chat (chat dashboard) — sesuai mockup UAS.
 class ChatListScreen extends HookWidget {
@@ -45,6 +48,33 @@ class ChatListScreen extends HookWidget {
       return null;
     }, [projectId]);
 
+    // Safe lookup of MainTabBloc
+    final mainTabBloc = useMemoized(() {
+      try {
+        return context.read<MainTabBloc>();
+      } catch (_) {
+        return null;
+      }
+    });
+
+    // Pemicu reload chat list ketika kembali mengunjungi tab Chats
+    useEffect(() {
+      if (mainTabBloc == null) return null;
+      final controller = mainTabBloc.mainTabController;
+      void listener() {
+        if (controller.index == 3) {
+          final bloc = context.read<ChatListBloc>();
+          if (projectId != null) {
+            bloc.add(LoadProjectChats(projectId!));
+          } else {
+            bloc.add(const LoadUserChats());
+          }
+        }
+      }
+      controller.addListener(listener);
+      return () => controller.removeListener(listener);
+    }, [mainTabBloc, projectId]);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -56,10 +86,8 @@ class ChatListScreen extends HookWidget {
       ),
       body: BlocBuilder<ChatListBloc, ChatListState>(
         builder: (context, state) {
-          if (state.status == ChatListStatus.initial ||
-              state.status == ChatListStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          final isLoading = state.status == ChatListStatus.initial ||
+              state.status == ChatListStatus.loading;
 
           if (state.status == ChatListStatus.error) {
             return Center(
@@ -100,19 +128,37 @@ class ChatListScreen extends HookWidget {
             );
           }
 
-          final allChats = state.chats;
-          final filteredChats = allChats.where((c) {
-            final q = searchQuery.value.trim().toLowerCase();
-            if (q.isNotEmpty) {
-              final matchesQuery = c.title.toLowerCase().contains(q) ||
-                  c.body.toLowerCase().contains(q);
-              if (!matchesQuery) return false;
-            }
-            if (projectId != null && selectedStatus.value != null) {
-              return c.participantStatus == selectedStatus.value;
-            }
-            return true;
-          }).toList();
+          final dummyChats = List.generate(
+            5,
+            (index) => ListChatItemEntity(
+              id: 'dummy_$index',
+              projectId: 'dummy_project_$index',
+              user: ListChatUserEntity(
+                id: 'dummy_user_$index',
+                name: 'Nama Pengguna Shimmer',
+              ),
+              title: 'Judul Proyek Sedekah Jasa Shimmer',
+              body: 'Ini adalah deskripsi isi pesan singkat dummy untuk rendering loading shimmer.',
+              unreadMsg: 0,
+              timestamp: DateTime.now(),
+            ),
+          );
+
+          final allChats = isLoading ? dummyChats : state.chats;
+          final filteredChats = isLoading
+              ? dummyChats
+              : allChats.where((c) {
+                  final q = searchQuery.value.trim().toLowerCase();
+                  if (q.isNotEmpty) {
+                    final matchesQuery = c.title.toLowerCase().contains(q) ||
+                        c.body.toLowerCase().contains(q);
+                    if (!matchesQuery) return false;
+                  }
+                  if (projectId != null && selectedStatus.value != null) {
+                    return c.participantStatus == selectedStatus.value;
+                  }
+                  return true;
+                }).toList();
 
           return Column(
             children: [
@@ -211,36 +257,53 @@ class ChatListScreen extends HookWidget {
                             );
                           },
                         )
-                      : ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 16),
-                          itemCount: filteredChats.length,
-                          separatorBuilder: (_, _) => Divider(
-                            height: 1,
-                            indent: 80,
-                            endIndent: 16,
-                            color: colorScheme.outlineVariant,
+                      : Skeletonizer(
+                          enabled: isLoading,
+                          child: ListView.separated(
+                            physics: isLoading
+                                ? const NeverScrollableScrollPhysics()
+                                : const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.only(bottom: 16),
+                            itemCount: filteredChats.length,
+                            separatorBuilder: (_, _) => Divider(
+                              height: 1,
+                              indent: 80,
+                              endIndent: 16,
+                              color: colorScheme.outlineVariant,
+                            ),
+                            itemBuilder: (context, index) {
+                              final chat = filteredChats[index];
+                              return ChatTile(
+                                chat: chat,
+                                onTap: isLoading
+                                    ? () {}
+                                    : () {
+                                        Future.microtask(() async {
+                                          await context.pushNamed(
+                                            RouteNamed.chat,
+                                            pathParameters: {'id': chat.id},
+                                            extra: {
+                                              'name': chat.title,
+                                              'avatar_url': chat.user.image,
+                                              'project_id': chat.projectId,
+                                              'participant_status': chat.participantStatus,
+                                              'is_owner': projectId != null,
+                                              'user_id': chat.user.id,
+                                            },
+                                          );
+                                          if (context.mounted) {
+                                            final bloc = context.read<ChatListBloc>();
+                                            if (projectId != null) {
+                                              bloc.add(LoadProjectChats(projectId!));
+                                            } else {
+                                              bloc.add(const LoadUserChats());
+                                            }
+                                          }
+                                        });
+                                      },
+                              );
+                            },
                           ),
-                          itemBuilder: (context, index) {
-                            final chat = filteredChats[index];
-                            return ChatTile(
-                              chat: chat,
-                              onTap: () {
-                                context.pushNamed(
-                                  RouteNamed.chat,
-                                  pathParameters: {'id': chat.id},
-                                  extra: {
-                                    'name': chat.title,
-                                    'avatar_url': chat.user.image,
-                                    'project_id': chat.projectId,
-                                    'participant_status': chat.participantStatus,
-                                    'is_owner': projectId != null,
-                                    'user_id': chat.user.id,
-                                  },
-                                );
-                              },
-                            );
-                          },
                         ),
                 ),
               ),

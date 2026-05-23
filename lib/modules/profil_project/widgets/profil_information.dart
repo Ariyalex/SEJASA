@@ -47,7 +47,7 @@ class UserProfileHeaderWidget extends HookWidget {
     useEffect(() {
       if (user.profilePicture != null) {
         photoProfile.value = NetworkImage(
-          AppConfig.baseUrl + user.profilePicture!,
+          AppConfig.baseApiUrl + user.profilePicture!,
         );
       }
       return null;

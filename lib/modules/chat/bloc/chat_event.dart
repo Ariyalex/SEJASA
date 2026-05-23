@@ -9,19 +9,21 @@ abstract class ChatEvent extends Equatable {
 }
 
 class ChatStarted extends ChatEvent {
-  final String? projectId;
-  const ChatStarted(this.projectId);
+  final String chatId;
+  final bool isOwner;
+  const ChatStarted({required this.chatId, required this.isOwner});
 
   @override
-  List<Object?> get props => [projectId];
+  List<Object?> get props => [chatId, isOwner];
 }
 
 class SendMessage extends ChatEvent {
   final String message;
-  const SendMessage(this.message);
+  final String? file;
+  const SendMessage(this.message, {this.file});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, file];
 }
 
 class MessageReceived extends ChatEvent {

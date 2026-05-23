@@ -23,6 +23,7 @@ class ChatRepositoryImpl implements ChatRepository {
       senderId: message.senderId,
       receiverId: message.receiverId,
       message: message.message,
+      file: message.file,
       timestamp: message.timestamp,
       isMe: message.isMe,
     );
