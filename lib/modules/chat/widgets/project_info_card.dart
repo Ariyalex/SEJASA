@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
@@ -22,7 +22,7 @@ class ProjectInfoCard extends HookWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
 
     String projcetAddress = "";
     useEffect(() {

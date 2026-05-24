@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 
 enum ChatStatus { initial, loading, loaded, error }
 
@@ -10,6 +11,7 @@ class ChatState extends Equatable {
   final ProjectEntity? project;
   final String? errorMessage;
   final bool isFetchingProject;
+  final ParticipantStatusType? participantStatus;
 
   const ChatState({
     this.status = ChatStatus.initial,
@@ -17,6 +19,7 @@ class ChatState extends Equatable {
     this.project,
     this.errorMessage,
     this.isFetchingProject = false,
+    this.participantStatus,
   });
 
   ChatState copyWith({
@@ -25,6 +28,7 @@ class ChatState extends Equatable {
     ProjectEntity? project,
     String? errorMessage,
     bool? isFetchingProject,
+    ParticipantStatusType? participantStatus,
   }) {
     return ChatState(
       status: status ?? this.status,
@@ -32,6 +36,7 @@ class ChatState extends Equatable {
       project: project ?? this.project,
       errorMessage: errorMessage ?? this.errorMessage,
       isFetchingProject: isFetchingProject ?? this.isFetchingProject,
+      participantStatus: participantStatus ?? this.participantStatus,
     );
   }
 
@@ -42,5 +47,6 @@ class ChatState extends Equatable {
     project,
     errorMessage,
     isFetchingProject,
+    participantStatus,
   ];
 }

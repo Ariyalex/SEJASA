@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_dropdown_field.dart';
@@ -34,7 +33,7 @@ class ProjectFormScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
     final projectFormBloc = context.read<ProjectFormBloc>();
 
     useEffect(() {

@@ -32,15 +32,19 @@ class MyProjectScreen extends HookWidget {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              leading: FlutterLogo(),
-              title: Text("Project Diambil"),
+              title: Text(
+                "Project Diambil",
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               floating: true,
               snap: true,
               pinned: true,
               surfaceTintColor: Colors.transparent,
 
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(105),
+                preferredSize: const Size.fromHeight(100),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +68,9 @@ class MyProjectScreen extends HookWidget {
                               ),
                               Text(
                                 "Menunggu konfirmasi",
-                                style: theme.textTheme.labelSmall,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.hintColor,
+                                ),
                               ),
                             ],
                           ),
@@ -80,7 +86,9 @@ class MyProjectScreen extends HookWidget {
                               Text(
                                 "Permintaan Partisipasi diterima",
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.labelSmall,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.hintColor,
+                                ),
                               ),
                             ],
                           ),
@@ -94,7 +102,9 @@ class MyProjectScreen extends HookWidget {
                               ),
                               Text(
                                 "Permintaan Partisipasi ditolak",
-                                style: theme.textTheme.labelSmall,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.hintColor,
+                                ),
                               ),
                             ],
                           ),

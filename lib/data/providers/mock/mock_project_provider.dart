@@ -323,11 +323,7 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
     String projectId,
   ) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    return (
-      chatId: '1',
-      userId: 'mock_user_id',
-      projectId: projectId,
-    );
+    return (chatId: '1', userId: 'mock_user_id', projectId: projectId);
   }
 
   @override

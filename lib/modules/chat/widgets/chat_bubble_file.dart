@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
 import 'package:sejasa/domain/repositories/file_repository.dart';
@@ -28,7 +28,7 @@ class ChatBubbleFile extends HookWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isMe = chat.isMe;
-    final fileRepository = useMemoized(() => getIt<FileRepository>());
+    final fileRepository = useMemoized(() => context.read<FileRepository>());
 
     final isDownloading = useState<bool>(false);
     final localPath = useState<String?>(null);

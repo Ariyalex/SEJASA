@@ -44,7 +44,6 @@ class SocketService {
         onDone: () {
           _isConnected = false;
           LogUtils.w('WebSocket connection closed.');
-          _reconnect();
         },
         onError: (error) {
           _isConnected = false;
@@ -78,6 +77,7 @@ class SocketService {
   }
 
   void disconnect() {
+    _url = null;
     _channel?.sink.close();
     _isConnected = false;
     LogUtils.i('WebSocket disconnected.');

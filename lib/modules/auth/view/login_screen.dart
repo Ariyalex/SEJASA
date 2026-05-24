@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-import 'package:sejasa/modules/auth/view/register_screen.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
@@ -171,23 +171,7 @@ class LoginScreen extends HookWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        // TODO: navigasi ke forgot password
-                      },
-                      child: Text(
-                        'Lupa password?',
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
                   Center(
                     child: Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,7 +7,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/widgets/my_filled_button.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_outline_button.dart';
 import 'package:geolocator/geolocator.dart';
@@ -22,20 +22,17 @@ void showProjectLocationView({
 }) {
   WoltModalSheet.show<void>(
     context: context,
-    useSafeArea: true,
-    pageListBuilder: (modalSheetContext) {
+    pageListBuilder: (modalContext) {
       return [
         WoltModalSheetPage(
-          enableDrag: true,
-          hasTopBarLayer: false,
-          pageTitle: const Padding(
-            padding: EdgeInsets.fromLTRB(16, 18, 16, 0),
-            child: Text(
-              'Lokasi Proyek',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+          surfaceTintColor: Colors.transparent,
+          hasSabGradient: false,
+          stickyActionBar: const SizedBox.shrink(),
+          topBarTitle: Text(
+            projectName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-
+          isTopBarLayerAlwaysVisible: true,
           child: ProjectLocationViewContent(
             projectLocation: projectLocation,
             projectAddress: projectAddress,
@@ -62,7 +59,7 @@ class ProjectLocationViewContent extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
     final mapController = useMemoized(() => MapController());
 
     final userLocation = useState<LatLng?>(null);

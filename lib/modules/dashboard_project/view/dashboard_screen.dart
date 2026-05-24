@@ -78,6 +78,12 @@ class DashboardScreen extends HookWidget {
               return [
                 SliverAppBar(
                   leading: const FlutterLogo(),
+                  title: Text(
+                    "SEJASA",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   floating: true,
                   snap: true,
                   pinned: true,

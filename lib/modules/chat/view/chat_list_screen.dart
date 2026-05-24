@@ -71,6 +71,7 @@ class ChatListScreen extends HookWidget {
           }
         }
       }
+
       controller.addListener(listener);
       return () => controller.removeListener(listener);
     }, [mainTabBloc, projectId]);
@@ -78,7 +79,7 @@ class ChatListScreen extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          projectId != null ? 'Pelamar Proyek' : 'Chat Dashboard',
+          projectId != null ? 'Pelamar Proyek' : 'Chat Project Yang Dilamar',
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         surfaceTintColor: Colors.transparent,
@@ -86,7 +87,8 @@ class ChatListScreen extends HookWidget {
       ),
       body: BlocBuilder<ChatListBloc, ChatListState>(
         builder: (context, state) {
-          final isLoading = state.status == ChatListStatus.initial ||
+          final isLoading =
+              state.status == ChatListStatus.initial ||
               state.status == ChatListStatus.loading;
 
           if (state.status == ChatListStatus.error) {
@@ -138,7 +140,8 @@ class ChatListScreen extends HookWidget {
                 name: 'Nama Pengguna Shimmer',
               ),
               title: 'Judul Proyek Sedekah Jasa Shimmer',
-              body: 'Ini adalah deskripsi isi pesan singkat dummy untuk rendering loading shimmer.',
+              body:
+                  'Ini adalah deskripsi isi pesan singkat dummy untuk rendering loading shimmer.',
               unreadMsg: 0,
               timestamp: DateTime.now(),
             ),
@@ -150,7 +153,8 @@ class ChatListScreen extends HookWidget {
               : allChats.where((c) {
                   final q = searchQuery.value.trim().toLowerCase();
                   if (q.isNotEmpty) {
-                    final matchesQuery = c.title.toLowerCase().contains(q) ||
+                    final matchesQuery =
+                        c.title.toLowerCase().contains(q) ||
                         c.body.toLowerCase().contains(q);
                     if (!matchesQuery) return false;
                   }
@@ -286,15 +290,19 @@ class ChatListScreen extends HookWidget {
                                               'name': chat.title,
                                               'avatar_url': chat.user.image,
                                               'project_id': chat.projectId,
-                                              'participant_status': chat.participantStatus,
+                                              'participant_status':
+                                                  chat.participantStatus,
                                               'is_owner': projectId != null,
                                               'user_id': chat.user.id,
                                             },
                                           );
                                           if (context.mounted) {
-                                            final bloc = context.read<ChatListBloc>();
+                                            final bloc = context
+                                                .read<ChatListBloc>();
                                             if (projectId != null) {
-                                              bloc.add(LoadProjectChats(projectId!));
+                                              bloc.add(
+                                                LoadProjectChats(projectId!),
+                                              );
                                             } else {
                                               bloc.add(const LoadUserChats());
                                             }

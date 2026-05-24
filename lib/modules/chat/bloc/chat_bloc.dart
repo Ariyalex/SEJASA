@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/chat_entity.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/modules/chat/bloc/chat_event.dart';
@@ -19,13 +20,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SendMessage>(_onSendMessage);
     on<MessageReceived>(_onMessageReceived);
     on<LoadChatProject>(_onLoadChatProject);
+    on<AcceptParticipant>(_onAcceptParticipant);
+    on<RejectParticipant>(_onRejectParticipant);
   }
 
   Future<void> _onChatStarted(
     ChatStarted event,
     Emitter<ChatState> emit,
   ) async {
-    emit(state.copyWith(status: ChatStatus.loading));
+    emit(state.copyWith(
+      status: ChatStatus.loading,
+      participantStatus: event.participantStatus,
+    ));
     try {
       final cleanChatId = event.chatId.replaceAll('#', '');
       LogUtils.i('ChatBloc: cleanChatId = "$cleanChatId", raw = "${event.chatId}"');
@@ -93,6 +99,38 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           errorMessage: e.toString(),
         ),
       );
+    }
+  }
+
+  Future<void> _onAcceptParticipant(
+    AcceptParticipant event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      await _projectRepository.acceptProjectParticipant(
+        event.projectId,
+        event.participantId,
+      );
+      emit(state.copyWith(participantStatus: ParticipantStatusType.accepted));
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
+      emit(state.copyWith(errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onRejectParticipant(
+    RejectParticipant event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      await _projectRepository.rejectProjectParticipant(
+        event.projectId,
+        event.participantId,
+      );
+      emit(state.copyWith(participantStatus: ParticipantStatusType.rejected));
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
+      emit(state.copyWith(errorMessage: e.toString()));
     }
   }
 

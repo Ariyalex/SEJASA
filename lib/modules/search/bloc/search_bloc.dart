@@ -62,8 +62,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     PerformSearch event,
     Emitter<SearchState> emit,
   ) async {
-    if (event.keyword.isEmpty) return;
-
     emit(
       state.copyWith(status: SearchStatus.loading, lastKeyword: event.keyword),
     );
@@ -91,7 +89,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         );
       }
 
-      add(AddHistory(event.keyword));
+      if (event.keyword.isNotEmpty) {
+        add(AddHistory(event.keyword));
+      }
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(
@@ -142,8 +142,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       ),
     );
 
-    if (state.lastKeyword.isNotEmpty) {
-      add(PerformSearch(state.lastKeyword));
-    }
+    add(PerformSearch(state.lastKeyword));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:sejasa/core/services/api_service.dart';
+import 'package:sejasa/data/models/list_user_item_model.dart';
 import 'package:sejasa/data/models/skill_model.dart';
 import 'package:sejasa/data/models/user_model.dart';
 import 'package:sejasa/data/payloads/profile_update_payload.dart';
@@ -8,8 +9,17 @@ class RemoteUserProviderImpl extends RemoteUserProvider {
   final ApiService _apiService;
   RemoteUserProviderImpl(this._apiService);
   @override
-  Future<List<UserModel>> searchUsers(String keyword) {
-    throw UnimplementedError();
+  Future<List<ListUserItemModel>> searchUsers(String keyword) async {
+    final response = await _apiService.get(
+      '/user',
+      queryParameters: {'name': keyword},
+    );
+
+    final rawData = response.data['data'] as List?;
+
+    return List<ListUserItemModel>.from(
+      rawData?.map((e) => ListUserItemModel.fromJson(e)) ?? [],
+    );
   }
 
   @override

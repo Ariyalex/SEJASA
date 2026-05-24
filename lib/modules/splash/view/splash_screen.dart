@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
@@ -46,7 +45,7 @@ class SplashScreen extends HookWidget {
   ) async {
     // 1. Connectivity Check
     statusMessage.value = "Memeriksa koneksi...";
-    final connectivity = getIt<ConnectivityService>();
+    final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isConnected) {
       // Tunggu sebentar jika tidak ada koneksi, atau bisa ditambahkan retry logic
       await Future.delayed(const Duration(seconds: 1));

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-import 'package:sejasa/core/widgets/project_item_widget.dart';
+import 'package:sejasa/core/widgets/build_project_list_fetch_page_widget.dart';
 import 'package:sejasa/modules/search/bloc/search_bloc.dart';
 import 'package:sejasa/modules/search/bloc/search_event.dart';
 import 'package:sejasa/modules/search/bloc/search_state.dart';
@@ -21,19 +21,19 @@ class SearchResultScreen extends HookWidget {
     );
 
     void onSearch(String keyword) {
-      if (keyword.trim().isNotEmpty) {
-        searchBloc.add(PerformSearch(keyword.trim()));
-      }
+      searchBloc.add(PerformSearch(keyword.trim()));
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         titleSpacing: 0,
         leadingWidth: 40,
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: MyTextField(
-            title: "",
             hint: "Cari...",
             controller: controller,
             textInputAction: TextInputAction.search,
@@ -44,32 +44,35 @@ class SearchResultScreen extends HookWidget {
             isClearable: false,
             suffixIcon: BlocBuilder<SearchBloc, SearchState>(
               builder: (context, state) {
-                return IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => BlocProvider.value(
-                        value: searchBloc,
-                        child: ProjectFilterBottomSheet(
-                          initialSort: state.selectedSort,
-                          initialStatus: state.selectedStatus,
-                          initialCategory: state.selectedCategory,
-                          onApply: (sort, status, category) {
-                            searchBloc.add(
-                              ApplyProjectFilter(
-                                sort: sort,
-                                status: status,
-                                category: category,
-                              ),
-                            );
-                          },
+                if (state.isProject) {
+                  return IconButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => BlocProvider.value(
+                          value: searchBloc,
+                          child: ProjectFilterBottomSheet(
+                            initialSort: state.selectedSort,
+                            initialStatus: state.selectedStatus,
+                            initialCategory: state.selectedCategory,
+                            onApply: (sort, status, category) {
+                              searchBloc.add(
+                                ApplyProjectFilter(
+                                  sort: sort,
+                                  status: status,
+                                  category: category,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  icon: Icon(LucideIcons.listFilter),
-                );
+                      );
+                    },
+                    icon: Icon(LucideIcons.listFilter),
+                  );
+                }
+                return SizedBox.shrink();
               },
             ),
           ),
@@ -101,40 +104,35 @@ class SearchResultScreen extends HookWidget {
       ),
       body: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
+          if (state.isProject) {
+            return BuildProjectListFetchPageWidget(
+              projects: state.projectResults,
+              isFetchingMore: false,
+              hasReachedMax: true,
+              onRefresh: () async {
+                searchBloc.add(PerformSearch(state.lastKeyword));
+              },
+              onLoadMore: () {},
+              isLoading: state.status == SearchStatus.loading,
+            );
+          }
+
           if (state.status == SearchStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (state.status == SearchStatus.success) {
-            if (state.isProject) {
-              if (state.projectResults.isEmpty) {
-                return const Center(child: Text("Hasil tidak ditemukan"));
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.projectResults.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  return ProjectItemWidget(
-                    project: state.projectResults[index],
-                  );
-                },
-              );
-            } else {
-              if (state.userResults.isEmpty) {
-                return const Center(child: Text("Hasil tidak ditemukan"));
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.userResults.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  return UserItemWidget(user: state.userResults[index]);
-                },
-              );
+            if (state.userResults.isEmpty) {
+              return const Center(child: Text("Hasil tidak ditemukan"));
             }
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: state.userResults.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return UserItemWidget(user: state.userResults[index]);
+              },
+            );
           }
 
           if (state.status == SearchStatus.failure) {
@@ -146,33 +144,6 @@ class SearchResultScreen extends HookWidget {
           return const Center(child: Text("Mulai mencari..."));
         },
       ),
-      // bottomNavigationBar: BlocBuilder<SearchBloc, SearchState>(
-      //   builder: (context, state) {
-      //     if (!state.isProject) return const SizedBox.shrink();
-      //     return SafeArea(
-      //       child: Padding(
-      //         padding: const EdgeInsets.symmetric(
-      //           horizontal: 16.0,
-      //           vertical: 8.0,
-      //         ),
-      //         child: Row(
-      //           children: [
-      //             OutlinedButton(
-      //               style: OutlinedButton.styleFrom(
-      //                 shape: RoundedRectangleBorder(
-      //                   borderRadius: BorderRadius.circular(8),
-      //                 ),
-      //                 padding: const EdgeInsets.all(12),
-      //               ),
-      //               onPressed: () {},
-      //               child: const Icon(LucideIcons.chevronDown),
-      //             ),
-      //           ],
-      //         ),
-      //       ),
-      //     );
-      //   },
-      // ),
     );
   }
 }

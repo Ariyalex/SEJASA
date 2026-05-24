@@ -5,15 +5,14 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/config/app_config.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/domain/value_objects/gender_type.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
-import 'package:sejasa/domain/providers/remote_user_provider.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
@@ -25,7 +24,7 @@ class UserProfileHeaderWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
     final address = useState<String>('');
     final currentUser = context.watch<AuthBloc>().state.user;
     final isMyProfile = currentUser != null && currentUser.id == user.id;
@@ -159,6 +158,7 @@ class UserProfileHeaderWidget extends HookWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.location_on_outlined,
@@ -169,7 +169,7 @@ class UserProfileHeaderWidget extends HookWidget {
                     Expanded(
                       child: Text(
                         address.value,
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.visible,
                       ),
                     ),
                   ],
@@ -304,7 +304,6 @@ class _SkillManagementBottomSheet extends StatefulWidget {
 class _SkillManagementBottomSheetState
     extends State<_SkillManagementBottomSheet> {
   final TextEditingController _skillController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -315,27 +314,8 @@ class _SkillManagementBottomSheetState
   Future<void> _addSkill(BuildContext context) async {
     final name = _skillController.text.trim();
     if (name.isEmpty) return;
-
-    setState(() => _isLoading = true);
-    try {
-      final userProvider = getIt<RemoteUserProvider>();
-      await userProvider.addMySkill(name);
-      _skillController.clear();
-      if (mounted) {
-        context.read<AuthBloc>().add(AuthProfileRefreshed());
-        MySnackbar.success(
-          title: "Sukses",
-          message: "Keahlian baru berhasil ditambahkan",
-        );
-      }
-    } catch (e) {
-      MySnackbar.error(
-        title: "Gagal Menambahkan",
-        message: e.toString().replaceAll("Exception:", "").trim(),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    context.read<AuthBloc>().add(AuthSkillAddRequested(name));
+    _skillController.clear();
   }
 
   Future<void> _editSkill(
@@ -377,26 +357,9 @@ class _SkillManagementBottomSheetState
                   return;
                 }
                 Navigator.pop(dialogContext);
-
-                setState(() => _isLoading = true);
-                try {
-                  final userProvider = getIt<RemoteUserProvider>();
-                  await userProvider.editMySkill(skillId, newName);
-                  if (mounted) {
-                    context.read<AuthBloc>().add(AuthProfileRefreshed());
-                    MySnackbar.success(
-                      title: "Sukses",
-                      message: "Keahlian berhasil diperbarui",
-                    );
-                  }
-                } catch (e) {
-                  MySnackbar.error(
-                    title: "Gagal Mengedit",
-                    message: e.toString().replaceAll("Exception:", "").trim(),
-                  );
-                } finally {
-                  if (mounted) setState(() => _isLoading = false);
-                }
+                context.read<AuthBloc>().add(
+                  AuthSkillEditRequested(skillId, newName),
+                );
               },
               child: const Text(
                 "Simpan",
@@ -445,25 +408,8 @@ class _SkillManagementBottomSheetState
     );
 
     if (confirm != true) return;
-
-    setState(() => _isLoading = true);
-    try {
-      final userProvider = getIt<RemoteUserProvider>();
-      await userProvider.deleteMySkill(skillId);
-      if (mounted) {
-        context.read<AuthBloc>().add(AuthProfileRefreshed());
-        MySnackbar.success(
-          title: "Sukses",
-          message: "Keahlian berhasil dihapus",
-        );
-      }
-    } catch (e) {
-      MySnackbar.error(
-        title: "Gagal Menghapus",
-        message: e.toString().replaceAll("Exception:", "").trim(),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    if (context.mounted) {
+      context.read<AuthBloc>().add(AuthSkillDeleteRequested(skillId));
     }
   }
 
@@ -473,181 +419,199 @@ class _SkillManagementBottomSheetState
     final colorScheme = theme.colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final skills = authState.user?.skills ?? [];
+    final isLoading = authState.status == AuthStatus.loading;
 
-    return Container(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.message != current.message,
+      listener: (context, state) {
+        if (state.status == AuthStatus.success &&
+            state.message != null &&
+            state.message!.contains("Keahlian")) {
+          MySnackbar.success(title: "Sukses", message: state.message!);
+        } else if (state.status == AuthStatus.error) {
+          MySnackbar.error(
+            title: "Gagal",
+            message: state.message ?? "Terjadi kesalahan.",
+          );
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Kelola Keahlian",
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          const Divider(),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _skillController,
-                  decoration: InputDecoration(
-                    hintText: "Tambah keahlian baru...",
-                    filled: true,
-                    fillColor: const Color(0xFFEEEEEE),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Kelola Keahlian",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
-                  onSubmitted: (_) => _addSkill(context),
                 ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: _isLoading ? null : () => _addSkill(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  minimumSize: const Size(48, 48),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(Colors.white),
-                        ),
-                      )
-                    : const Icon(LucideIcons.plus, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Keahlian Saya (${skills.length})",
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          if (skills.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  "Anda belum menambahkan keahlian apapun.",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-              ),
-            )
-          else
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                itemCount: skills.length,
-                itemBuilder: (context, index) {
-                  final skill = skills[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+            const Divider(),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _skillController,
+                    decoration: InputDecoration(
+                      hintText: "Tambah keahlian baru...",
+                      filled: true,
+                      fillColor: const Color(0xFFEEEEEE),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.05),
+                    onSubmitted: (_) => _addSkill(context),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: isLoading ? null : () => _addSkill(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            skill.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
+                    padding: const EdgeInsets.all(12),
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
+                      : const Icon(LucideIcons.plus, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Keahlian Saya (${skills.length})",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (skills.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    "Anda belum menambahkan keahlian apapun.",
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: skills.length,
+                  itemBuilder: (context, index) {
+                    final skill = skills[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              skill.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                LucideIcons.pencil,
-                                size: 16,
-                                color: colorScheme.primary,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  LucideIcons.pencil,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
+                                onPressed: isLoading
+                                    ? null
+                                    : () => _editSkill(
+                                        context,
+                                        skill.id.toString(),
+                                        skill.name,
+                                      ),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: "Ubah keahlian",
                               ),
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => _editSkill(
-                                      context,
-                                      skill.id.toString(),
-                                      skill.name,
-                                    ),
-                              visualDensity: VisualDensity.compact,
-                              tooltip: "Ubah keahlian",
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                LucideIcons.trash2,
-                                size: 16,
-                                color: Colors.red,
+                              IconButton(
+                                icon: const Icon(
+                                  LucideIcons.trash2,
+                                  size: 16,
+                                  color: Colors.red,
+                                ),
+                                onPressed: isLoading
+                                    ? null
+                                    : () => _deleteSkill(
+                                        context,
+                                        skill.id.toString(),
+                                      ),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: "Hapus keahlian",
                               ),
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => _deleteSkill(
-                                      context,
-                                      skill.id.toString(),
-                                    ),
-                              visualDensity: VisualDensity.compact,
-                              tooltip: "Hapus keahlian",
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          const SizedBox(height: 12),
-        ],
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:sejasa/domain/entities/project_category_entity.dart';
 
 class ProjectCategoryModel extends ProjectCategoryEntity {
-  ProjectCategoryModel({
+  const ProjectCategoryModel({
     required super.id,
     required super.name,
     super.description,

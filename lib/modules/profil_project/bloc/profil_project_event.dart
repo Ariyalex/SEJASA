@@ -31,3 +31,12 @@ class SetCompletedProjects extends ProfilProjectEvent {
   @override
   List<Object?> get props => [projectFilterType];
 }
+
+class LoadUserProfile extends ProfilProjectEvent {
+  final String userId;
+  final bool isMyProfile;
+  const LoadUserProfile(this.userId, {required this.isMyProfile});
+
+  @override
+  List<Object?> get props => [userId, isMyProfile];
+}

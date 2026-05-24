@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/location_service.dart';
 
 class ProjectLocationPicker extends HookWidget {
@@ -23,7 +23,7 @@ class ProjectLocationPicker extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
     final selectedLocation = useState<LatLng?>(initialLocation);
     final mapController = useMemoized(() => MapController());
     final isLoading = useState(false);

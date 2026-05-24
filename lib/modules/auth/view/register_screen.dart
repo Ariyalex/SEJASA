@@ -8,13 +8,10 @@ import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
 import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
-
-/// Jenis akun yang dipilih user saat register.
-/// Dipakai juga sebagai parameter ke [RegisterScreen].
-enum AccountType { personal, organization }
 
 /// Register screen untuk Perorangan dan Organisasi.
 ///

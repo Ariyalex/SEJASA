@@ -74,7 +74,12 @@ class DependencyInjection {
     );
     getIt.registerLazySingleton<AuthBloc>(
       () =>
-          AuthBloc(getIt<AuthRepository>(), getIt<StorageService>())
+          AuthBloc(
+            getIt<AuthRepository>(),
+            getIt<UserRepository>(),
+            getIt<FileRepository>(),
+            getIt<StorageService>(),
+          )
             ..add(AuthCheckRequested()),
     );
     getIt.registerLazySingleton<MainTabBloc>(() => MainTabBloc());
