@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -141,6 +142,7 @@ class ProjectDetailScreen extends HookWidget {
               "participant_status": null,
               "is_owner": false,
               "apply_project_message": true,
+              "user_id": state.project?.ownerId,
             },
           );
         } else if (state.status == ProjectDetailStatus.applyError) {
@@ -210,7 +212,12 @@ class ProjectDetailScreen extends HookWidget {
               ),
             if (!isOwner)
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  MySnackbar.info(
+                    message:
+                        "Frenkkkk, fitur belum ada (mengejeck dengan sopan)",
+                  );
+                },
                 icon: Icon(LucideIcons.flag, color: theme.colorScheme.error),
               ),
           ],
@@ -381,55 +388,68 @@ class ProjectDetailScreen extends HookWidget {
                             ),
 
                             SizedBox(height: 12),
-                            Row(
-                              spacing: 10,
-                              children: [
-                                CircleAvatar(
-                                  radius: 26,
-                                  backgroundColor: Colors.grey,
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 38,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            InkWell(
+                              onTap: () {
+                                context.pushNamed(
+                                  RouteNamed.userProfile,
+                                  pathParameters: {'id': project.ownerId},
+                                );
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.only(right: 16.w),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 10,
                                   children: [
-                                    Text(
-                                      project.ownerName,
-                                      style: theme.textTheme.titleMedium,
-                                      overflow: TextOverflow.ellipsis,
+                                    CircleAvatar(
+                                      radius: 26,
+                                      backgroundColor: Colors.grey,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 38,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    Row(
-                                      spacing: 6,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        RatingBarIndicator(
-                                          itemBuilder: (context, index) {
-                                            return Icon(
-                                              Icons.star,
-                                              color: Colors.amber,
-                                            );
-                                          },
-                                          itemCount: 5,
-
-                                          rating: project.ownerRating,
-                                          itemSize: 24,
-                                        ),
                                         Text(
-                                          project.ownerRating.toString(),
-                                          style: theme.textTheme.bodyLarge
-                                              ?.copyWith(
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
+                                          project.ownerName,
+                                          style: theme.textTheme.titleMedium,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Row(
+                                          spacing: 6,
+                                          children: [
+                                            RatingBarIndicator(
+                                              itemBuilder: (context, index) {
+                                                return Icon(
+                                                  Icons.star,
+                                                  color: Colors.amber,
+                                                );
+                                              },
+                                              itemCount: 5,
+
+                                              rating: project.ownerRating,
+                                              itemSize: 20.r,
+                                            ),
+                                            Text(
+                                              project.ownerRating.toString(),
+                                              style: theme.textTheme.bodyLarge
+                                                  ?.copyWith(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
                           ],
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -88,7 +89,7 @@ class DashboardScreen extends HookWidget {
                   snap: true,
                   pinned: true,
                   surfaceTintColor: Colors.transparent,
-                  actionsPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  actionsPadding: EdgeInsets.symmetric(horizontal: 8.w),
                   actions: [
                     IconButton.filled(
                       onPressed: () {
@@ -108,11 +109,11 @@ class DashboardScreen extends HookWidget {
                       ),
                   ],
                   bottom: PreferredSize(
-                    preferredSize: const Size.fromHeight(50),
+                    preferredSize: Size.fromHeight(50.h),
                     child: SizedBox(
-                      height: 50,
+                      height: 50.h,
                       child: Row(
-                        spacing: 4,
+                        spacing: 4.w,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
@@ -120,9 +121,9 @@ class DashboardScreen extends HookWidget {
                               controller: tabBarController,
                               isScrollable: true,
                               tabAlignment: TabAlignment.start,
-                              splashBorderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(8),
-                                topLeft: Radius.circular(8),
+                              splashBorderRadius: BorderRadius.only(
+                                topRight: Radius.circular(8.r),
+                                topLeft: Radius.circular(8.r),
                               ),
                               dividerColor: Colors.transparent,
                               tabs: const [
@@ -138,10 +139,10 @@ class DashboardScreen extends HookWidget {
                           >(
                             builder: (context, state) {
                               return Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 6,
-                                  bottom: 6,
-                                  right: 8,
+                                padding: EdgeInsets.only(
+                                  top: 6.h,
+                                  bottom: 6.h,
+                                  right: 8.w,
                                 ),
                                 child: LocationPickerTrigger(
                                   address: state.address ?? "Pilih Lokasi",
@@ -164,19 +165,19 @@ class DashboardScreen extends HookWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           LucideIcons.alertTriangle,
-                          size: 64,
+                          size: 64.r,
                           color: Colors.red,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
                         Text(
                           "Terjadi kesalahan",
                           style: theme.textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
                           child: Text(
                             state.message ??
                                 "Terjadi kesalahan yang tidak diketahui",
@@ -184,7 +185,7 @@ class DashboardScreen extends HookWidget {
                             style: const TextStyle(color: Colors.grey),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         ElevatedButton.icon(
                           onPressed: () {
                             dashboardBloc.add(
@@ -217,30 +218,30 @@ class DashboardScreen extends HookWidget {
                     controller: tabBarController,
                     children: [
                       state.latitude == null
-                          ? Center(
+                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     LucideIcons.mapPinOff,
-                                    size: 64,
+                                    size: 64.r,
                                     color: Colors.grey,
                                   ),
-                                  const SizedBox(height: 16),
-                                  const Text(
+                                  SizedBox(height: 16.h),
+                                  Text(
                                     "Lokasi belum ditentukan",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 18.sp,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8.h),
                                   const Text(
                                     "Tentukan lokasi Anda untuk melihat project terdekat",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(color: Colors.grey),
                                   ),
-                                  const SizedBox(height: 24),
+                                  SizedBox(height: 24.h),
                                   ElevatedButton.icon(
                                     onPressed: showLocationPicker,
                                     icon: const Icon(LucideIcons.mapPin),

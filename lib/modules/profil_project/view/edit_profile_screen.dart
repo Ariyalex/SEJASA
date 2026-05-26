@@ -55,7 +55,6 @@ class EditProfileScreen extends HookWidget {
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final isSaving = authState.status == AuthStatus.loading;
-    const isImageUploading = false;
 
     // Fungsi upload gambar profil
     Future<void> pickAndUploadImage() async {
@@ -190,9 +189,7 @@ class EditProfileScreen extends HookWidget {
                             bottom: 0,
                             right: 0,
                             child: GestureDetector(
-                              onTap: isImageUploading
-                                  ? null
-                                  : pickAndUploadImage,
+                              onTap: isSaving ? null : pickAndUploadImage,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -365,9 +362,7 @@ class EditProfileScreen extends HookWidget {
 
                     // 8. Tombol Simpan
                     ElevatedButton(
-                      onPressed: isSaving || isImageUploading
-                          ? null
-                          : submitForm,
+                      onPressed: isSaving ? null : submitForm,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

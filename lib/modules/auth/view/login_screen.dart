@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
@@ -29,49 +30,35 @@ class LoginScreen extends HookWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final isLoadingState = useState(false);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft),
-          tooltip: 'Kembali',
           onPressed: () => _backToDashboard(context),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+        title: const Text('Masuk'),
       ),
       body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == AuthStatus.loading) {
-            isLoadingState.value = true;
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => const WillPopScope(
-                onWillPop: null, // disables back button while loading
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            );
+            // optional: show loading dialog
           } else {
-            if (isLoadingState.value) {
-              isLoadingState.value = false;
-              Navigator.of(context, rootNavigator: true).pop();
-            }
-
+            // optional: dismiss loading dialog
             if (state.status == AuthStatus.authenticated) {
               MySnackbar.success(
-                title: "Login Berhasil",
-                message: state.message ?? "Selamat datang kembali!",
+                title: "Sukses",
+                message: "Berhasil masuk ke akun Anda",
               );
+              // Navigasi ke main tab (/)
+              context.goNamed(RouteNamed.mainTab);
             } else if (state.status == AuthStatus.error) {
               MySnackbar.error(
-                title: "Login Gagal",
+                title: "Gagal",
                 message: state.message ?? "Username atau password salah",
               );
             }
@@ -79,13 +66,13 @@ class LoginScreen extends HookWidget {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
             child: Form(
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
                   Center(
@@ -93,21 +80,22 @@ class LoginScreen extends HookWidget {
                       'Logo',
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w500,
-                        fontSize: 80,
+                        fontSize: 80.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  SizedBox(height: 48.h),
 
                   Center(
                     child: Text(
                       'Masuk Akun',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
+                        fontSize: 16.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   MyTextField(
                     title: 'Email',
@@ -127,7 +115,7 @@ class LoginScreen extends HookWidget {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   MyTextField(
                     title: 'Password',
@@ -144,13 +132,13 @@ class LoginScreen extends HookWidget {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
                     onPressed: () {
@@ -163,15 +151,15 @@ class LoginScreen extends HookWidget {
                         );
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Login',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   Center(
                     child: Row(

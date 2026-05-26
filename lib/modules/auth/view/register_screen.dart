@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/routes/route_named.dart';
@@ -91,13 +92,13 @@ class RegisterScreen extends HookWidget {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
             child: Form(
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
 
                   // Logo placeholder — ganti dengan asset logo SEJASA jika ada
                   Center(
@@ -105,21 +106,22 @@ class RegisterScreen extends HookWidget {
                       'Logo',
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w500,
-                        fontSize: 72,
+                        fontSize: 72.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   Center(
                     child: Text(
                       'Daftar Akun',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
+                        fontSize: 16.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   MyTextField(
                     title: _isOrganisasi ? 'Nama Organisasi' : 'Nama',
@@ -266,9 +268,9 @@ class RegisterScreen extends HookWidget {
 
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
                     onPressed: () {
@@ -298,15 +300,15 @@ class RegisterScreen extends HookWidget {
                         );
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Register',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   Center(
                     child: Row(

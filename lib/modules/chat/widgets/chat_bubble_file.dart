@@ -168,7 +168,7 @@ class ChatBubbleFile extends HookWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '$fileType • $fileSize',
+                        '$fileType ',
                         style: TextStyle(
                           fontSize: 12,
                           color:

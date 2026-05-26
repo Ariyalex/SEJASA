@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -75,26 +76,27 @@ class ProfilScreen extends HookWidget {
             ),
             body: Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.all(24.0.r),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       LucideIcons.alertTriangle,
                       color: theme.colorScheme.error,
-                      size: 48,
+                      size: 48.r,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text(
                       state.message ?? "Terjadi kesalahan memuat data",
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.error,
+                        fontSize: 14.sp,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     ElevatedButton.icon(
-                      icon: const Icon(LucideIcons.refreshCw, size: 16),
+                      icon: Icon(LucideIcons.refreshCw, size: 16.r),
                       label: const Text("Coba Lagi"),
                       onPressed: () {
                         profilBloc.add(

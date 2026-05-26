@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/config/app_config.dart';
@@ -54,12 +55,12 @@ class UserProfileHeaderWidget extends HookWidget {
 
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: EdgeInsets.symmetric(vertical: 12.0.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -67,12 +68,12 @@ class UserProfileHeaderWidget extends HookWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Color(0xFFD9D9D9),
+                      radius: 35.r,
+                      backgroundColor: const Color(0xFFD9D9D9),
                       backgroundImage: photoProfile.value,
-                      child: Icon(Icons.person, color: Colors.white, size: 45),
+                      child: Icon(Icons.person, color: Colors.white, size: 45.r),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,35 +84,35 @@ class UserProfileHeaderWidget extends HookWidget {
                               Flexible(
                                 child: Text(
                                   user.name,
-                                  style: const TextStyle(
-                                    fontSize: 18,
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4.w),
 
                               if (user.gender == GenderType.male)
-                                const Icon(
+                                Icon(
                                   LucideIcons.mars,
-                                  size: 16,
+                                  size: 16.r,
                                   color: Colors.blue,
                                 )
                               else if (user.gender == GenderType.female)
-                                const Icon(
+                                Icon(
                                   LucideIcons.venus,
-                                  size: 16,
+                                  size: 16.r,
                                   color: Colors.pink,
                                 )
                               else
-                                const Icon(
+                                Icon(
                                   LucideIcons.user,
-                                  size: 16,
+                                  size: 16.r,
                                   color: Colors.grey,
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4.h),
                           BlocBuilder<ProfilProjectBloc, ProfilProjectState>(
                             builder: (context, state) {
                               final createdProjects =
@@ -125,23 +126,23 @@ class UserProfileHeaderWidget extends HookWidget {
                                   .length;
                               return Text(
                                 "$completedProjects diselesaikan - $createdProjects dibuat",
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
                                   color: Colors.black87,
                                 ),
                               );
                             },
                           ),
                           Row(
-                            spacing: 6,
+                            spacing: 6.w,
                             children: [
                               RatingBarIndicator(
                                 itemBuilder: (context, index) {
-                                  return Icon(Icons.star, color: Colors.amber);
+                                  return const Icon(Icons.star, color: Colors.amber);
                                 },
                                 itemCount: 5,
                                 rating: user.rating,
-                                itemSize: 20,
+                                itemSize: 20.r,
                               ),
                               Text(
                                 user.rating.toString(),
@@ -156,16 +157,16 @@ class UserProfileHeaderWidget extends HookWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.location_on_outlined,
-                      size: 18,
+                      size: 18.r,
                       color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     Expanded(
                       child: Text(
                         address.value,
@@ -182,33 +183,33 @@ class UserProfileHeaderWidget extends HookWidget {
 
           // Bagian 2: Deskripsi / Bio
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0.w),
             child: Text(
               user.description ?? "User malas mengisi bio....",
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 14.sp),
             ),
           ),
 
           const Divider(),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       "Keahlian",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (isMyProfile)
                       IconButton(
-                        icon: const Icon(LucideIcons.pencil, size: 16),
+                        icon: Icon(LucideIcons.pencil, size: 16.r),
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
@@ -223,10 +224,10 @@ class UserProfileHeaderWidget extends HookWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 8.w,
+                  runSpacing: 8.h,
                   children: [
                     if (user.skills == null || user.skills!.isEmpty)
                       const Text(
@@ -251,36 +252,36 @@ class UserProfileHeaderWidget extends HookWidget {
           const Divider(),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Info Kontak",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 if (user.contact != null)
                   Row(
                     children: [
                       Icon(
                         LucideIcons.phone,
-                        size: 18,
+                        size: 18.r,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       Text(user.contact!),
                     ],
                   ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Row(
                   children: [
                     Icon(
                       LucideIcons.mail,
-                      size: 18,
+                      size: 18.r,
                       color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Text(user.email),
                   ],
                 ),
@@ -439,16 +440,16 @@ class _SkillManagementBottomSheetState
       },
       child: Container(
         padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          left: 20.w,
+          right: 20.w,
+          top: 20.h,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
           ),
         ),
         child: Column(
@@ -462,7 +463,7 @@ class _SkillManagementBottomSheetState
                   "Kelola Keahlian",
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 18.sp,
                   ),
                 ),
                 IconButton(
@@ -472,7 +473,7 @@ class _SkillManagementBottomSheetState
               ],
             ),
             const Divider(),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             Row(
               children: [
                 Expanded(
@@ -483,57 +484,57 @@ class _SkillManagementBottomSheetState
                       filled: true,
                       fillColor: const Color(0xFFEEEEEE),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10.r),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
                       ),
                     ),
                     onSubmitted: (_) => _addSkill(context),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 FilledButton(
                   onPressed: isLoading ? null : () => _addSkill(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10.r),
                     ),
-                    padding: const EdgeInsets.all(12),
-                    minimumSize: const Size(48, 48),
+                    padding: EdgeInsets.all(12.r),
+                    minimumSize: Size(48.w, 48.h),
                   ),
                   child: isLoading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
+                      ? SizedBox(
+                          width: 18.w,
+                          height: 18.h,
+                          child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation(Colors.white),
                           ),
                         )
-                      : const Icon(LucideIcons.plus, size: 20),
+                      : Icon(LucideIcons.plus, size: 20.r),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Text(
               "Keahlian Saya (${skills.length})",
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             if (skills.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.h),
                 child: Center(
                   child: Text(
                     "Anda belum menambahkan keahlian apapun.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(color: Colors.grey, fontSize: 13.sp),
                   ),
                 ),
               )
@@ -546,14 +547,14 @@ class _SkillManagementBottomSheetState
                   itemBuilder: (context, index) {
                     final skill = skills[index];
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      margin: EdgeInsets.only(bottom: 8.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
                       ),
                       decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(10),
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10.r),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -561,9 +562,9 @@ class _SkillManagementBottomSheetState
                           Expanded(
                             child: Text(
                               skill.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w500,
-                                fontSize: 14,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ),
@@ -573,7 +574,7 @@ class _SkillManagementBottomSheetState
                               IconButton(
                                 icon: Icon(
                                   LucideIcons.pencil,
-                                  size: 16,
+                                  size: 16.r,
                                   color: colorScheme.primary,
                                 ),
                                 onPressed: isLoading
@@ -587,9 +588,9 @@ class _SkillManagementBottomSheetState
                                 tooltip: "Ubah keahlian",
                               ),
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   LucideIcons.trash2,
-                                  size: 16,
+                                  size: 16.r,
                                   color: Colors.red,
                                 ),
                                 onPressed: isLoading
@@ -609,7 +610,7 @@ class _SkillManagementBottomSheetState
                   },
                 ),
               ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
           ],
         ),
       ),

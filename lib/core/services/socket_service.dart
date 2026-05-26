@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 
-class SocketService {
+class SocketService with WidgetsBindingObserver {
   WebSocketChannel? _channel;
   final StreamController<dynamic> _socketStreamController =
       StreamController<dynamic>.broadcast();
@@ -13,8 +14,23 @@ class SocketService {
   bool _isConnected = false;
   String? _url;
 
+  SocketService() {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   Stream<dynamic> get stream => _socketStreamController.stream;
   bool get isConnected => _isConnected;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      LogUtils.i('App lifecycle resumed. _url: $_url, _isConnected: $_isConnected');
+      if (_url != null && !_isConnected) {
+        LogUtils.i('App resumed with active session. Reconnecting...');
+        connect(_url!);
+      }
+    }
+  }
 
   void connect(String url) {
     final cleanUrl = url.replaceAll('#', '');
@@ -84,6 +100,7 @@ class SocketService {
   }
 
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _socketStreamController.close();
     disconnect();
   }

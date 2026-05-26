@@ -173,9 +173,7 @@ class AppRouter {
               context.read<UserRepository>(),
               context.read<AuthRepository>(),
             ),
-            child: ProfilScreen(
-              userId: id,
-            ),
+            child: ProfilScreen(userId: id),
           );
         },
       ),
@@ -191,7 +189,8 @@ class AppRouter {
           final isOwner = extra['is_owner'] as bool? ?? false;
           final participantId = extra['user_id'] as String?;
 
-          final applyProjectMessage = extra['apply_project_message'] as bool? ?? false;
+          final applyProjectMessage =
+              extra['apply_project_message'] as bool? ?? false;
 
           return BlocProvider(
             create: (context) => ChatBloc(

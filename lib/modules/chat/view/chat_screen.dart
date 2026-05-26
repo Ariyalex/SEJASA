@@ -3,6 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/domain/repositories/file_repository.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
@@ -75,28 +78,51 @@ class ChatScreen extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 5,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: avatarUrl != null
-                  ? NetworkImage(avatarUrl!)
-                  : null,
-              child: avatarUrl == null ? const Icon(Icons.person) : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        titleSpacing: 5.w,
+        title: BlocBuilder<ChatBloc, ChatState>(
+          builder: (context, state) {
+            return InkWell(
+              onTap: () {
+                final opponentId = isOwner
+                    ? participantId
+                    : state.project?.ownerId;
+                if (opponentId != null && opponentId.isNotEmpty) {
+                  context.pushNamed(
+                    RouteNamed.userProfile,
+                    pathParameters: {'id': opponentId},
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(8.r),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 4.w),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18.r,
+                      backgroundImage: avatarUrl != null
+                          ? NetworkImage(avatarUrl!)
+                          : null,
+                      child: avatarUrl == null
+                          ? const Icon(Icons.person)
+                          : null,
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
       body: MultiBlocListener(
@@ -296,18 +322,18 @@ class ChatScreen extends HookWidget {
       enabled: true,
       child: ListView.builder(
         itemCount: 6,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
         itemBuilder: (context, index) {
           final isMe = index % 2 == 0;
 
           return Align(
             alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              padding: const EdgeInsets.all(12),
+              margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: const Text(
                 'Ini adalah dummy message untuk skeleton loading',
@@ -327,11 +353,11 @@ class ChatScreen extends HookWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         ),
@@ -344,9 +370,9 @@ class ChatScreen extends HookWidget {
               Icon(
                 Icons.info_outline_rounded,
                 color: colorScheme.primary,
-                size: 20,
+                size: 20.r,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Text(
                   'Pelamar Proyek Pending',
@@ -358,14 +384,14 @@ class ChatScreen extends HookWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'Pengguna ini melamar untuk bergabung dengan proyek Anda. Harap konfirmasi untuk menerima atau menolak pelamar ini.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             children: [
               Expanded(
@@ -394,14 +420,14 @@ class ChatScreen extends HookWidget {
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                   ),
                   child: isProcessingAction.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
+                      ? SizedBox(
+                          width: 16.w,
+                          height: 16.h,
+                          child: const CircularProgressIndicator(
                             strokeWidth: 1.5,
                             valueColor: AlwaysStoppedAnimation(Colors.red),
                           ),
@@ -409,7 +435,7 @@ class ChatScreen extends HookWidget {
                       : const Text('Tolak'),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: FilledButton(
                   onPressed: isProcessingAction.value
@@ -435,14 +461,14 @@ class ChatScreen extends HookWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                   ),
                   child: isProcessingAction.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
+                      ? SizedBox(
+                          width: 16.w,
+                          height: 16.h,
+                          child: const CircularProgressIndicator(
                             strokeWidth: 1.5,
                             valueColor: AlwaysStoppedAnimation(Colors.white),
                           ),
