@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sejasa/core/di/app_providers.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/app_router.dart';
@@ -37,21 +38,28 @@ class MyApp extends HookWidget {
       child: MultiBlocProvider(
         providers: AppProviders.blocProviders,
         child: ToastificationWrapper(
-          child: MaterialApp.router(
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.light,
-            debugShowCheckedModeBanner: false,
-            routerConfig: AppRouter.router,
+          child: ScreenUtilInit(
+            designSize: const Size(360, 690),
+            minTextAdapt: true,
+            splitScreenMode: true,
             builder: (context, child) {
-              return child!;
+              return MaterialApp.router(
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: ThemeMode.light,
+                debugShowCheckedModeBanner: false,
+                routerConfig: AppRouter.router,
+                builder: (context, child) {
+                  return child!;
+                },
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  FlutterQuillLocalizations.delegate,
+                ],
+              );
             },
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              FlutterQuillLocalizations.delegate,
-            ],
           ),
         ),
       ),

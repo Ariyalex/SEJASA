@@ -183,3 +183,8 @@ Demi menjaga keterbacaan dan konsistensi kode di seluruh tim, ikuti aturan dan p
 - **Skeleton Shimmer:** Setiap pemuatan data awal dari API pada daftar atau halaman detail wajib dibungkus dengan widget `Skeletonizer` dan dilewatkan dengan data tiruan (seperti `ProjectEntity.dummyProject()`) agar transisi saat data selesai dimuat terlihat sangat mulus dan premium.
 - **Dynamic Bottom Sheets:** Gunakan Wolt Modal Sheet untuk semua jenis bottom sheet interaktif yang membutuhkan formulir multi-halaman atau konten pembanding yang detail (seperti peninjauan rincian lokasi proyek).
 - **Safe Area & Inset:** Selalu perhatikan *bottom inset* keyboard di halaman form (`resizeToAvoidBottomInset: true`) dan bungkus layar form dengan `SafeArea` agar elemen interaktif tidak terpotong oleh sistem notch atau bar navigasi sistem operasi.
+- **Notifikasi & Snackbar Premium (MySnackbar):** Untuk menampilkan notifikasi sukses, eror, peringatan, atau info umum kepada pengguna, hindari penggunaan `ScaffoldMessenger.of(context).showSnackBar` bawaan secara langsung. Selalu gunakan kelas utilitas terpusat [MySnackbar](file:///D:/code/project/flutter/sejasa/lib/core/utils/my_snackbar.dart) yang telah diintegrasikan dengan pustaka `toastification`. Ini memberikan tampilan yang jauh lebih modern, terstandarisasi, dan memiliki transisi animasi premium:
+  - `MySnackbar.success(message: "Detail pesan sukses");` untuk notifikasi sukses.
+  - `MySnackbar.error(message: "Detail pesan kesalahan");` untuk notifikasi kegagalan/eror.
+  - `MySnackbar.warning(message: "Detail pesan peringatan");` untuk notifikasi peringatan/warning.
+  - `MySnackbar.info(message: "Detail pesan informasi");` untuk notifikasi info umum.

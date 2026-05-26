@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
 enum ProfilProjectStatus { initial, loading, success, error }
@@ -17,6 +18,9 @@ class ProfilProjectState extends Equatable {
   final List<ProjectEntity> filteredUploadedProjects;
   final ProjectFilterType filterType;
 
+  final UserEntity? userProfile;
+  final bool isFetchingUserProfile;
+
   const ProfilProjectState({
     this.uploadedProjects = const [],
     this.isFetchingProjectUploaded = false,
@@ -26,6 +30,8 @@ class ProfilProjectState extends Equatable {
     this.message,
     this.filterType = ProjectFilterType.all,
     this.filteredUploadedProjects = const [],
+    this.userProfile,
+    this.isFetchingUserProfile = false,
   });
 
   ProfilProjectState copyWith({
@@ -37,6 +43,8 @@ class ProfilProjectState extends Equatable {
     final String? message,
     final ProjectFilterType? filterType,
     final List<ProjectEntity>? filteredUploadedProjects,
+    final UserEntity? userProfile,
+    final bool? isFetchingUserProfile,
   }) {
     return ProfilProjectState(
       uploadedProjects: uploadedProjects ?? this.uploadedProjects,
@@ -50,18 +58,23 @@ class ProfilProjectState extends Equatable {
       filterType: filterType ?? this.filterType,
       filteredUploadedProjects:
           filteredUploadedProjects ?? this.filteredUploadedProjects,
+      userProfile: userProfile ?? this.userProfile,
+      isFetchingUserProfile:
+          isFetchingUserProfile ?? this.isFetchingUserProfile,
     );
   }
 
   @override
   List<Object?> get props => [
-    uploadedProjects,
-    isFetchingProjectUploaded,
-    takenProjects,
-    isFetchingProjectTaken,
-    status,
-    message,
-    filterType,
-    filteredUploadedProjects,
-  ];
+        uploadedProjects,
+        isFetchingProjectUploaded,
+        takenProjects,
+        isFetchingProjectTaken,
+        status,
+        message,
+        filterType,
+        filteredUploadedProjects,
+        userProfile,
+        isFetchingUserProfile,
+      ];
 }

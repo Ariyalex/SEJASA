@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/services/api_service.dart';
 import 'package:sejasa/domain/providers/remote_file_provider.dart';
 
@@ -27,7 +28,21 @@ class RemoteFileProviderImpl extends RemoteFileProvider {
         : uri.pathSegments.last;
     final savePath = '${tempDir.path}/$fileName';
 
-    await _apiService.download(fileUrl, savePath);
+    // Construct correct URL using AppConfig.baseUrl instead of AppConfig.baseApiUrl
+    String downloadUrl = fileUrl;
+    if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
+      final baseUrl = AppConfig.baseUrl;
+      final cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+      final cleanFileUrl = fileUrl.startsWith('/') ? fileUrl : '/$fileUrl';
+      downloadUrl = '$cleanBaseUrl$cleanFileUrl';
+    } else {
+      final apiPrefix = AppConfig.baseApiUrl;
+      if (fileUrl.startsWith(apiPrefix)) {
+        downloadUrl = fileUrl.replaceFirst(apiPrefix, AppConfig.baseUrl);
+      }
+    }
+
+    await _apiService.download(downloadUrl, savePath);
     return File(savePath);
   }
 }

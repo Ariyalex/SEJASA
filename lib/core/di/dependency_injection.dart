@@ -31,6 +31,8 @@ import 'package:sejasa/domain/providers/remote_user_provider.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/domain/providers/remote_chat_provider.dart';
+import 'package:sejasa/data/providers/remote/remote_chat_provider_impl.dart';
 
 final getIt = GetIt.instance;
 
@@ -72,7 +74,12 @@ class DependencyInjection {
     );
     getIt.registerLazySingleton<AuthBloc>(
       () =>
-          AuthBloc(getIt<AuthRepository>(), getIt<StorageService>())
+          AuthBloc(
+            getIt<AuthRepository>(),
+            getIt<UserRepository>(),
+            getIt<FileRepository>(),
+            getIt<StorageService>(),
+          )
             ..add(AuthCheckRequested()),
     );
     getIt.registerLazySingleton<MainTabBloc>(() => MainTabBloc());
@@ -106,12 +113,18 @@ class DependencyInjection {
     );
 
     // Chat implementation
+    getIt.registerLazySingleton<RemoteChatProvider>(
+      () => RemoteChatProviderImpl(getIt<ApiService>()),
+    );
     getIt.registerLazySingleton<ChatSocketProvider>(() {
       if (isMocking) return MockChatSocketProvider();
       return ChatSocketProviderImpl(getIt<SocketService>());
     });
     getIt.registerLazySingleton<ChatRepository>(
-      () => ChatRepositoryImpl(getIt<ChatSocketProvider>()),
+      () => ChatRepositoryImpl(
+        getIt<ChatSocketProvider>(),
+        getIt<RemoteChatProvider>(),
+      ),
     );
   }
 }

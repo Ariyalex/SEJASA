@@ -8,15 +8,21 @@ import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
+import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 import 'package:sejasa/modules/auth/view/login_screen.dart';
 import 'package:sejasa/modules/auth/view/register_screen.dart';
 import 'package:sejasa/modules/chat/bloc/chat_bloc.dart';
 import 'package:sejasa/modules/chat/view/chat_screen.dart';
+import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
+import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/view/main_tab.dart';
@@ -57,7 +63,8 @@ class AppRouter {
             state.matchedLocation == '/login' ||
             state.matchedLocation == '/register' ||
             state.matchedLocation == '/search' ||
-            state.matchedLocation == '/search/result';
+            state.matchedLocation == '/search/result' ||
+            state.matchedLocation.startsWith('/profile/');
 
         if (isPublicRoute) return null;
 
@@ -156,12 +163,34 @@ class AppRouter {
         builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
+        path: '/profile/:id',
+        name: RouteNamed.userProfile,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => ProfilProjectBloc(
+              context.read<ProjectRepository>(),
+              context.read<UserRepository>(),
+              context.read<AuthRepository>(),
+            ),
+            child: ProfilScreen(userId: id),
+          );
+        },
+      ),
+      GoRoute(
         path: '/chat/:id',
         name: RouteNamed.chat,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final extra = state.extra as Map<String, dynamic>;
           final projectId = extra['project_id'] as String?;
+          final participantStatus =
+              extra['participant_status'] as ParticipantStatusType?;
+          final isOwner = extra['is_owner'] as bool? ?? false;
+          final participantId = extra['user_id'] as String?;
+
+          final applyProjectMessage =
+              extra['apply_project_message'] as bool? ?? false;
 
           return BlocProvider(
             create: (context) => ChatBloc(
@@ -173,6 +202,10 @@ class AppRouter {
               name: extra['name'] ?? 'Unknown',
               avatarUrl: extra['avatar_url'],
               projectId: projectId,
+              participantStatus: participantStatus,
+              isOwner: isOwner,
+              participantId: participantId,
+              applyProjectMessage: applyProjectMessage,
             ),
           );
         },
@@ -196,6 +229,17 @@ class AppRouter {
               isOwner: extra['is_owner'],
               isReadMore: isReadMore ?? false,
             ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/project/:id/chats',
+        name: RouteNamed.projectChatList,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => ChatListBloc(context.read<ChatRepository>()),
+            child: ChatListScreen(projectId: id),
           );
         },
       ),

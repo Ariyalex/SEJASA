@@ -27,7 +27,7 @@ class UserModel extends UserEntity {
         (e) => e.jsonValue == json['gender'],
         orElse: () => GenderType.male,
       ),
-      rating: (json['rating'] as num).toDouble(),
+      rating: (json['rating'] as num? ?? 0).toDouble(),
       description: json['descriptions'] as String?,
       contact: json['contact'] as String?,
       address: json['address'] as String?,

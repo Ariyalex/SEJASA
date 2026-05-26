@@ -12,7 +12,9 @@ class ProjectEntity extends Equatable {
   final ProjectStatus status;
   final double? distance;
   final int maxParticipant;
+  final int acceptedParticipant;
   final int? currentParticipant;
+
   final ProjectCategoryEntity category;
   final String? description;
   final List<String>? requirements;
@@ -41,6 +43,7 @@ class ProjectEntity extends Equatable {
     required this.ownerId,
     required this.maxParticipant,
     this.currentParticipant,
+    required this.acceptedParticipant,
   });
 
   ProjectEntity copyWith({
@@ -52,6 +55,7 @@ class ProjectEntity extends Equatable {
     final ProjectStatus? status,
     final double? distance,
     final int? maxParticipant,
+    final int? acceptedParticipant,
     final int? currentParticipant,
     final ProjectCategoryEntity? category,
     final String? description,
@@ -73,6 +77,7 @@ class ProjectEntity extends Equatable {
       status: status ?? this.status,
       distance: distance ?? this.distance,
       currentParticipant: currentParticipant ?? this.currentParticipant,
+      acceptedParticipant: acceptedParticipant ?? this.acceptedParticipant,
       maxParticipant: maxParticipant ?? this.maxParticipant,
       category: category ?? this.category,
       hastags: hastags ?? this.hastags,
@@ -94,6 +99,7 @@ class ProjectEntity extends Equatable {
       projectRating: 5,
       status: ProjectStatus.hiring,
       currentParticipant: 1,
+      acceptedParticipant: 2,
       maxParticipant: 10,
       distance: 10000,
       ownerId: 'fasdfnasf',
@@ -134,5 +140,6 @@ class ProjectEntity extends Equatable {
     ownerId,
     currentParticipant,
     maxParticipant,
+    acceptedParticipant,
   ];
 }

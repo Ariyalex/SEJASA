@@ -6,6 +6,8 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
@@ -17,6 +19,8 @@ import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
+import 'package:sejasa/domain/repositories/chat_repository.dart';
+import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});
@@ -71,7 +75,11 @@ class MainTab extends StatelessWidget {
                   },
                 ),
                 PersistentTabConfig(
-                  screen: const ChatListScreen(),
+                  screen: BlocProvider(
+                    create: (context) =>
+                        ChatListBloc(context.read<ChatRepository>()),
+                    child: const ChatListScreen(),
+                  ),
                   item: ItemConfig(
                     icon: const Icon(Icons.chat_outlined),
                     title: "Chats",
@@ -80,8 +88,11 @@ class MainTab extends StatelessWidget {
                 ),
                 PersistentTabConfig(
                   screen: BlocProvider(
-                    create: (context) =>
-                        ProfilProjectBloc(context.read<ProjectRepository>()),
+                    create: (context) => ProfilProjectBloc(
+                      context.read<ProjectRepository>(),
+                      context.read<UserRepository>(),
+                      context.read<AuthRepository>(),
+                    ),
                     child: BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
                         final user = state.user;
@@ -90,7 +101,7 @@ class MainTab extends StatelessWidget {
                             body: Center(child: CircularProgressIndicator()),
                           );
                         }
-                        return ProfilScreen(isMyProfile: true, user: user);
+                        return ProfilScreen(userId: user.id);
                       },
                     ),
                   ),

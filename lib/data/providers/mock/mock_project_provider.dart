@@ -4,6 +4,7 @@ import 'package:sejasa/data/models/project_category_model.dart';
 import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/data/payloads/review_project_participant_payload.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
@@ -314,6 +315,51 @@ Aliquam erat volutpat. Praesent convallis, nisi a posuere elementum, diam risus 
   @override
   Future<List<ProjectCategoryModel>> getAllCategory() {
     // TODO: implement getAllCategory
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<({String chatId, String projectId, String userId})> applyPorject(
+    String projectId,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    return (chatId: '1', userId: 'mock_user_id', projectId: projectId);
+  }
+
+  @override
+  Future<void> applyProjectParticipant({
+    required String projectId,
+    required String participantId,
+    required String status,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  @override
+  Future<void> reviewAllProjectParticipant({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) {
+    // TODO: implement reviewAllProjectParticipant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> reviewProject({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) {
+    // TODO: implement reviewProject
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> reviewProjectParticipant(
+    ReviewProjectParticipantPayload payload,
+  ) {
+    // TODO: implement reviewProjectParticipant
     throw UnimplementedError();
   }
 }

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:sejasa/domain/entities/list_user_item_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/domain/entities/user_entity.dart';
 
 enum SearchStatus { initial, loading, success, failure }
 
@@ -10,7 +10,7 @@ class SearchState extends Equatable {
   final bool isProject;
   final List<String> history;
   final List<ProjectEntity> projectResults;
-  final List<UserEntity> userResults;
+  final List<ListUserItemEntity> userResults;
   final String? errorMessage;
   final String? selectedSort;
   final ProjectStatus? selectedStatus;
@@ -35,7 +35,7 @@ class SearchState extends Equatable {
     bool? isProject,
     List<String>? history,
     List<ProjectEntity>? projectResults,
-    List<UserEntity>? userResults,
+    List<ListUserItemEntity>? userResults,
     String? errorMessage,
     String? selectedSort,
     ProjectStatus? selectedStatus,

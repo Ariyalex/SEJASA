@@ -20,6 +20,7 @@ class ProjectModel extends ProjectEntity {
     required super.ownerId,
     required super.maxParticipant,
     super.currentParticipant,
+    required super.acceptedParticipant,
     required super.latitude,
     required super.longitude,
   });
@@ -37,6 +38,7 @@ class ProjectModel extends ProjectEntity {
       distance: (json['distance_meters'] as num?)?.toDouble(),
       maxParticipant: json['max_participant'] ?? 0,
       currentParticipant: json['cur_participant'] ?? 0,
+      acceptedParticipant: json['cur_participant_accepted'] ?? 0,
       category: json['category'] != null
           ? ProjectCategoryModel.fromJson(json['category'])
           : ProjectCategoryModel(
@@ -65,6 +67,7 @@ class ProjectModel extends ProjectEntity {
       hastags: hastags,
       requirements: requirements,
       currentParticipant: currentParticipant,
+      acceptedParticipant: acceptedParticipant,
       maxParticipant: maxParticipant,
       status: status,
       distance: distance,

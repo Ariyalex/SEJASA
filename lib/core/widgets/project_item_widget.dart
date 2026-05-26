@@ -3,7 +3,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
@@ -24,7 +23,7 @@ class ProjectItemWidget extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locationService = getIt<LocationService>();
+    final locationService = context.read<LocationService>();
     String projcetAddress = "";
     useEffect(() {
       if (project.detailAddress == null) {
@@ -80,7 +79,7 @@ class ProjectItemWidget extends HookWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    "${project.currentParticipant}/${project.maxParticipant} Pelamar",
+                    "${project.acceptedParticipant}/${project.maxParticipant} Partisipan",
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -116,6 +115,8 @@ class ProjectItemWidget extends HookWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+
                   children: [
                     Icon(
                       Icons.location_on_outlined,
@@ -130,17 +131,45 @@ class ProjectItemWidget extends HookWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (project.distance != null) ...[
-                      Icon(
-                        Icons.route_outlined,
-                        size: 18,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        " ${round(project.distance! / 1000, decimals: 2)} KM",
-                      ),
-                    ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      spacing: 2,
+                      children: [
+                        if (project.currentParticipant != null && isMyProject)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "${project.currentParticipant} Pelamar",
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        if (project.distance != null && !isMyProject)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.route_outlined,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                " ${round(project.distance! / 1000, decimals: 2)} KM",
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),

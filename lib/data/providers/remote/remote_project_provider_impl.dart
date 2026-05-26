@@ -8,6 +8,7 @@ import 'package:sejasa/data/models/project_category_model.dart';
 import 'package:sejasa/data/models/project_model.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/data/payloads/review_project_participant_payload.dart';
 import 'package:sejasa/domain/providers/remote_project_provider.dart';
 
 class RemoteProjectProviderImpl extends RemoteProjectProvider {
@@ -95,6 +96,66 @@ class RemoteProjectProviderImpl extends RemoteProjectProvider {
 
     return List<ProjectCategoryModel>.from(
       rawData?.map((e) => ProjectCategoryModel.fromJson(e)) ?? [],
+    );
+  }
+
+  @override
+  Future<({String chatId, String projectId, String userId})> applyPorject(
+    String projectId,
+  ) async {
+    final response = await _apiService.post('/project/$projectId/apply');
+    final rawData = response.data['data'];
+
+    return (
+      chatId: rawData['id'] as String,
+      userId: rawData['user_id'] as String,
+      projectId: rawData['project_id'] as String,
+    );
+  }
+
+  @override
+  Future<void> applyProjectParticipant({
+    required String projectId,
+    required String participantId,
+    required String status,
+  }) async {
+    await _apiService.post(
+      '/project/$projectId/participant/$participantId',
+      data: {'status': status},
+    );
+  }
+
+  @override
+  Future<void> reviewAllProjectParticipant({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) async {
+    await _apiService.post(
+      '/project/$projectId/participant/review',
+      data: {'rating': rating, 'review': review},
+    );
+  }
+
+  @override
+  Future<void> reviewProject({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) async {
+    await _apiService.post(
+      '/project/$projectId/review',
+      data: {'rating': rating, 'review': review},
+    );
+  }
+
+  @override
+  Future<void> reviewProjectParticipant(
+    ReviewProjectParticipantPayload payload,
+  ) async {
+    await _apiService.post(
+      '/project/${payload.projectId}/participant/${payload.participantId}/review',
+      data: payload.toJson(),
     );
   }
 }

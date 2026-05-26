@@ -24,20 +24,21 @@ class SearchInitialScreen extends HookWidget {
     }, []);
 
     void onSearch(String keyword) {
-      if (keyword.trim().isNotEmpty) {
-        searchBloc.add(PerformSearch(keyword.trim()));
-        context.pushNamed(RouteNamed.searchResult);
-      }
+      searchBloc.add(PerformSearch(keyword.trim()));
+      context.pushNamed(RouteNamed.searchResult);
     }
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
         leadingWidth: 40,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        titleSpacing: 0,
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: MyTextField(
-            title: "",
             hint: "Cari...",
             focusNode: focusNode,
             controller: controller,

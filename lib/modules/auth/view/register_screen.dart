@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/routes/route_named.dart';
-import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
-import 'package:sejasa/core/widgets/global_location_picker_sheet.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
-
-/// Jenis akun yang dipilih user saat register.
-/// Dipakai juga sebagai parameter ke [RegisterScreen].
-enum AccountType { perorangan, organisasi }
 
 /// Register screen untuk Perorangan dan Organisasi.
 ///
@@ -28,19 +22,18 @@ enum AccountType { perorangan, organisasi }
 ///
 /// Sisa field (Email, Alamat + peta, Password, Konfirmasi Password) sama.
 class RegisterScreen extends HookWidget {
-  const RegisterScreen({super.key, this.accountType = AccountType.perorangan});
+  const RegisterScreen({super.key, this.accountType = AccountType.personal});
 
   final AccountType accountType;
 
-  bool get _isOrganisasi => accountType == AccountType.organisasi;
+  bool get _isOrganisasi => accountType == AccountType.organization;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Services & Controllers
-    final locationService = useMemoized(() => getIt<LocationService>());
+    // Controllers
     final namaController = useTextEditingController();
     final emailController = useTextEditingController();
     final alamatController = useTextEditingController();
@@ -52,13 +45,6 @@ class RegisterScreen extends HookWidget {
     final selectedLocation = useState<LatLng?>(null);
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final isLoadingState = useState(false);
-    final isMapLoading = useState(false);
-
-    final mapController = useMemoized(() => MapController());
-    useEffect(() => mapController.dispose, [mapController]);
-
-    // Default kamera peta: Yogyakarta (sesuaikan jika perlu)
-    const defaultCenter = LatLng(-7.7956, 110.3695);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,9 +62,7 @@ class RegisterScreen extends HookWidget {
               barrierDismissible: false,
               builder: (context) => const WillPopScope(
                 onWillPop: null, // disables back button while loading
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             );
           } else {
@@ -108,13 +92,13 @@ class RegisterScreen extends HookWidget {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
             child: Form(
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
 
                   // Logo placeholder — ganti dengan asset logo SEJASA jika ada
                   Center(
@@ -122,21 +106,22 @@ class RegisterScreen extends HookWidget {
                       'Logo',
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w500,
-                        fontSize: 72,
+                        fontSize: 72.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   Center(
                     child: Text(
                       'Daftar Akun',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
+                        fontSize: 16.sp,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
                   MyTextField(
                     title: _isOrganisasi ? 'Nama Organisasi' : 'Nama',
@@ -144,7 +129,9 @@ class RegisterScreen extends HookWidget {
                     controller: namaController,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return _isOrganisasi ? 'Nama organisasi wajib diisi' : 'Nama wajib diisi';
+                        return _isOrganisasi
+                            ? 'Nama organisasi wajib diisi'
+                            : 'Nama wajib diisi';
                       }
                       return null;
                     },
@@ -160,7 +147,9 @@ class RegisterScreen extends HookWidget {
                       if (value == null || value.trim().isEmpty) {
                         return 'Email wajib diisi';
                       }
-                      final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      final emailRegExp = RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
                       if (!emailRegExp.hasMatch(value.trim())) {
                         return 'Format email tidak valid';
                       }
@@ -169,142 +158,29 @@ class RegisterScreen extends HookWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Alamat + tombol pilih lokasi (sesuai mockup)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: MyTextField(
-                          title: 'Alamat',
-                          hint: 'alamat lengkap',
-                          controller: alamatController,
-                          maxLines: 1,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Alamat wajib diisi';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: colorScheme.outline),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(LucideIcons.mapPin),
-                            tooltip: 'Pilih lokasi di peta',
-                            onPressed: () {
-                              showGlobalLocationPicker(
-                                context: context,
-                                initialLocation: selectedLocation.value,
-                                initialAddress: alamatController.text,
-                                onLocationSelected: (location, address) {
-                                  selectedLocation.value = location;
-                                  alamatController.text = address;
-                                  mapController.move(location, 16.0);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Peta lokasi (sesuai mockup)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Lokasi Anda',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (isMapLoading.value)
-                        const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      else
-                        IconButton(
-                          icon: const Icon(LucideIcons.locateFixed),
-                          tooltip: 'Gunakan lokasi saat ini',
-                          onPressed: () async {
-                            isMapLoading.value = true;
-                            final pos = await locationService.getCurrentLocation(context);
-                            if (context.mounted && pos != null) {
-                              final loc = LatLng(pos.latitude, pos.longitude);
-                              mapController.move(loc, 16.0);
-                              selectedLocation.value = loc;
-                              final address = await locationService.getAddressFromLatLng(loc);
-                              if (context.mounted) {
-                                alamatController.text = address;
-                              }
-                            }
-                            isMapLoading.value = false;
-                          },
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      height: 220,
-                      child: FlutterMap(
-                        mapController: mapController,
-                        options: MapOptions(
-                          initialCenter: defaultCenter,
-                          initialZoom: 14,
-                          onTap: (tapPosition, latLng) async {
-                            selectedLocation.value = latLng;
-                            isMapLoading.value = true;
-                            final address = await locationService.getAddressFromLatLng(latLng);
-                            if (context.mounted) {
-                              alamatController.text = address;
-                            }
-                            isMapLoading.value = false;
-                          },
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.sejasa.app',
-                          ),
-                          if (selectedLocation.value != null)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: selectedLocation.value!,
-                                  width: 36,
-                                  height: 36,
-                                  child: Icon(
-                                    Icons.location_on,
-                                    color: colorScheme.primary,
-                                    size: 36,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
+                  ProjectLocationPicker(
+                    initialLocation: selectedLocation.value,
+                    initialAddress: alamatController.text,
+                    title: 'Lokasi Anda',
+                    description:
+                        'Ketuk peta untuk memilih lokasi Anda secara presisi.',
+                    onLocationChanged: (LatLng location, String address) {
+                      selectedLocation.value = location;
+                      alamatController.text = address;
+                    },
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Ketuk peta untuk memilih lokasi Anda secara presisi.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  MyTextField(
+                    hint: 'Pilih lokasi untuk mengisi alamat...',
+                    controller: alamatController,
+                    readOnly: true,
+                    maxLines: 1,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Alamat wajib diisi';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 12),
 
@@ -322,7 +198,7 @@ class RegisterScreen extends HookWidget {
                         ),
                         const SizedBox(height: 4),
                         DropdownButtonFormField<String>(
-                          value: gender.value,
+                          initialValue: gender.value,
                           validator: (value) {
                             if (!_isOrganisasi && value == null) {
                               return 'Gender wajib diisi';
@@ -392,9 +268,9 @@ class RegisterScreen extends HookWidget {
 
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
                     onPressed: () {
@@ -402,7 +278,8 @@ class RegisterScreen extends HookWidget {
                         if (selectedLocation.value == null) {
                           MySnackbar.error(
                             title: "Lokasi Belum Dipilih",
-                            message: "Silakan pilih lokasi Anda di peta terlebih dahulu.",
+                            message:
+                                "Silakan pilih lokasi Anda di peta terlebih dahulu.",
                           );
                           return;
                         }
@@ -418,15 +295,20 @@ class RegisterScreen extends HookWidget {
                           longitude: selectedLocation.value!.longitude,
                         );
 
-                        context.read<AuthBloc>().add(AuthRegisterRequested(payload));
+                        context.read<AuthBloc>().add(
+                          AuthRegisterRequested(payload),
+                        );
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Register',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   Center(
                     child: Row(

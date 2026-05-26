@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/domain/entities/project_category_entity.dart';
+import 'package:sejasa/domain/repositories/project_repository.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ProjectFilterBottomSheet extends HookWidget {
@@ -32,34 +35,45 @@ class ProjectFilterBottomSheet extends HookWidget {
       text: initialCategory,
     );
 
-    final allCategories = useMemoized(
-      () => [
-        'Plumbing',
-        'Electrical',
-        'Cleaning',
-        'Painting',
-        'Carpentry',
-        'Gardening',
-        'Roofing',
-        'Flooring',
-        'Masonry',
-        'AC Repair',
-      ],
-    );
-    final filteredCategories = useState<List<String>>(allCategories);
+    final projectRepository = context.read<ProjectRepository>();
+    final categoriesState = useState<List<ProjectCategoryEntity>>([]);
+    final filteredCategories = useState<List<ProjectCategoryEntity>>([]);
+    final isLoadingCategories = useState<bool>(true);
     final debounceTimer = useRef<Timer?>(null);
+
+    useEffect(() {
+      projectRepository.getAllCategory().then((categories) {
+        categoriesState.value = categories;
+        filteredCategories.value = categories;
+        isLoadingCategories.value = false;
+      }).catchError((e) {
+        isLoadingCategories.value = false;
+      });
+      return null;
+    }, []);
 
     void onSearchChanged(String val) {
       debounceTimer.value?.cancel();
-      debounceTimer.value = Timer(const Duration(milliseconds: 500), () {
+      debounceTimer.value = Timer(const Duration(milliseconds: 300), () {
         if (val.isEmpty) {
-          filteredCategories.value = allCategories;
+          filteredCategories.value = categoriesState.value;
         } else {
-          filteredCategories.value = allCategories
-              .where((cat) => cat.toLowerCase().contains(val.toLowerCase()))
+          filteredCategories.value = categoriesState.value
+              .where((cat) => cat.name.toLowerCase().contains(val.toLowerCase()))
               .toList();
         }
       });
+    }
+
+    final filtered = filteredCategories.value;
+    final row1Categories = <ProjectCategoryEntity>[];
+    final row2Categories = <ProjectCategoryEntity>[];
+    for (var i = 0; i < filtered.length; i++) {
+      if (i % 2 == 0) {
+        row1Categories.add(filtered[i]);
+      } else {
+        row2Categories.add(filtered[i]);
+      }
     }
 
     return Container(
@@ -77,7 +91,7 @@ class ProjectFilterBottomSheet extends HookWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
+          // spacing: 16,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,6 +129,7 @@ class ProjectFilterBottomSheet extends HookWidget {
               }).toList(),
             ),
 
+            SizedBox(height: 6),
             Text(
               "Status",
               style: theme.textTheme.titleSmall?.copyWith(
@@ -134,7 +149,7 @@ class ProjectFilterBottomSheet extends HookWidget {
                 );
               }).toList(),
             ),
-
+            SizedBox(height: 6),
             Text(
               "Kategori",
               style: theme.textTheme.titleSmall?.copyWith(
@@ -142,39 +157,70 @@ class ProjectFilterBottomSheet extends HookWidget {
               ),
             ),
             MyTextField(
-              title: "",
               hint: "Cari kategori...",
               controller: categorySearchController,
               onChanged: onSearchChanged,
             ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxHeight: 100,
-              ), // Height for approx 2 rows
-              child: ClipRect(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  clipBehavior: Clip.hardEdge,
-                  children: filteredCategories.value.map((cat) {
-                    final isSelected = selectedCategory.value == cat;
-                    return ChoiceChip(
-                      label: Text(
-                        cat,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        selectedCategory.value = selected ? cat : null;
-                        if (selected) {
-                          categorySearchController.text = cat;
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 90,
+              child: isLoadingCategories.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : filtered.isEmpty
+                      ? const Center(child: Text("Kategori tidak ditemukan"))
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: row1Categories.map((cat) {
+                                  final isSelected =
+                                      selectedCategory.value == cat.name;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      right: 8.0,
+                                      bottom: 8.0,
+                                    ),
+                                    child: ChoiceChip(
+                                      label: Text(cat.name),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        selectedCategory.value =
+                                            selected ? cat.name : null;
+                                        if (selected) {
+                                          categorySearchController.text =
+                                              cat.name;
+                                        }
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              Row(
+                                children: row2Categories.map((cat) {
+                                  final isSelected =
+                                      selectedCategory.value == cat.name;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: ChoiceChip(
+                                      label: Text(cat.name),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        selectedCategory.value =
+                                            selected ? cat.name : null;
+                                        if (selected) {
+                                          categorySearchController.text =
+                                              cat.name;
+                                        }
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
             ),
 
             const SizedBox(height: 8),

@@ -41,7 +41,7 @@ class ApiService {
     _dio = Dio(
       // base options is base setting for request, like request base url, timeout, global headers, response type, etc.
       BaseOptions(
-        baseUrl: AppConfig.baseUrl,
+        baseUrl: AppConfig.baseApiUrl,
         connectTimeout: Duration(seconds: AppConfig.timeout),
         receiveTimeout: Duration(seconds: AppConfig.timeout),
         sendTimeout: Duration(seconds: AppConfig.timeout),
@@ -281,7 +281,7 @@ class ApiService {
       // Create separate Dio instance to avoid interceptor loops
       final refreshDio = Dio(
         BaseOptions(
-          baseUrl: AppConfig.baseUrl,
+          baseUrl: AppConfig.baseApiUrl,
           connectTimeout: Duration(seconds: 15),
           receiveTimeout: Duration(seconds: 15),
           headers: {

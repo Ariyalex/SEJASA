@@ -15,3 +15,10 @@ class LoadProject extends ProjectDetailEvent {
   @override
   List<Object?> get props => [id, isAuthenticated];
 }
+
+class ApplyToProject extends ProjectDetailEvent {
+  const ApplyToProject();
+
+  @override
+  List<Object?> get props => [];
+}

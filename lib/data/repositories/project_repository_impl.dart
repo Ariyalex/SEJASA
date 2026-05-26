@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:sejasa/core/wrappers/pagination_result.dart';
 import 'package:sejasa/data/payloads/project_create_payload.dart';
 import 'package:sejasa/data/payloads/project_update_payload.dart';
+import 'package:sejasa/data/payloads/review_project_participant_payload.dart';
 import 'package:sejasa/domain/entities/project_category_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
@@ -191,5 +192,70 @@ class ProjectRepositoryImpl extends ProjectRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<({String chatId, String projectId, String userId})> applyPorject(
+    String projectId,
+  ) async {
+    final response = await _provider.applyPorject(projectId);
+    return response;
+  }
+
+  @override
+  Future<void> acceptProjectParticipant(
+    String projectId,
+    String participantId,
+  ) async {
+    await _provider.applyProjectParticipant(
+      projectId: projectId,
+      participantId: participantId,
+      status: 'accepted',
+    );
+  }
+
+  @override
+  Future<void> rejectProjectParticipant(
+    String projectId,
+    String participantId,
+  ) async {
+    await _provider.applyProjectParticipant(
+      projectId: projectId,
+      participantId: participantId,
+      status: 'rejected',
+    );
+  }
+
+  @override
+  Future<void> reviewAllProjectParticipant({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) async {
+    await _provider.reviewAllProjectParticipant(
+      projectId: projectId,
+      rating: rating,
+      review: review,
+    );
+  }
+
+  @override
+  Future<void> reviewProject({
+    required String projectId,
+    required double rating,
+    required String review,
+  }) async {
+    await _provider.reviewProject(
+      projectId: projectId,
+      rating: rating,
+      review: review,
+    );
+  }
+
+  @override
+  Future<void> reviewProjectParticipant(
+    ReviewProjectParticipantPayload payload,
+  ) async {
+    await _provider.reviewProjectParticipant(payload);
   }
 }

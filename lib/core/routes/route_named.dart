@@ -11,4 +11,6 @@ abstract class RouteNamed {
   static const chat = 'chat';
   static const searchInitial = 'search_initial';
   static const searchResult = 'search_result';
+  static const projectChatList = 'project_chat_list';
+  static const userProfile = 'user_profile';
 }
