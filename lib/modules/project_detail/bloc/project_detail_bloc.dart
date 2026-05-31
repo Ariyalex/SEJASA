@@ -9,6 +9,7 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
   ProjectDetailBloc(this._repository) : super(ProjectDetailState()) {
     on<LoadProject>(_onLoadProject);
     on<ApplyToProject>(_onApplyToProject);
+    on<ReviewProject>(_onReviewProject);
   }
 
   Future<void> _onLoadProject(
@@ -60,6 +61,38 @@ class ProjectDetailBloc extends Bloc<ProjectDetailEvent, ProjectDetailState> {
         state.copyWith(
           message: e.toString(),
           status: ProjectDetailStatus.applyError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onReviewProject(
+    ReviewProject event,
+    Emitter<ProjectDetailState> emit,
+  ) async {
+    final project = state.project;
+    if (project == null) return;
+
+    emit(state.copyWith(status: ProjectDetailStatus.loading));
+    try {
+      await _repository.reviewProject(
+        projectId: project.id,
+        rating: event.rating,
+        review: event.review,
+      );
+      final updatedProject = await _repository.getProject(project.id);
+      emit(
+        state.copyWith(
+          project: updatedProject,
+          status: ProjectDetailStatus.success,
+        ),
+      );
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
+      emit(
+        state.copyWith(
+          message: e.toString(),
+          status: ProjectDetailStatus.error,
         ),
       );
     }

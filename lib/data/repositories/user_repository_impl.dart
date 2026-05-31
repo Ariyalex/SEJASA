@@ -1,5 +1,4 @@
 import 'package:sejasa/data/payloads/profile_update_payload.dart';
-import 'package:sejasa/domain/entities/list_user_item_entity.dart';
 import 'package:sejasa/domain/entities/skill_entity.dart';
 import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/domain/providers/remote_user_provider.dart';
@@ -11,7 +10,7 @@ class UserRepositoryImpl extends UserRepository {
   UserRepositoryImpl(this._provider);
 
   @override
-  Future<List<ListUserItemEntity>> searchUsers(String keyword) async {
+  Future<List<UserEntity>> searchUsers(String keyword) async {
     final users = await _provider.searchUsers(keyword);
     return users.map((e) => e.toEntity()).toList();
   }

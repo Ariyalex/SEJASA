@@ -162,7 +162,7 @@ class ProjectInfoCard extends HookWidget {
                           itemSize: 14,
                         ),
                         Text(
-                          project.ownerRating.toString(),
+                          project.ownerRating.toStringAsFixed(2),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

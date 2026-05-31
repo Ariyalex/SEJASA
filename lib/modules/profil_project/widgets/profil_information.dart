@@ -71,7 +71,11 @@ class UserProfileHeaderWidget extends HookWidget {
                       radius: 35.r,
                       backgroundColor: const Color(0xFFD9D9D9),
                       backgroundImage: photoProfile.value,
-                      child: Icon(Icons.person, color: Colors.white, size: 45.r),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 45.r,
+                      ),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
@@ -138,7 +142,10 @@ class UserProfileHeaderWidget extends HookWidget {
                             children: [
                               RatingBarIndicator(
                                 itemBuilder: (context, index) {
-                                  return const Icon(Icons.star, color: Colors.amber);
+                                  return const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                  );
                                 },
                                 itemCount: 5,
                                 rating: user.rating,
@@ -258,7 +265,10 @@ class UserProfileHeaderWidget extends HookWidget {
               children: [
                 Text(
                   "Info Kontak",
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 8.h),
                 if (user.contact != null)

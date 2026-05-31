@@ -3,12 +3,23 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
 import 'package:sejasa/domain/value_objects/participant_status_type.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 
 class ChatTile extends StatelessWidget {
-  const ChatTile({super.key, required this.chat, required this.onTap});
+  const ChatTile({
+    super.key,
+    required this.chat,
+    required this.onTap,
+    this.isPelamarList = false,
+    this.projectStatus,
+    this.onRatePressed,
+  });
 
   final ListChatItemEntity chat;
   final VoidCallback onTap;
+  final bool isPelamarList;
+  final ProjectStatus? projectStatus;
+  final VoidCallback? onRatePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -60,14 +71,86 @@ class ChatTile extends StatelessWidget {
           ],
         ],
       ),
-      subtitle: Text(
-        chat.body,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-          fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                Icons.assignment_outlined,
+                size: 14,
+                color: colorScheme.primary.withValues(alpha: 0.8),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  chat.projectName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            chat.body,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+            ),
+          ),
+          if (isPelamarList &&
+              chat.participantStatus == ParticipantStatusType.accepted) ...[
+            if (chat.givenRating != 0) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                  const SizedBox(width: 2),
+                  Text(
+                    "Rating Anda: ${chat.givenRating.toStringAsFixed(1)} / 5",
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.amber[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (projectStatus == ProjectStatus.going) ...[
+              const SizedBox(height: 6),
+              SizedBox(
+                height: 28,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.amber[800],
+                    side: BorderSide(color: Colors.amber[800]!),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                  ),
+                  icon: const Icon(Icons.star_rounded, size: 14),
+                  label: const Text(
+                    "Beri Rating",
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: onRatePressed,
+                ),
+              ),
+            ],
+          ],
+        ],
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -100,15 +183,16 @@ class ChatTile extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            )
-          else
-            const SizedBox(height: 18),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildStatusChip(ParticipantStatusType status, ColorScheme colorScheme) {
+  Widget _buildStatusChip(
+    ParticipantStatusType status,
+    ColorScheme colorScheme,
+  ) {
     Color bgColor;
     Color textColor;
     switch (status) {
@@ -125,12 +209,12 @@ class ChatTile extends StatelessWidget {
         textColor = Colors.red.shade800;
         break;
     }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: textColor.withValues(alpha: 0.3), width: 0.5),
       ),
       child: Text(
         status.display,

@@ -1,4 +1,3 @@
-import 'package:sejasa/data/models/list_user_item_model.dart';
 import 'package:sejasa/data/models/skill_model.dart';
 import 'package:sejasa/data/models/user_model.dart';
 import 'package:sejasa/data/payloads/profile_update_payload.dart';
@@ -6,7 +5,7 @@ import 'package:sejasa/domain/providers/remote_user_provider.dart';
 
 class MockUserProvider extends RemoteUserProvider {
   @override
-  Future<List<ListUserItemModel>> searchUsers(String keyword) async {
+  Future<List<UserModel>> searchUsers(String keyword) async {
     throw UnimplementedError();
   }
 

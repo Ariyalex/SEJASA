@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "diddy 1",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5556" // 👈 Ganti dengan ID HP kamu
+    },
+    {
+      "name": "diddy 2",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5554" // 👈 Ganti dengan ID Emulator kamu
+    }
+  ],
+  "compounds": [
+    {
+      "name": "debug 2 devices",
+      "configurations": ["diddy 1", "diddy 2"]
+    }
+  ]
+}

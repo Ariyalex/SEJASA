@@ -7,11 +7,13 @@ import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
 import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
 import 'package:sejasa/domain/value_objects/participant_status_type.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_event.dart';
 import 'package:sejasa/modules/chat/bloc/chat_list_state.dart';
 import 'package:sejasa/modules/chat/widgets/chat_list_empty.dart';
 import 'package:sejasa/modules/chat/widgets/chat_tile.dart';
+import 'package:sejasa/modules/chat/widgets/review_participant_bottom_sheet.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -77,14 +79,6 @@ class ChatListScreen extends HookWidget {
     }, [mainTabBloc, projectId]);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          projectId != null ? 'Pelamar Proyek' : 'Chat Project Yang Dilamar',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        surfaceTintColor: Colors.transparent,
-        scrolledUnderElevation: 1,
-      ),
       body: BlocBuilder<ChatListBloc, ChatListState>(
         builder: (context, state) {
           final isLoading =
@@ -92,39 +86,50 @@ class ChatListScreen extends HookWidget {
               state.status == ChatListStatus.loading;
 
           if (state.status == ChatListStatus.error) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.alertTriangle,
-                      color: colorScheme.error,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.errorMessage ?? 'Gagal memuat daftar chat',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  projectId != null
+                      ? 'Pelamar Proyek'
+                      : 'Chat Project Yang Dilamar',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                surfaceTintColor: Colors.transparent,
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.alertTriangle,
                         color: colorScheme.error,
+                        size: 48,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final bloc = context.read<ChatListBloc>();
-                        if (projectId != null) {
-                          bloc.add(LoadProjectChats(projectId!));
-                        } else {
-                          bloc.add(const LoadUserChats());
-                        }
-                      },
-                      icon: const Icon(LucideIcons.refreshCw, size: 16),
-                      label: const Text('Coba Lagi'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        state.errorMessage ?? 'Gagal memuat daftar chat',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          final bloc = context.read<ChatListBloc>();
+                          if (projectId != null) {
+                            bloc.add(LoadProjectChats(projectId!));
+                          } else {
+                            bloc.add(const LoadUserChats());
+                          }
+                        },
+                        icon: const Icon(LucideIcons.refreshCw, size: 16),
+                        label: const Text('Coba Lagi'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -144,6 +149,8 @@ class ChatListScreen extends HookWidget {
                   'Ini adalah deskripsi isi pesan singkat dummy untuk rendering loading shimmer.',
               unreadMsg: 0,
               timestamp: DateTime.now(),
+              givenRating: 0,
+              projectName: "dummy_project_$index",
             ),
           );
 
@@ -164,126 +171,172 @@ class ChatListScreen extends HookWidget {
                   return true;
                 }).toList();
 
-          return Column(
-            children: [
-              // Search bar — sesuai mockup ("Chat melamar project")
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Chat melamar project',
-                    prefixIcon: const Icon(LucideIcons.search, size: 20),
-                    suffixIcon: searchQuery.value.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(LucideIcons.x, size: 18),
-                            onPressed: searchController.clear,
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
+          // Check if there is at least one accepted participant to trigger Rate Semua
+          final hasAcceptedParticipant =
+              !isLoading &&
+              allChats.any(
+                (c) => c.participantStatus == ParticipantStatusType.accepted,
+              );
+
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                projectId != null
+                    ? 'Pelamar Proyek'
+                    : 'Chat Project Yang Dilamar',
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-
-              // Filter chips (hanya jika projectId != null)
-              if (projectId != null)
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 1,
+              actions: [
+                if (projectId != null &&
+                    state.projectStatus == ProjectStatus.going &&
+                    hasAcceptedParticipant) ...[
+                  TextButton.icon(
+                    icon: const Icon(Icons.stars_rounded, color: Colors.amber),
+                    label: const Text(
+                      "Rate Semua",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () => _showReviewAllBottomSheet(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+            body: Column(
+              children: [
+                // Search bar — sesuai mockup ("Chat melamar project")
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        MyTabChip(
-                          title: 'Semua',
-                          selected: selectedStatus.value == null,
-                          onSelected: (_) => selectedStatus.value = null,
-                        ),
-                        const SizedBox(width: 8),
-                        ...ParticipantStatusType.values.map((status) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: MyTabChip(
-                              title: status.display,
-                              selected: selectedStatus.value == status,
-                              onSelected: (_) => selectedStatus.value = status,
-                            ),
-                          );
-                        }),
-                      ],
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Chat melamar project',
+                      prefixIcon: const Icon(LucideIcons.search, size: 20),
+                      suffixIcon: searchQuery.value.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.x, size: 18),
+                              onPressed: searchController.clear,
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
 
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    final bloc = context.read<ChatListBloc>();
-                    if (projectId != null) {
-                      await Future.wait([
-                        Future.microtask(
-                          () => bloc.add(LoadProjectChats(projectId!)),
-                        ),
-                        bloc.stream.firstWhere(
-                          (state) => state.status != ChatListStatus.loading,
-                        ),
-                      ]);
-                    } else {
-                      await Future.wait([
-                        Future.microtask(() => bloc.add(const LoadUserChats())),
-                        bloc.stream.firstWhere(
-                          (state) => state.status != ChatListStatus.loading,
-                        ),
-                      ]);
-                    }
-                  },
-                  child: filteredChats.isEmpty
-                      ? LayoutBuilder(
-                          builder: (context, constraints) {
-                            return ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                Container(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
-                                  ),
-                                  child: ChatListEmpty(
-                                    searchQuery: searchQuery.value,
-                                  ),
-                                ),
-                              ],
+                // Filter chips (hanya jika projectId != null)
+                if (projectId != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          MyTabChip(
+                            title: 'Semua',
+                            selected: selectedStatus.value == null,
+                            onSelected: (_) => selectedStatus.value = null,
+                          ),
+                          const SizedBox(width: 8),
+                          ...ParticipantStatusType.values.map((status) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: MyTabChip(
+                                title: status.display,
+                                selected: selectedStatus.value == status,
+                                onSelected: (_) =>
+                                    selectedStatus.value = status,
+                              ),
                             );
-                          },
-                        )
-                      : Skeletonizer(
-                          enabled: isLoading,
-                          child: ListView.separated(
-                            physics: isLoading
-                                ? const NeverScrollableScrollPhysics()
-                                : const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.only(bottom: 16),
-                            itemCount: filteredChats.length,
-                            separatorBuilder: (_, _) => Divider(
-                              height: 1,
-                              indent: 80,
-                              endIndent: 16,
-                              color: colorScheme.outlineVariant,
-                            ),
-                            itemBuilder: (context, index) {
-                              final chat = filteredChats[index];
-                              return ChatTile(
-                                chat: chat,
-                                onTap: isLoading
-                                    ? () {}
-                                    : () {
-                                        Future.microtask(() async {
-                                          await context.pushNamed(
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      final bloc = context.read<ChatListBloc>();
+                      if (projectId != null) {
+                        await Future.wait([
+                          Future.microtask(
+                            () => bloc.add(LoadProjectChats(projectId!)),
+                          ),
+                          bloc.stream.firstWhere(
+                            (state) => state.status != ChatListStatus.loading,
+                          ),
+                        ]);
+                      } else {
+                        await Future.wait([
+                          Future.microtask(
+                            () => bloc.add(const LoadUserChats()),
+                          ),
+                          bloc.stream.firstWhere(
+                            (state) => state.status != ChatListStatus.loading,
+                          ),
+                        ]);
+                      }
+                    },
+                    child: filteredChats.isEmpty
+                        ? LayoutBuilder(
+                            builder: (context, constraints) {
+                              return ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: ChatListEmpty(
+                                      searchQuery: searchQuery.value,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          )
+                        : Skeletonizer(
+                            enabled: isLoading,
+                            child: ListView.separated(
+                              physics: isLoading
+                                  ? const NeverScrollableScrollPhysics()
+                                  : const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 16),
+                              itemCount: filteredChats.length,
+                              separatorBuilder: (_, _) => Divider(
+                                height: 1,
+                                indent: 80,
+                                endIndent: 16,
+                                color: colorScheme.outlineVariant,
+                              ),
+                              itemBuilder: (context, index) {
+                                final chat = filteredChats[index];
+                                return ChatTile(
+                                  chat: chat,
+                                  isPelamarList: projectId != null,
+                                  projectStatus: state.projectStatus,
+                                  onRatePressed: () =>
+                                      _showReviewBottomSheet(context, chat),
+                                  onTap: isLoading
+                                      ? () {}
+                                      : () async {
+                                          final navigator = GoRouter.of(
+                                            context,
+                                          );
+                                          final bloc = context
+                                              .read<ChatListBloc>();
+                                          final isOwner = projectId != null;
+
+                                          await navigator.pushNamed(
                                             RouteNamed.chat,
                                             pathParameters: {'id': chat.id},
                                             extra: {
@@ -292,33 +345,77 @@ class ChatListScreen extends HookWidget {
                                               'project_id': chat.projectId,
                                               'participant_status':
                                                   chat.participantStatus,
-                                              'is_owner': projectId != null,
+                                              'is_owner': isOwner,
                                               'user_id': chat.user.id,
                                             },
                                           );
-                                          if (context.mounted) {
-                                            final bloc = context
-                                                .read<ChatListBloc>();
-                                            if (projectId != null) {
-                                              bloc.add(
-                                                LoadProjectChats(projectId!),
-                                              );
-                                            } else {
-                                              bloc.add(const LoadUserChats());
-                                            }
+                                          if (isOwner) {
+                                            bloc.add(
+                                              LoadProjectChats(projectId!),
+                                            );
+                                          } else {
+                                            bloc.add(const LoadUserChats());
                                           }
-                                        });
-                                      },
-                              );
-                            },
+                                        },
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
+    );
+  }
+
+  void _showReviewBottomSheet(BuildContext context, ListChatItemEntity chat) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return ReviewBottomSheetContent(
+          chat: chat,
+          projectId: projectId!,
+          onSubmit: (rating, review, onComplete) {
+            context.read<ChatListBloc>().add(
+              ReviewParticipant(
+                projectId: projectId!,
+                participantId: chat.user.id,
+                rating: rating,
+                review: review,
+                onComplete: onComplete,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showReviewAllBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return ReviewAllBottomSheetContent(
+          projectId: projectId!,
+          onSubmit: (rating, review, onComplete) {
+            context.read<ChatListBloc>().add(
+              ReviewAllParticipants(
+                projectId: projectId!,
+                rating: rating,
+                review: review,
+                onComplete: onComplete,
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

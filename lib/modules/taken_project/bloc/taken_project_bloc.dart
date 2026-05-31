@@ -4,22 +4,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_event.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_state.dart';
 
-class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
+class TakenProjectBloc extends Bloc<TakenProjectEvent, TakenProjectState> {
   final ProjectRepository _repository;
-  MyProjectBloc(this._repository) : super(MyProjectState()) {
-    on<LoadMyPendingProjects>(_onLoadPendingProjects);
-    on<LoadMyRejectedProjects>(_onLoadRejectedProjects);
-    on<LoadMyAcceptedProjects>(_onLoadAcceptedProjects);
-    on<SetMyProjectFilterType>(_onSetProjectFilterType);
+  TakenProjectBloc(this._repository) : super(const TakenProjectState()) {
+    on<LoadTakenPendingProjects>(_onLoadPendingProjects);
+    on<LoadTakenRejectedProjects>(_onLoadRejectedProjects);
+    on<LoadTakenAcceptedProjects>(_onLoadAcceptedProjects);
+    on<SetTakenProjectFilterType>(_onSetProjectFilterType);
+    on<ReviewTakenProject>(_onReviewProject);
   }
 
   Future<void> _onLoadPendingProjects(
-    LoadMyPendingProjects event,
-    Emitter<MyProjectState> emit,
+    LoadTakenPendingProjects event,
+    Emitter<TakenProjectState> emit,
   ) async {
     emit(state.copyWith(isFetchingPendingProjects: true));
     try {
@@ -27,17 +29,17 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
       emit(
         state.copyWith(
           pendingProjects: projects,
-          status: MyProjectStatus.success,
+          status: TakenProjectStatus.success,
           isFetchingPendingProjects: false,
         ),
       );
-      add(SetMyProjectFilterType(state.filterType));
+      add(SetTakenProjectFilterType(state.filterType));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
-          status: MyProjectStatus.error,
+          status: TakenProjectStatus.error,
           isFetchingPendingProjects: false,
         ),
       );
@@ -45,8 +47,8 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   }
 
   Future<void> _onLoadAcceptedProjects(
-    LoadMyAcceptedProjects event,
-    Emitter<MyProjectState> emit,
+    LoadTakenAcceptedProjects event,
+    Emitter<TakenProjectState> emit,
   ) async {
     emit(state.copyWith(isFetchingAcceptedProjects: true));
     try {
@@ -54,17 +56,17 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
       emit(
         state.copyWith(
           acceptedProjects: projects,
-          status: MyProjectStatus.success,
+          status: TakenProjectStatus.success,
           isFetchingAcceptedProjects: false,
         ),
       );
-      add(SetMyProjectFilterType(state.filterType));
+      add(SetTakenProjectFilterType(state.filterType));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
-          status: MyProjectStatus.error,
+          status: TakenProjectStatus.error,
           isFetchingAcceptedProjects: false,
         ),
       );
@@ -72,8 +74,8 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   }
 
   Future<void> _onLoadRejectedProjects(
-    LoadMyRejectedProjects event,
-    Emitter<MyProjectState> emit,
+    LoadTakenRejectedProjects event,
+    Emitter<TakenProjectState> emit,
   ) async {
     emit(state.copyWith(isFetchingRejectedProjects: true));
     try {
@@ -81,17 +83,17 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
       emit(
         state.copyWith(
           rejectedProjects: projects,
-          status: MyProjectStatus.success,
+          status: TakenProjectStatus.success,
           isFetchingRejectedProjects: false,
         ),
       );
-      add(SetMyProjectFilterType(state.filterType));
+      add(SetTakenProjectFilterType(state.filterType));
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(
         state.copyWith(
           message: e.toString(),
-          status: MyProjectStatus.error,
+          status: TakenProjectStatus.error,
           isFetchingRejectedProjects: false,
         ),
       );
@@ -99,8 +101,8 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
   }
 
   Future<void> _onSetProjectFilterType(
-    SetMyProjectFilterType event,
-    Emitter<MyProjectState> emit,
+    SetTakenProjectFilterType event,
+    Emitter<TakenProjectState> emit,
   ) async {
     final List<ProjectEntity> pendingProjects;
     final List<ProjectEntity> acceptedProjects;
@@ -110,24 +112,39 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
       acceptedProjects = state.acceptedProjects;
       rejectedProjects = state.rejectedProjects;
     } else {
-      pendingProjects = state.pendingProjects
-          .where(
-            (element) =>
-                element.status.toJson == event.projectFilterType.toJson,
-          )
-          .toList();
-      acceptedProjects = state.acceptedProjects
-          .where(
-            (element) =>
-                element.status.toJson == event.projectFilterType.toJson,
-          )
-          .toList();
-      rejectedProjects = state.rejectedProjects
-          .where(
-            (element) =>
-                element.status.toJson == event.projectFilterType.toJson,
-          )
-          .toList();
+      ProjectStatus? statusToMatch;
+      switch (event.projectFilterType) {
+        case ProjectFilterType.hiring:
+          statusToMatch = ProjectStatus.hiring;
+          break;
+        case ProjectFilterType.going:
+          statusToMatch = ProjectStatus.going;
+          break;
+        case ProjectFilterType.completed:
+          statusToMatch = ProjectStatus.completed;
+          break;
+        case ProjectFilterType.cancled:
+          statusToMatch = ProjectStatus.cancled;
+          break;
+        default:
+          break;
+      }
+
+      if (statusToMatch != null) {
+        pendingProjects = state.pendingProjects
+            .where((element) => element.status == statusToMatch)
+            .toList();
+        acceptedProjects = state.acceptedProjects
+            .where((element) => element.status == statusToMatch)
+            .toList();
+        rejectedProjects = state.rejectedProjects
+            .where((element) => element.status == statusToMatch)
+            .toList();
+      } else {
+        pendingProjects = [];
+        acceptedProjects = [];
+        rejectedProjects = [];
+      }
     }
 
     emit(
@@ -138,5 +155,29 @@ class MyProjectBloc extends Bloc<MyProjectEvent, MyProjectState> {
         filteredRejectedProjects: rejectedProjects,
       ),
     );
+  }
+
+  Future<void> _onReviewProject(
+    ReviewTakenProject event,
+    Emitter<TakenProjectState> emit,
+  ) async {
+    emit(state.copyWith(status: TakenProjectStatus.loading));
+    try {
+      await _repository.reviewProject(
+        projectId: event.projectId,
+        rating: event.rating,
+        review: event.review,
+      );
+      // Automatically refresh the accepted projects
+      add(LoadTakenAcceptedProjects(event.userId));
+    } catch (e, stackTrace) {
+      LogUtils.e(e.toString(), e, stackTrace);
+      emit(
+        state.copyWith(
+          message: e.toString(),
+          status: TakenProjectStatus.error,
+        ),
+      );
+    }
   }
 }

@@ -9,6 +9,8 @@ class ProjectEntity extends Equatable {
   final double latitude;
   final double longitude;
   final double projectRating;
+  final double? givenRating;
+  final String? chatId;
   final ProjectStatus status;
   final double? distance;
   final int maxParticipant;
@@ -44,6 +46,8 @@ class ProjectEntity extends Equatable {
     required this.maxParticipant,
     this.currentParticipant,
     required this.acceptedParticipant,
+    this.givenRating,
+    this.chatId,
   });
 
   ProjectEntity copyWith({
@@ -65,6 +69,8 @@ class ProjectEntity extends Equatable {
     final String? ownerName,
     final double? ownerRating,
     final String? ownerImagePath,
+    final double? givenRating,
+    final String? chatId,
   }) {
     return ProjectEntity(
       id: id,
@@ -86,6 +92,8 @@ class ProjectEntity extends Equatable {
       ownerName: ownerName ?? this.ownerName,
       ownerRating: ownerRating ?? this.ownerRating,
       ownerImagePath: ownerImagePath ?? this.ownerImagePath,
+      givenRating: givenRating ?? this.givenRating,
+      chatId: chatId ?? this.chatId,
     );
   }
 
@@ -141,5 +149,7 @@ class ProjectEntity extends Equatable {
     currentParticipant,
     maxParticipant,
     acceptedParticipant,
+    chatId,
+    givenRating,
   ];
 }

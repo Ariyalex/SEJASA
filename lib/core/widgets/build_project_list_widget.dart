@@ -4,21 +4,33 @@ import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+enum ProjectListType { general, taken, myProject }
+
 class BuildProjectListWidget extends StatelessWidget {
   final RefreshCallback onRefresh;
   final List<ProjectEntity> projects;
   final bool isLoading;
   final bool isMyProjects;
+  final ProjectListType listType;
+  final String? takenStatus;
+
   const BuildProjectListWidget({
     super.key,
     required this.onRefresh,
     required this.projects,
     required this.isLoading,
     this.isMyProjects = false,
+    this.listType = ProjectListType.general,
+    this.takenStatus,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Resolve the effective list type, keeping backward-compatibility with isMyProjects flag
+    final effectiveListType = listType == ProjectListType.general && isMyProjects
+        ? ProjectListType.myProject
+        : listType;
+
     if (!isLoading && projects.isEmpty) {
       return RefreshIndicator(
         onRefresh: onRefresh,
@@ -61,14 +73,16 @@ class BuildProjectListWidget extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.separated(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         itemCount: isLoading ? 5 : projects.length,
-        separatorBuilder: (context, index) => SizedBox(height: 6),
+        separatorBuilder: (context, index) => const SizedBox(height: 6),
         itemBuilder: (context, index) {
           if (isLoading) {
             return Skeletonizer(
               child: ProjectItemWidget(
                 isMyProject: isMyProjects,
+                listType: effectiveListType,
+                takenStatus: takenStatus,
                 project: ProjectEntity.dummyProject(),
               ),
             );
@@ -76,6 +90,8 @@ class BuildProjectListWidget extends StatelessWidget {
           return ProjectItemWidget(
             project: projects[index],
             isMyProject: isMyProjects,
+            listType: effectiveListType,
+            takenStatus: takenStatus,
           );
         },
       ),

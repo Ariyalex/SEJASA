@@ -44,7 +44,6 @@ class RegisterScreen extends HookWidget {
     final gender = useState<String?>(null); // hanya dipakai jika perorangan
     final selectedLocation = useState<LatLng?>(null);
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final isLoadingState = useState(false);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,39 +54,22 @@ class RegisterScreen extends HookWidget {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.loading) {
-            isLoadingState.value = true;
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => const WillPopScope(
-                onWillPop: null, // disables back button while loading
-                child: Center(child: CircularProgressIndicator()),
-              ),
+          if (state.status == AuthStatus.success) {
+            MySnackbar.success(
+              title: "Registrasi Berhasil",
+              message: state.message ?? "Silakan masuk dengan akun Anda.",
             );
-          } else {
-            if (isLoadingState.value) {
-              isLoadingState.value = false;
-              Navigator.of(context, rootNavigator: true).pop();
+            // Kembali ke login jika bisa, kalau tidak go ke /login
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(RouteNamed.login);
             }
-
-            if (state.status == AuthStatus.success) {
-              MySnackbar.success(
-                title: "Registrasi Berhasil",
-                message: state.message ?? "Silakan masuk dengan akun Anda.",
-              );
-              // Kembali ke login jika bisa, kalau tidak go ke /login
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.goNamed(RouteNamed.login);
-              }
-            } else if (state.status == AuthStatus.error) {
-              MySnackbar.error(
-                title: "Registrasi Gagal",
-                message: state.message ?? "Terjadi kesalahan saat registrasi",
-              );
-            }
+          } else if (state.status == AuthStatus.error) {
+            MySnackbar.error(
+              title: "Registrasi Gagal",
+              message: state.message ?? "Terjadi kesalahan saat registrasi",
+            );
           }
         },
         child: SafeArea(
@@ -266,47 +248,65 @@ class RegisterScreen extends HookWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                    onPressed: () {
-                      if (formKey.currentState?.validate() == true) {
-                        if (selectedLocation.value == null) {
-                          MySnackbar.error(
-                            title: "Lokasi Belum Dipilih",
-                            message:
-                                "Silakan pilih lokasi Anda di peta terlebih dahulu.",
-                          );
-                          return;
-                        }
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == AuthStatus.loading;
+                      return FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                if (formKey.currentState?.validate() == true) {
+                                  if (selectedLocation.value == null) {
+                                    MySnackbar.error(
+                                      title: "Lokasi Belum Dipilih",
+                                      message:
+                                          "Silakan pilih lokasi Anda di peta terlebih dahulu.",
+                                    );
+                                    return;
+                                  }
 
-                        final payload = RegisterPayload(
-                          name: namaController.text.trim(),
-                          email: emailController.text.trim(),
-                          password1: passwordController.text,
-                          password2: konfirmasiController.text,
-                          gender: _isOrganisasi ? '' : (gender.value ?? ''),
-                          accountType: accountType.name,
-                          latitude: selectedLocation.value!.latitude,
-                          longitude: selectedLocation.value!.longitude,
-                        );
+                                  final payload = RegisterPayload(
+                                    name: namaController.text.trim(),
+                                    email: emailController.text.trim(),
+                                    password1: passwordController.text,
+                                    password2: konfirmasiController.text,
+                                    gender: _isOrganisasi ? '' : (gender.value ?? ''),
+                                    accountType: accountType.name,
+                                    latitude: selectedLocation.value!.latitude,
+                                    longitude: selectedLocation.value!.longitude,
+                                  );
 
-                        context.read<AuthBloc>().add(
-                          AuthRegisterRequested(payload),
-                        );
-                      }
+                                  context.read<AuthBloc>().add(
+                                    AuthRegisterRequested(payload),
+                                  );
+                                }
+                              },
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    colorScheme.onPrimary,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'Register',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      );
                     },
-                    child: Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                   SizedBox(height: 12.h),
 

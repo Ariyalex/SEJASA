@@ -10,14 +10,20 @@ import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
+import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 
 class ProjectItemWidget extends HookWidget {
   final ProjectEntity project;
   final bool isMyProject;
+  final ProjectListType listType;
+  final String? takenStatus;
+
   const ProjectItemWidget({
     super.key,
     required this.project,
     this.isMyProject = false,
+    this.listType = ProjectListType.general,
+    this.takenStatus,
   });
 
   @override
@@ -45,7 +51,10 @@ class ProjectItemWidget extends HookWidget {
           context.pushNamed(
             RouteNamed.projectDetail,
             pathParameters: {'id': project.id},
-            extra: {'is_owner': isMyProject},
+            extra: {
+              'is_owner': isMyProject,
+              'is_taken': listType == ProjectListType.taken,
+            },
           );
         }
       },
@@ -95,28 +104,26 @@ class ProjectItemWidget extends HookWidget {
                 children: [
                   RatingBarIndicator(
                     itemBuilder: (context, index) {
-                      return Icon(Icons.star, color: Colors.amber);
+                      return const Icon(Icons.star, color: Colors.amber);
                     },
                     itemCount: 5,
-
                     rating: project.projectRating,
                     itemSize: 18,
                   ),
                   Text(
-                    project.projectRating.toString(),
+                    project.projectRating.toStringAsFixed(1),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-
                   children: [
                     Icon(
                       Icons.location_on_outlined,
@@ -219,7 +226,7 @@ class ProjectItemWidget extends HookWidget {
     return Row(
       spacing: 10,
       children: [
-        CircleAvatar(
+        const CircleAvatar(
           radius: 20,
           backgroundColor: Colors.grey,
           child: Icon(Icons.person, size: 18, color: Colors.white),
@@ -237,15 +244,14 @@ class ProjectItemWidget extends HookWidget {
               children: [
                 RatingBarIndicator(
                   itemBuilder: (context, index) {
-                    return Icon(Icons.star, color: Colors.amber);
+                    return const Icon(Icons.star, color: Colors.amber);
                   },
                   itemCount: 5,
-
                   rating: project.ownerRating,
                   itemSize: 18,
                 ),
                 Text(
-                  project.ownerRating.toString(),
+                  project.ownerRating.toStringAsFixed(1),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

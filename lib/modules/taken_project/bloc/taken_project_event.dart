@@ -1,40 +1,57 @@
 import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
-class MyProjectEvent extends Equatable {
-  const MyProjectEvent();
+class TakenProjectEvent extends Equatable {
+  const TakenProjectEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class LoadMyPendingProjects extends MyProjectEvent {
+class LoadTakenPendingProjects extends TakenProjectEvent {
   final String userId;
-  const LoadMyPendingProjects(this.userId);
+  const LoadTakenPendingProjects(this.userId);
   @override
   List<Object?> get props => [userId];
 }
 
-class LoadMyAcceptedProjects extends MyProjectEvent {
+class LoadTakenAcceptedProjects extends TakenProjectEvent {
   final String userId;
-  const LoadMyAcceptedProjects(this.userId);
-
-  @override
-  List<Object?> get props => [userId];
-}
-
-class LoadMyRejectedProjects extends MyProjectEvent {
-  final String userId;
-  const LoadMyRejectedProjects(this.userId);
+  const LoadTakenAcceptedProjects(this.userId);
 
   @override
   List<Object?> get props => [userId];
 }
 
-class SetMyProjectFilterType extends MyProjectEvent {
+class LoadTakenRejectedProjects extends TakenProjectEvent {
+  final String userId;
+  const LoadTakenRejectedProjects(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class SetTakenProjectFilterType extends TakenProjectEvent {
   final ProjectFilterType projectFilterType;
-  const SetMyProjectFilterType(this.projectFilterType);
+  const SetTakenProjectFilterType(this.projectFilterType);
 
   @override
   List<Object?> get props => [projectFilterType];
+}
+
+class ReviewTakenProject extends TakenProjectEvent {
+  final String projectId;
+  final double rating;
+  final String review;
+  final String userId;
+
+  const ReviewTakenProject({
+    required this.projectId,
+    required this.rating,
+    required this.review,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [projectId, rating, review, userId];
 }
