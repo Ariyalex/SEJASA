@@ -22,3 +22,16 @@ class ApplyToProject extends ProjectDetailEvent {
   @override
   List<Object?> get props => [];
 }
+
+class ReviewProject extends ProjectDetailEvent {
+  final double rating;
+  final String review;
+
+  const ReviewProject({
+    required this.rating,
+    required this.review,
+  });
+
+  @override
+  List<Object?> get props => [rating, review];
+}

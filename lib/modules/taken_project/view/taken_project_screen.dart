@@ -5,25 +5,25 @@ import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_event.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_state.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_bloc.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_event.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_state.dart';
 
-class MyProjectScreen extends HookWidget {
-  const MyProjectScreen({super.key});
+class TakenProjectScreen extends HookWidget {
+  const TakenProjectScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tabBarController = useTabController(initialLength: 3);
 
-    final projectBloc = context.read<MyProjectBloc>();
+    final projectBloc = context.read<TakenProjectBloc>();
     final authBloc = context.read<AuthBloc>();
 
     useEffect(() {
-      projectBloc.add(LoadMyPendingProjects(authBloc.state.user!.id));
-      projectBloc.add(LoadMyAcceptedProjects(authBloc.state.user!.id));
-      projectBloc.add(LoadMyRejectedProjects(authBloc.state.user!.id));
+      projectBloc.add(LoadTakenPendingProjects(authBloc.state.user!.id));
+      projectBloc.add(LoadTakenAcceptedProjects(authBloc.state.user!.id));
+      projectBloc.add(LoadTakenRejectedProjects(authBloc.state.user!.id));
       return null;
     }, []);
 
@@ -53,8 +53,8 @@ class MyProjectScreen extends HookWidget {
                       controller: tabBarController,
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
-                      padding: EdgeInsets.symmetric(horizontal: 0),
-                      splashBorderRadius: BorderRadius.only(
+                      padding: EdgeInsets.zero,
+                      splashBorderRadius: const BorderRadius.only(
                         topRight: Radius.circular(8),
                         topLeft: Radius.circular(8),
                       ),
@@ -120,8 +120,8 @@ class MyProjectScreen extends HookWidget {
                         ),
                         child:
                             BlocSelector<
-                              MyProjectBloc,
-                              MyProjectState,
+                              TakenProjectBloc,
+                              TakenProjectState,
                               ProjectFilterType
                             >(
                               selector: (state) {
@@ -140,7 +140,7 @@ class MyProjectScreen extends HookWidget {
                                           onSelected: (selected) {
                                             if (selected) {
                                               projectBloc.add(
-                                                SetMyProjectFilterType(status),
+                                                SetTakenProjectFilterType(status),
                                               );
                                             }
                                           },
@@ -159,9 +159,9 @@ class MyProjectScreen extends HookWidget {
           ];
         },
 
-        body: BlocBuilder<MyProjectBloc, MyProjectState>(
+        body: BlocBuilder<TakenProjectBloc, TakenProjectState>(
           builder: (context, state) {
-            if (state.status == MyProjectStatus.error) {
+            if (state.status == TakenProjectStatus.error) {
               return Center(child: Text("Error: ${state.message}"));
             } else {
               return TabBarView(
@@ -169,37 +169,41 @@ class MyProjectScreen extends HookWidget {
                 children: [
                   BuildProjectListWidget(
                     projects: state.filteredPendingProjects,
+                    listType: ProjectListType.taken,
+                    takenStatus: 'pending',
                     onRefresh: () async {
                       projectBloc.add(
-                        LoadMyPendingProjects(authBloc.state.user!.id),
+                        LoadTakenPendingProjects(authBloc.state.user!.id),
                       );
                     },
                     isLoading:
-                        state.status != MyProjectStatus.error &&
+                        state.status != TakenProjectStatus.error &&
                         state.isFetchingPendingProjects,
                   ),
                   BuildProjectListWidget(
                     projects: state.filteredAcceptedProjects,
-                    isMyProjects: true,
+                    listType: ProjectListType.taken,
+                    takenStatus: 'accepted',
                     onRefresh: () async {
                       projectBloc.add(
-                        LoadMyAcceptedProjects(authBloc.state.user!.id),
+                        LoadTakenAcceptedProjects(authBloc.state.user!.id),
                       );
                     },
                     isLoading:
-                        state.status != MyProjectStatus.error &&
+                        state.status != TakenProjectStatus.error &&
                         state.isFetchingAcceptedProjects,
                   ),
                   BuildProjectListWidget(
                     projects: state.filteredRejectedProjects,
-                    isMyProjects: true,
+                    listType: ProjectListType.taken,
+                    takenStatus: 'rejected',
                     onRefresh: () async {
                       projectBloc.add(
-                        LoadMyRejectedProjects(authBloc.state.user!.id),
+                        LoadTakenRejectedProjects(authBloc.state.user!.id),
                       );
                     },
                     isLoading:
-                        state.status != MyProjectStatus.error &&
+                        state.status != TakenProjectStatus.error &&
                         state.isFetchingRejectedProjects,
                   ),
                 ],

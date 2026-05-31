@@ -14,8 +14,8 @@ import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dar
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
-import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_bloc.dart';
+import 'package:sejasa/modules/taken_project/view/taken_project_screen.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
@@ -55,12 +55,12 @@ class MainTab extends StatelessWidget {
                 PersistentTabConfig(
                   screen: BlocProvider(
                     create: (context) =>
-                        MyProjectBloc(context.read<ProjectRepository>()),
-                    child: MyProjectScreen(),
+                        TakenProjectBloc(context.read<ProjectRepository>()),
+                    child: const TakenProjectScreen(),
                   ),
                   item: ItemConfig(
                     icon: const Icon(Icons.assignment_outlined),
-                    title: "My Project",
+                    title: "Taken Project",
                     activeForegroundColor: theme.colorScheme.primary,
                   ),
                 ),
@@ -76,8 +76,10 @@ class MainTab extends StatelessWidget {
                 ),
                 PersistentTabConfig(
                   screen: BlocProvider(
-                    create: (context) =>
-                        ChatListBloc(context.read<ChatRepository>()),
+                    create: (context) => ChatListBloc(
+                      context.read<ChatRepository>(),
+                      context.read<ProjectRepository>(),
+                    ),
                     child: const ChatListScreen(),
                   ),
                   item: ItemConfig(

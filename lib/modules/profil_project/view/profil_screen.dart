@@ -13,6 +13,7 @@ import 'package:sejasa/domain/value_objects/gender_type.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_event.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_state.dart';
@@ -38,6 +39,29 @@ class ProfilScreen extends HookWidget {
       profilBloc.add(LoadMyTakenProjects(userId));
       return null;
     }, [userId, isMyProfile]);
+
+    final mainTabBloc = useMemoized(() {
+      try {
+        return context.read<MainTabBloc>();
+      } catch (_) {
+        return null;
+      }
+    });
+
+    useEffect(() {
+      if (mainTabBloc == null) return null;
+      final controller = mainTabBloc.mainTabController;
+      void listener() {
+        if (controller.index == 4) {
+          profilBloc.add(LoadUserProfile(userId, isMyProfile: isMyProfile));
+          profilBloc.add(LoadMyUploadedProjects(userId));
+          profilBloc.add(LoadMyTakenProjects(userId));
+        }
+      }
+
+      controller.addListener(listener);
+      return () => controller.removeListener(listener);
+    }, [mainTabBloc, userId, isMyProfile]);
 
     return BlocBuilder<ProfilProjectBloc, ProfilProjectState>(
       builder: (context, state) {

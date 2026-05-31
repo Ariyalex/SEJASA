@@ -23,6 +23,8 @@ class ProjectModel extends ProjectEntity {
     required super.acceptedParticipant,
     required super.latitude,
     required super.longitude,
+    super.chatId,
+    super.givenRating,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -46,7 +48,7 @@ class ProjectModel extends ProjectEntity {
               name: json['category'] ?? json['category_name'],
             ),
       ownerName: json['owner']?['name'] ?? json['owner_name'] ?? '',
-      ownerRating: (json['owner_rating'] as num?)?.toDouble() ?? 0.0,
+      ownerRating: (json['owner']?['rating'] as num?)?.toDouble() ?? 0.0,
       ownerImagePath: json['owner']?['image'] ?? json['owner_image'] ?? '',
       hastags: (json['hastags'] as List?)?.map((e) => e.toString()).toList(),
       requirements: (json['requirements'] as List?)
@@ -55,6 +57,8 @@ class ProjectModel extends ProjectEntity {
       ownerId: json['owner']?['id'] ?? json['user_id'] ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      chatId: json['chat_id'] as String? ?? '',
+      givenRating: json['rating_given'] as double? ?? 0,
     );
   }
 
@@ -79,6 +83,8 @@ class ProjectModel extends ProjectEntity {
       ownerName: ownerName,
       ownerRating: ownerRating,
       ownerImagePath: ownerImagePath,
+      chatId: chatId,
+      givenRating: givenRating,
     );
   }
 }

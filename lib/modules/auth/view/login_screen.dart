@@ -134,30 +134,48 @@ class LoginScreen extends HookWidget {
                   ),
                   SizedBox(height: 16.h),
 
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                    onPressed: () {
-                      if (formKey.currentState?.validate() == true) {
-                        context.read<AuthBloc>().add(
-                          AuthLoginRequested(
-                            emailController.text.trim(),
-                            passwordController.text,
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == AuthStatus.loading;
+                      return FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
-                        );
-                      }
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                if (formKey.currentState?.validate() == true) {
+                                  context.read<AuthBloc>().add(
+                                    AuthLoginRequested(
+                                      emailController.text.trim(),
+                                      passwordController.text,
+                                    ),
+                                  );
+                                }
+                              },
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    colorScheme.onPrimary,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      );
                     },
-                    child: Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                   SizedBox(height: 16.h),
 

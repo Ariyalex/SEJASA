@@ -15,11 +15,13 @@ class ListChatUserEntity extends Equatable {
 class ListChatItemEntity extends Equatable {
   final String id;
   final String projectId;
+  final String projectName;
   final ListChatUserEntity user;
   final String title;
   final String body;
   final int unreadMsg;
   final DateTime timestamp;
+  final double givenRating;
   final ParticipantStatusType? participantStatus;
 
   const ListChatItemEntity({
@@ -31,6 +33,8 @@ class ListChatItemEntity extends Equatable {
     required this.unreadMsg,
     required this.timestamp,
     this.participantStatus,
+    required this.projectName,
+    required this.givenRating,
   });
 
   @override
@@ -43,5 +47,7 @@ class ListChatItemEntity extends Equatable {
     unreadMsg,
     timestamp,
     participantStatus,
+    givenRating,
+    projectName,
   ];
 }

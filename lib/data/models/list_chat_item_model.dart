@@ -35,6 +35,8 @@ class ListChatItemModel extends ListChatItemEntity {
     required super.unreadMsg,
     required super.timestamp,
     super.participantStatus,
+    required super.projectName,
+    required super.givenRating,
   });
 
   factory ListChatItemModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,8 @@ class ListChatItemModel extends ListChatItemEntity {
       participantStatus: json['participant_status'] != null
           ? ParticipantStatusType.fromJson(json['participant_status'] as String)
           : null,
+      givenRating: json['rating_given'] as double? ?? 0,
+      projectName: json['project_name'] as String? ?? '',
     );
   }
 
@@ -67,6 +71,8 @@ class ListChatItemModel extends ListChatItemEntity {
       'timestamp': timestamp.toIso8601String(),
       if (participantStatus != null)
         'participant_status': participantStatus!.jsonValue,
+      'rating_given': givenRating,
+      'project_name': projectName,
     };
   }
 
@@ -80,6 +86,8 @@ class ListChatItemModel extends ListChatItemEntity {
       unreadMsg: unreadMsg,
       timestamp: timestamp,
       participantStatus: participantStatus,
+      projectName: projectName,
+      givenRating: givenRating,
     );
   }
 }

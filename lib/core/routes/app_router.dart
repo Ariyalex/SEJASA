@@ -228,6 +228,7 @@ class AppRouter {
               id: id!,
               isOwner: extra['is_owner'],
               isReadMore: isReadMore ?? false,
+              isTaken: extra['is_taken'] ?? false,
             ),
           );
         },
@@ -238,7 +239,10 @@ class AppRouter {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return BlocProvider(
-            create: (context) => ChatListBloc(context.read<ChatRepository>()),
+            create: (context) => ChatListBloc(
+              context.read<ChatRepository>(),
+              context.read<ProjectRepository>(),
+            ),
             child: ChatListScreen(projectId: id),
           );
         },

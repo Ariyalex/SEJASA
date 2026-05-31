@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 
-enum MyProjectStatus { initial, loading, success, error }
+enum TakenProjectStatus { initial, loading, success, error }
 
-class MyProjectState extends Equatable {
+class TakenProjectState extends Equatable {
   final List<ProjectEntity> pendingProjects;
   final List<ProjectEntity> acceptedProjects;
   final List<ProjectEntity> rejectedProjects;
@@ -13,7 +13,7 @@ class MyProjectState extends Equatable {
   final bool isFetchingAcceptedProjects;
   final bool isFetchingRejectedProjects;
 
-  final MyProjectStatus status;
+  final TakenProjectStatus status;
   final String? message;
 
   final List<ProjectEntity> filteredPendingProjects;
@@ -21,7 +21,7 @@ class MyProjectState extends Equatable {
   final List<ProjectEntity> filteredRejectedProjects;
   final ProjectFilterType filterType;
 
-  const MyProjectState({
+  const TakenProjectState({
     this.pendingProjects = const [],
     this.acceptedProjects = const [],
     this.rejectedProjects = const [],
@@ -30,7 +30,7 @@ class MyProjectState extends Equatable {
     this.isFetchingAcceptedProjects = false,
     this.isFetchingRejectedProjects = false,
 
-    this.status = MyProjectStatus.initial,
+    this.status = TakenProjectStatus.initial,
     this.message,
 
     this.filteredPendingProjects = const [],
@@ -39,7 +39,7 @@ class MyProjectState extends Equatable {
     this.filterType = ProjectFilterType.all,
   });
 
-  MyProjectState copyWith({
+  TakenProjectState copyWith({
     final List<ProjectEntity>? pendingProjects,
     final List<ProjectEntity>? acceptedProjects,
     final List<ProjectEntity>? rejectedProjects,
@@ -47,7 +47,7 @@ class MyProjectState extends Equatable {
     final bool? isFetchingAcceptedProjects,
     final bool? isFetchingRejectedProjects,
 
-    final MyProjectStatus? status,
+    final TakenProjectStatus? status,
     final String? message,
 
     final List<ProjectEntity>? filteredPendingProjects,
@@ -55,7 +55,7 @@ class MyProjectState extends Equatable {
     final List<ProjectEntity>? filteredRejectedProjects,
     final ProjectFilterType? filterType,
   }) {
-    return MyProjectState(
+    return TakenProjectState(
       pendingProjects: pendingProjects ?? this.pendingProjects,
       acceptedProjects: acceptedProjects ?? this.acceptedProjects,
       rejectedProjects: rejectedProjects ?? this.rejectedProjects,
