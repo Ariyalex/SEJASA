@@ -7,7 +7,7 @@ class UserModel extends UserEntity {
     required super.id,
     required super.name,
     required super.email,
-    required super.gender,
+    super.gender,
     required super.rating,
     super.description,
     super.contact,
@@ -23,10 +23,12 @@ class UserModel extends UserEntity {
       id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
-      gender: GenderType.values.firstWhere(
-        (e) => e.jsonValue == json['gender'],
-        orElse: () => GenderType.male,
-      ),
+      gender: json['gender'] == null
+          ? null
+          : GenderType.values.firstWhere(
+              (e) => e.jsonValue == json['gender'],
+              orElse: () => GenderType.male,
+            ),
       rating: (json['rating'] as num? ?? 0).toDouble(),
       description: json['descriptions'] as String?,
       contact: json['contact'] as String?,
@@ -45,7 +47,7 @@ class UserModel extends UserEntity {
       'id': id,
       'name': name,
       'email': email,
-      'gender': gender.jsonValue,
+      'gender': gender?.jsonValue,
       'rating': rating,
       'description': description,
       'contact': contact,

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/core/widgets/logo_widget.dart';
 import 'package:sejasa/domain/value_objects/account_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
@@ -74,17 +75,23 @@ class LoginScreen extends HookWidget {
                 children: [
                   SizedBox(height: 16.h),
 
-                  // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
                   Center(
-                    child: Text(
-                      'Logo',
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 80.sp,
-                      ),
+                    child: Column(
+                      children: [
+                        LogoWidget(width: 80.w, height: 80.h),
+                        const SizedBox(height: 8),
+                        Text(
+                          'SEJASA',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2.0,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 48.h),
+                  SizedBox(height: 32.h),
 
                   Center(
                     child: Text(

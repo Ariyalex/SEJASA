@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
@@ -226,10 +227,19 @@ class ProjectItemWidget extends HookWidget {
     return Row(
       spacing: 10,
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 20,
           backgroundColor: Colors.grey,
-          child: Icon(Icons.person, size: 18, color: Colors.white),
+          backgroundImage: project.ownerImagePath != null
+              ? project.ownerImagePath!.isNotEmpty
+                    ? NetworkImage(AppConfig.baseUrl + project.ownerImagePath!)
+                    : null
+              : null,
+          child: project.ownerImagePath == null
+              ? Icon(Icons.person, size: 18, color: Colors.white)
+              : project.ownerImagePath!.isEmpty
+              ? Icon(Icons.person, size: 18, color: Colors.white)
+              : null,
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

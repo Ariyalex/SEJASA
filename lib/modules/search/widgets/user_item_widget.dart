@@ -15,9 +15,10 @@ class UserItemWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Modern profile image network binding or fallback
-    final hasImage = user.profilePicture != null && user.profilePicture!.isNotEmpty;
+    final hasImage =
+        user.profilePicture != null && user.profilePicture!.isNotEmpty;
     final ImageProvider? profileImage = hasImage
-        ? NetworkImage(AppConfig.baseApiUrl + user.profilePicture!)
+        ? NetworkImage(AppConfig.baseUrl + user.profilePicture!)
         : null;
 
     // Filter to top 3 skills to avoid overcrowding the card
@@ -86,7 +87,8 @@ class UserItemWidget extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (user.address != null && user.address!.isNotEmpty) ...[
+                        if (user.address != null &&
+                            user.address!.isNotEmpty) ...[
                           SizedBox(height: 4.h),
                           Row(
                             children: [
@@ -116,7 +118,10 @@ class UserItemWidget extends StatelessWidget {
                   SizedBox(width: 8.w),
                   // Premium amber rating badge
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20.r),
@@ -143,12 +148,15 @@ class UserItemWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              if (user.description != null && user.description!.trim().isNotEmpty) ...[
+              if (user.description != null &&
+                  user.description!.trim().isNotEmpty) ...[
                 SizedBox(height: 12.h),
                 Text(
                   user.description!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.8,
+                    ),
                     fontSize: 12.sp,
                     fontStyle: FontStyle.italic,
                   ),
@@ -164,7 +172,9 @@ class UserItemWidget extends StatelessWidget {
                   children: displayedSkills.map((skill) {
                     return MyVisualChip(
                       title: skill.name,
-                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      backgroundColor: theme.colorScheme.primary.withValues(
+                        alpha: 0.08,
+                      ),
                       textColor: theme.colorScheme.primary,
                     );
                   }).toList(),

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/models/user_model.dart';
+import 'package:sejasa/domain/entities/user_entity.dart';
 
 enum AuthStatus {
   initial,
@@ -12,14 +12,14 @@ enum AuthStatus {
 
 class AuthState extends Equatable {
   final AuthStatus status;
-  final UserModel? user;
+  final UserEntity? user;
   final String? message;
 
   const AuthState({this.status = AuthStatus.initial, this.user, this.message});
 
   AuthState copyWith({
     AuthStatus? status,
-    UserModel? user,
+    UserEntity? user,
     String? message,
     bool clearMessage = false,
     bool clearUser = false,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/domain/entities/list_chat_item_entity.dart';
 import 'package:sejasa/domain/value_objects/participant_status_type.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
@@ -48,7 +49,7 @@ class ChatTile extends StatelessWidget {
         radius: 26,
         backgroundColor: colorScheme.primaryContainer,
         backgroundImage: chat.user.image != null
-            ? NetworkImage(chat.user.image!)
+            ? NetworkImage(AppConfig.baseUrl + chat.user.image!)
             : null,
         child: chat.user.image == null
             ? Icon(LucideIcons.user, color: colorScheme.onPrimaryContainer)

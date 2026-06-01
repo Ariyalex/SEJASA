@@ -6,7 +6,7 @@ class UserEntity extends Equatable {
   final String id;
   final String name;
   final String email;
-  final GenderType gender;
+  final GenderType? gender;
   final double rating;
   final String? description;
   final String? contact;
@@ -20,16 +20,14 @@ class UserEntity extends Equatable {
     required this.id,
     required this.name,
     required this.email,
-    required this.gender,
+    this.gender,
     required this.rating,
     this.description,
     this.contact,
     this.address,
     required this.latitude,
     required this.longitude,
-
     this.profilePicture,
-
     this.skills,
   });
 

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/widgets/logo_widget.dart';
 import 'package:sejasa/core/widgets/my_outline_button.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_event.dart';
@@ -78,7 +79,7 @@ class DashboardScreen extends HookWidget {
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
-                  leading: const FlutterLogo(),
+                  leading: LogoWidget(),
                   title: Text(
                     "SEJASA",
                     style: theme.textTheme.titleLarge?.copyWith(
@@ -218,7 +219,7 @@ class DashboardScreen extends HookWidget {
                     controller: tabBarController,
                     children: [
                       state.latitude == null
-                           ? Center(
+                          ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [

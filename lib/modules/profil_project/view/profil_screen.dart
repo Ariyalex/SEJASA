@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/widgets/logo_widget.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/storage_service.dart';
@@ -91,7 +92,7 @@ class ProfilScreen extends HookWidget {
           return Scaffold(
             appBar: AppBar(
               leading: isMyProfile
-                  ? FlutterLogo()
+                  ? LogoWidget()
                   : IconButton(
                       icon: const Icon(LucideIcons.arrowLeft),
                       onPressed: () => Navigator.of(context).pop(),
@@ -145,15 +146,17 @@ class ProfilScreen extends HookWidget {
                 return [
                   SliverAppBar(
                     leading: isMyProfile
-                        ? const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: FlutterLogo(),
-                          )
+                        ? LogoWidget()
                         : IconButton(
                             icon: const Icon(LucideIcons.arrowLeft),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
-                    title: Text(isMyProfile ? "Profile" : "User Profile"),
+                    title: Text(
+                      isMyProfile ? "Profile" : "User Profile",
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     floating: true,
                     snap: true,
                     pinned: true,

@@ -34,6 +34,7 @@ import 'package:sejasa/modules/search/bloc/search_bloc.dart';
 import 'package:sejasa/modules/search/bloc/search_event.dart';
 import 'package:sejasa/modules/search/view/search_initial_screen.dart';
 import 'package:sejasa/modules/search/view/search_result_screen.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
 
 import 'package:sejasa/modules/splash/view/splash_screen.dart';
 import 'package:sejasa/modules/profil_project/view/edit_profile_screen.dart';
@@ -95,7 +96,10 @@ class AppRouter {
       GoRoute(
         path: '/register',
         name: RouteNamed.register,
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) {
+          final accountType = state.extra as AccountType?;
+          return RegisterScreen(accountType: accountType ?? AccountType.personal);
+        },
       ),
       GoRoute(
         path: '/guest',

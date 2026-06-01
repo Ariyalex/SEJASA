@@ -47,7 +47,7 @@ class UserProfileHeaderWidget extends HookWidget {
     useEffect(() {
       if (user.profilePicture != null) {
         photoProfile.value = NetworkImage(
-          AppConfig.baseApiUrl + user.profilePicture!,
+          AppConfig.baseUrl + user.profilePicture!,
         );
       }
       return null;
@@ -71,11 +71,9 @@ class UserProfileHeaderWidget extends HookWidget {
                       radius: 35.r,
                       backgroundColor: const Color(0xFFD9D9D9),
                       backgroundImage: photoProfile.value,
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 45.r,
-                      ),
+                      child: photoProfile.value == null
+                          ? Icon(Icons.person, color: Colors.white, size: 45.r)
+                          : null,
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
@@ -152,7 +150,7 @@ class UserProfileHeaderWidget extends HookWidget {
                                 itemSize: 20.r,
                               ),
                               Text(
-                                user.rating.toString(),
+                                user.rating.toStringAsFixed(1),
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),

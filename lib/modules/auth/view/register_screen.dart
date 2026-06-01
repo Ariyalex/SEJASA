@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
+import 'package:sejasa/core/widgets/logo_widget.dart';
 import 'package:sejasa/core/widgets/project_location_picker.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
 import 'package:sejasa/domain/value_objects/account_type.dart';
@@ -82,17 +83,23 @@ class RegisterScreen extends HookWidget {
                 children: [
                   SizedBox(height: 8.h),
 
-                  // Logo placeholder — ganti dengan asset logo SEJASA jika ada
                   Center(
-                    child: Text(
-                      'Logo',
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 72.sp,
-                      ),
+                    child: Column(
+                      children: [
+                        LogoWidget(width: 80.w, height: 80.h),
+                        const SizedBox(height: 8),
+                        Text(
+                          'SEJASA',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2.0,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 24.h),
 
                   Center(
                     child: Text(
@@ -276,7 +283,7 @@ class RegisterScreen extends HookWidget {
                                     email: emailController.text.trim(),
                                     password1: passwordController.text,
                                     password2: konfirmasiController.text,
-                                    gender: _isOrganisasi ? '' : (gender.value ?? ''),
+                                    gender: _isOrganisasi ? null : gender.value,
                                     accountType: accountType.name,
                                     latitude: selectedLocation.value!.latitude,
                                     longitude: selectedLocation.value!.longitude,

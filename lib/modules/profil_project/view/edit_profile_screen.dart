@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -44,7 +45,7 @@ class EditProfileScreen extends HookWidget {
     final alamatController = useTextEditingController(text: user.address ?? '');
 
     // State
-    final gender = useState<GenderType>(user.gender);
+    final gender = useState<GenderType?>(user.gender);
     final selectedLocation = useState<LatLng>(
       LatLng(
         user.latitude != 0.0 ? user.latitude : -7.7956,
@@ -58,17 +59,43 @@ class EditProfileScreen extends HookWidget {
 
     // Fungsi upload gambar profil
     Future<void> pickAndUploadImage() async {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 800,
-      );
+      try {
+        final picker = ImagePicker();
+        final pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+          maxWidth: 800,
+        );
 
-      if (pickedFile == null) return;
+        if (pickedFile == null) return;
 
-      // Simpan path lokal dari file yang dipilih. Upload dilakukan oleh BLoC saat submit form.
-      profilePicturePath.value = pickedFile.path;
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Potong Gambar',
+              toolbarColor: theme.colorScheme.primary,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.square,
+              lockAspectRatio: true,
+            ),
+            IOSUiSettings(
+              title: 'Potong Gambar',
+              aspectRatioLockEnabled: true,
+              resetAspectRatioEnabled: false,
+            ),
+          ],
+        );
+
+        if (croppedFile == null) return;
+
+        // Simpan path lokal dari file yang dipotong. Upload dilakukan oleh BLoC saat submit form.
+        profilePicturePath.value = croppedFile.path;
+      } catch (e, stackTrace) {
+        debugPrint('Error picking or cropping image: $e\n$stackTrace');
+        MySnackbar.error(title: "Gagal memotong gambar", message: e.toString());
+      }
     }
 
     // Fungsi submit form
@@ -80,7 +107,7 @@ class EditProfileScreen extends HookWidget {
         email: emailController.text.trim(),
         contact: teleponController.text.trim(),
         description: bioController.text.trim(),
-        gender: gender.value.jsonValue,
+        gender: user.gender != null ? gender.value?.jsonValue : null,
         detailAddress: alamatController.text.trim(),
         latitude: selectedLocation.value.latitude,
         longitude: selectedLocation.value.longitude,
@@ -268,58 +295,60 @@ class EditProfileScreen extends HookWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // 5. Gender Dropdown
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Gender",
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<GenderType>(
-                          initialValue: gender.value,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: const Color(0xFFEEEEEE),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                    // 5. Gender Dropdown (Hanya untuk Perorangan / User yang memiliki Gender)
+                    if (user.gender != null) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Gender",
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          items: GenderType.values.map((type) {
-                            return DropdownMenuItem<GenderType>(
-                              value: type,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    type.icon,
-                                    size: 20,
-                                    color: type == GenderType.male
-                                        ? Colors.blue
-                                        : Colors.pink,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(type.display),
-                                ],
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<GenderType?>(
+                            initialValue: gender.value,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color(0xFFEEEEEE),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              gender.value = val;
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            items: GenderType.values.map((type) {
+                              return DropdownMenuItem<GenderType?>(
+                                value: type,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      type.icon,
+                                      size: 20,
+                                      color: type == GenderType.male
+                                          ? Colors.blue
+                                          : Colors.pink,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(type.display),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                gender.value = val;
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     // 6. Field Deskripsi / Bio
                     MyTextField(

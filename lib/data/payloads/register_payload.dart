@@ -3,7 +3,7 @@ class RegisterPayload {
   final String email;
   final String password1;
   final String password2;
-  final String gender;
+  final String? gender;
   final String accountType;
   final double latitude;
   final double longitude;
@@ -13,7 +13,7 @@ class RegisterPayload {
     required this.email,
     required this.password1,
     required this.password2,
-    required this.gender,
+    this.gender,
     required this.latitude,
     required this.longitude,
     required this.accountType,
@@ -25,7 +25,7 @@ class RegisterPayload {
       'email': email,
       'password1': password1,
       'password2': password2,
-      'gender': gender,
+      if (gender != null && gender!.isNotEmpty) 'gender': gender,
       'account_type': accountType,
       'latitude': latitude,
       'longitude': longitude,

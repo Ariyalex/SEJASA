@@ -7,7 +7,6 @@ import 'package:sejasa/data/payloads/profile_update_payload.dart';
 import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/domain/repositories/user_repository.dart';
 import 'package:sejasa/domain/repositories/file_repository.dart';
-import 'package:sejasa/data/models/user_model.dart';
 import 'package:sejasa/modules/auth/bloc/auth_event.dart';
 import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 
@@ -64,7 +63,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _authRepository.login(event.email, event.password);
       final user = await _authRepository.getMyProfile();
       emit(state.copyWith(status: AuthStatus.authenticated, user: user));
-      emit(state.copyWith(status: AuthStatus.success, message: "Login Berhasil"));
+      emit(
+        state.copyWith(status: AuthStatus.success, message: "Login Berhasil"),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
@@ -78,7 +79,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading, clearMessage: true));
     try {
       await _authRepository.register(event.payload);
-      emit(state.copyWith(status: AuthStatus.success, message: "Registrasi Berhasil"));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          message: "Registrasi Berhasil",
+        ),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
@@ -95,17 +101,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _storageService.delete('access_token');
       await _storageService.delete('refresh_token');
       emit(state.copyWith(status: AuthStatus.unauthenticated, clearUser: true));
-      emit(state.copyWith(status: AuthStatus.success, message: "Logout Berhasil"));
+      emit(
+        state.copyWith(status: AuthStatus.success, message: "Logout Berhasil"),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
     }
   }
 
-  void _onUserUpdated(
-    AuthUserUpdated event,
-    Emitter<AuthState> emit,
-  ) {
+  void _onUserUpdated(AuthUserUpdated event, Emitter<AuthState> emit) {
     emit(state.copyWith(status: AuthStatus.authenticated, user: event.user));
   }
 
@@ -135,7 +140,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           !imageRemoteUrl.startsWith('/uploads') &&
           File(imageRemoteUrl).existsSync()) {
         // Upload local profile picture first
-        imageRemoteUrl = await _fileRepository.uploadImage(File(imageRemoteUrl));
+        imageRemoteUrl = await _fileRepository.uploadImage(
+          File(imageRemoteUrl),
+        );
       }
 
       final finalPayload = UserUpdatePayload(
@@ -151,11 +158,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       final updatedUser = await _userRepository.updateMyProfile(finalPayload);
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        user: updatedUser as UserModel,
-        message: "Profil Anda telah sukses diperbarui.",
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          user: updatedUser,
+          message: "Profil Anda telah sukses diperbarui.",
+        ),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
@@ -170,11 +179,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _userRepository.addMySkill(event.name);
       final user = await _authRepository.getMyProfile();
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        user: user,
-        message: "Keahlian baru berhasil ditambahkan",
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          user: user,
+          message: "Keahlian baru berhasil ditambahkan",
+        ),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
@@ -189,11 +200,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _userRepository.editMySkill(event.skillId, event.name);
       final user = await _authRepository.getMyProfile();
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        user: user,
-        message: "Keahlian berhasil diperbarui",
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          user: user,
+          message: "Keahlian berhasil diperbarui",
+        ),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));
@@ -208,11 +221,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _userRepository.deleteMySkill(event.skillId);
       final user = await _authRepository.getMyProfile();
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        user: user,
-        message: "Keahlian berhasil dihapus",
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          user: user,
+          message: "Keahlian berhasil dihapus",
+        ),
+      );
     } catch (e, stackTrace) {
       LogUtils.e(e.toString(), e, stackTrace);
       emit(state.copyWith(status: AuthStatus.error, message: e.toString()));

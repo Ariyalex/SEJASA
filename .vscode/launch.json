@@ -2,6 +2,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "infinix",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "adb-07326331C8002094-q0u3qK._adb-tls-connect._tcp"
+    },
+    {
       "name": "diddy 1",
       "request": "launch",
       "type": "dart",

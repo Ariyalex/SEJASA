@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:sejasa/data/models/user_model.dart';
+import 'package:sejasa/domain/entities/user_entity.dart';
 import 'package:sejasa/data/payloads/profile_update_payload.dart';
 import 'package:sejasa/data/payloads/register_payload.dart';
 
@@ -41,7 +41,7 @@ class AuthLogoutRequested extends AuthEvent {
 class AuthCheckRequested extends AuthEvent {}
 
 class AuthUserUpdated extends AuthEvent {
-  final UserModel user;
+  final UserEntity user;
   const AuthUserUpdated(this.user);
 
   @override
