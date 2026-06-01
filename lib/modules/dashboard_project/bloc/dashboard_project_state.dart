@@ -8,6 +8,10 @@ class DashboardProjectState extends Equatable {
   final DashboardProjectTabPagingState latest;
   final DashboardProjectTabPagingState popular;
 
+  final double? latitude;
+  final double? longitude;
+  final String? address;
+
   final DashboardProjectStatus status;
   final String? message;
 
@@ -15,7 +19,9 @@ class DashboardProjectState extends Equatable {
     this.closest = const DashboardProjectTabPagingState(),
     this.latest = const DashboardProjectTabPagingState(),
     this.popular = const DashboardProjectTabPagingState(),
-
+    this.latitude,
+    this.longitude,
+    this.address,
     this.status = DashboardProjectStatus.initial,
     this.message,
   });
@@ -24,6 +30,9 @@ class DashboardProjectState extends Equatable {
     final DashboardProjectTabPagingState? closest,
     final DashboardProjectTabPagingState? latest,
     final DashboardProjectTabPagingState? popular,
+    final double? latitude,
+    final double? longitude,
+    final String? address,
     final DashboardProjectStatus? status,
     final String? message,
   }) {
@@ -31,11 +40,23 @@ class DashboardProjectState extends Equatable {
       closest: closest ?? this.closest,
       latest: latest ?? this.latest,
       popular: popular ?? this.popular,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      address: address ?? this.address,
       status: status ?? this.status,
       message: message ?? this.message,
     );
   }
 
   @override
-  List<Object?> get props => [closest, latest, popular, status, message];
+  List<Object?> get props => [
+    closest,
+    latest,
+    popular,
+    latitude,
+    longitude,
+    address,
+    status,
+    message,
+  ];
 }

@@ -1,50 +1,50 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sejasa/core/di/dependency_injection.dart';
-import 'package:sejasa/core/services/socket_service.dart';
-import 'package:sejasa/data/providers/mock/mock_chat_socket_provider.dart';
-import 'package:sejasa/data/providers/mock/mock_project_provider.dart';
-import 'package:sejasa/data/providers/remote/chat_socket_provider.dart';
-import 'package:sejasa/data/providers/remote/remote_project_provider_impl.dart';
-import 'package:sejasa/data/repositories/chat_repository_impl.dart';
-import 'package:sejasa/data/repositories/project_repository_impl.dart';
-import 'package:sejasa/domain/providers/chat_socket_provider.dart';
-import 'package:sejasa/domain/providers/remote_project_provider.dart';
+import 'package:sejasa/core/services/location_service.dart';
+import 'package:sejasa/core/services/connectivity_service.dart';
+import 'package:sejasa/core/services/storage_service.dart';
+import 'package:sejasa/domain/repositories/file_repository.dart';
+import 'package:sejasa/domain/repositories/auth_repository.dart';
 import 'package:sejasa/domain/repositories/chat_repository.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 
 class AppProviders {
-  static final isMocking = true;
-  static List<RepositoryProvider> get repositoryProviers => [
-    RepositoryProvider<RemoteProjectProvider>(
-      create: (context) {
-        if (isMocking) {
-          return MockProjectProvider();
-        } else {
-          return RemoteProjectProviderImpl();
-        }
-      },
+  static List<RepositoryProvider> get repositoryProviders => [
+    RepositoryProvider<LocationService>.value(
+      value: getIt<LocationService>(),
     ),
-
-    RepositoryProvider<ProjectRepository>(
-      create: (context) =>
-          ProjectRepositoryImpl(context.read<RemoteProjectProvider>()),
+    RepositoryProvider<ConnectivityService>.value(
+      value: getIt<ConnectivityService>(),
     ),
-
-    RepositoryProvider<ChatSocketProvider>(
-      create: (context) {
-        if (isMocking) {
-          return MockChatSocketProvider();
-        } else {
-          return ChatSocketProviderImpl(getIt<SocketService>());
-        }
-      },
+    RepositoryProvider<StorageService>.value(
+      value: getIt<StorageService>(),
     ),
-
-    RepositoryProvider<ChatRepository>(
-      create: (context) =>
-          ChatRepositoryImpl(context.read<ChatSocketProvider>()),
+    RepositoryProvider<FileRepository>.value(
+      value: getIt<FileRepository>(),
+    ),
+    RepositoryProvider<AuthRepository>.value(
+      value: getIt<AuthRepository>(),
+    ),
+    RepositoryProvider<ProjectRepository>.value(
+      value: getIt<ProjectRepository>(),
+    ),
+    RepositoryProvider<UserRepository>.value(
+      value: getIt<UserRepository>(),
+    ),
+    RepositoryProvider<ChatRepository>.value(
+      value: getIt<ChatRepository>(),
     ),
   ];
 
-  static List<BlocProvider> get blocProviders => [];
+  static List<BlocProvider> get blocProviders => [
+    BlocProvider<AuthBloc>.value(
+      value: getIt<AuthBloc>(),
+    ),
+    BlocProvider<MainTabBloc>.value(
+      value: getIt<MainTabBloc>(),
+    ),
+  ];
 }

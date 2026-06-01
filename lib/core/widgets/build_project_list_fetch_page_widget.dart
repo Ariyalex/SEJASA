@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 import 'package:sejasa/core/widgets/project_item_widget.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
-import 'package:sejasa/data/value_objects/project_status.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BuildProjectListFetchPageWidget extends HookWidget {
   final List<ProjectEntity> projects;
   final bool isMyProjects;
+  final ProjectListType listType;
 
   final bool isFetchingMore;
   final bool hasReachedMax;
@@ -21,6 +23,7 @@ class BuildProjectListFetchPageWidget extends HookWidget {
     super.key,
     required this.projects,
     this.isMyProjects = false,
+    this.listType = ProjectListType.general,
     required this.isFetchingMore,
     required this.hasReachedMax,
     required this.onRefresh,
@@ -30,12 +33,56 @@ class BuildProjectListFetchPageWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Resolve the effective list type, keeping backward-compatibility with isMyProjects flag
+    final effectiveListType = listType == ProjectListType.general && isMyProjects
+        ? ProjectListType.myProject
+        : listType;
+
+    if (!isLoading && projects.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.folderOpen,
+                    size: 64,
+                    color: Colors.grey.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Proyek tidak ditemukan",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Coba cari dengan kata kunci lain atau refresh halaman",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.separated(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         itemCount: isLoading ? 10 : projects.length + (hasReachedMax ? 0 : 5),
-        separatorBuilder: (context, index) => SizedBox(height: 6),
+        separatorBuilder: (context, index) => const SizedBox(height: 6),
         itemBuilder: (context, index) {
           if (!isLoading &&
               !isFetchingMore &&
@@ -48,24 +95,16 @@ class BuildProjectListFetchPageWidget extends HookWidget {
           if (index >= projects.length || isLoading) {
             return Skeletonizer(
               child: ProjectItemWidget(
-                project: ProjectEntity(
-                  id: "",
-                  title: 'loading data',
-                  address: "ngawi",
-                  status: ProjectStatus.going,
-                  distance: '100km',
-                  participant: '6/7 peserta',
-                  category: 'random',
-                  ownerName: "gatawu",
-                  ownerRating: 5,
-                  isBookmark: false,
-                ),
+                project: ProjectEntity.dummyProject(),
+                isMyProject: isMyProjects,
+                listType: effectiveListType,
               ),
             );
           }
           return ProjectItemWidget(
             project: projects[index],
             isMyProject: isMyProjects,
+            listType: effectiveListType,
           );
         },
       ),

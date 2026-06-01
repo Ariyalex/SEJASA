@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// A stateful widget for a custom text field
 /// Includes features like password obscuring, clear button, and real-time validation.
 class MyTextField extends StatefulWidget {
-  final String title;
+  final String? title;
 
   /// the hint text displayed inside the text field when empty.
   final String hint;
@@ -38,13 +38,18 @@ class MyTextField extends StatefulWidget {
   /// Autovalidate mode for the text field, (AutovalidateMode.always by default)
   final AutovalidateMode autovalidateMode;
 
+  final bool isClearable;
+
   final bool readOnly;
   final int? maxLines;
   final int? minLines;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
+  final VoidCallback? onEditingComplete;
 
   const MyTextField({
     super.key,
-    required this.title,
+    this.title,
     required this.hint,
     this.prefixIcon,
     this.suffixIcon,
@@ -64,6 +69,10 @@ class MyTextField extends StatefulWidget {
     this.readOnly = false,
     this.maxLines = 1,
     this.minLines,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.onEditingComplete,
+    this.isClearable = true,
   });
 
   @override
@@ -105,10 +114,14 @@ class _MyTextFieldState extends State<MyTextField> {
 
   /// Builds the suffix icon based on field state (password toggle or clear button).
   Widget? _buildSuffixIcon(ThemeData theme) {
+    if (!widget.isClearable) {
+      return widget.suffixIcon;
+    }
     if (widget.obscureText) {
       return IconButton.filled(
         icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
-        color: widget.obscureIconColor,
+        color: widget.obscureIconColor ?? theme.colorScheme.primary,
+        style: IconButton.styleFrom(backgroundColor: Colors.transparent),
 
         onPressed: () {
           setState(() {
@@ -136,12 +149,14 @@ class _MyTextFieldState extends State<MyTextField> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.title.isNotEmpty) ...[
+          if (widget.title != null) ...[
             Text(
-              widget.title,
+              widget.title!,
               style:
                   widget.titleStyle ??
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             SizedBox(height: widget.gap),
           ],
@@ -154,6 +169,9 @@ class _MyTextFieldState extends State<MyTextField> {
             readOnly: widget.readOnly,
             maxLines: widget.maxLines,
             minLines: widget.minLines,
+            textInputAction: widget.textInputAction,
+            onFieldSubmitted: widget.onFieldSubmitted,
+            onEditingComplete: widget.onEditingComplete,
             decoration: InputDecoration(
               prefixIcon: widget.prefixIcon,
               suffixIcon: _buildSuffixIcon(theme),

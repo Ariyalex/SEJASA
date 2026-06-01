@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-import 'package:sejasa/modules/auth/view/register_screen.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 
 class LoginScreen extends HookWidget {
   const LoginScreen({super.key});
@@ -24,7 +30,6 @@ class LoginScreen extends HookWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
@@ -33,119 +38,170 @@ class LoginScreen extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft),
-          tooltip: 'Kembali',
           onPressed: () => _backToDashboard(context),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+        title: const Text('Masuk'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16),
+      body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          if (state.status == AuthStatus.loading) {
+            // optional: show loading dialog
+          } else {
+            // optional: dismiss loading dialog
+            if (state.status == AuthStatus.authenticated) {
+              MySnackbar.success(
+                title: "Sukses",
+                message: "Berhasil masuk ke akun Anda",
+              );
+              // Navigasi ke main tab (/)
+              context.goNamed(RouteNamed.mainTab);
+            } else if (state.status == AuthStatus.error) {
+              MySnackbar.error(
+                title: "Gagal",
+                message: state.message ?? "Username atau password salah",
+              );
+            }
+          }
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 16.h),
 
-                // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
-                Center(
-                  child: Text(
-                    'Logo',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 80,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-
-                Center(
-                  child: Text(
-                    'Masuk Akun',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                MyTextField(
-                  title: 'Email',
-                  hint: 'email kamu...',
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-
-                MyTextField(
-                  title: 'Password',
-                  hint: 'password kamu....',
-                  controller: passwordController,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    // TODO: panggil auth bloc untuk login
-                  },
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      // TODO: navigasi ke forgot password
-                    },
+                  // Logo placeholder — ganti dengan asset logo SEJASA jika sudah tersedia
+                  Center(
                     child: Text(
-                      'Lupa password?',
-                      style: TextStyle(
-                        color: colorScheme.primary,
+                      'Logo',
+                      style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w500,
+                        fontSize: 80.sp,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  SizedBox(height: 48.h),
 
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Tidak punya akun? ',
-                        style: theme.textTheme.bodyMedium,
+                  Center(
+                    child: Text(
+                      'Masuk Akun',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.sp,
                       ),
-                      GestureDetector(
-                        onTap: () => _showAccountTypePicker(context),
-                        child: Text(
-                          'Daftar',
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  MyTextField(
+                    title: 'Email',
+                    hint: 'email kamu...',
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email wajib diisi';
+                      }
+                      final emailRegExp = RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
+                      if (!emailRegExp.hasMatch(value.trim())) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 12.h),
+
+                  MyTextField(
+                    title: 'Password',
+                    hint: 'password kamu....',
+                    controller: passwordController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password wajib diisi';
+                      }
+                      if (value.length < 6) {
+                        return 'Password minimal 6 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == AuthStatus.loading;
+                      return FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
                         ),
-                      ),
-                    ],
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                if (formKey.currentState?.validate() == true) {
+                                  context.read<AuthBloc>().add(
+                                    AuthLoginRequested(
+                                      emailController.text.trim(),
+                                      passwordController.text,
+                                    ),
+                                  );
+                                }
+                              },
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    colorScheme.onPrimary,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      );
+                    },
                   ),
-                ),
-              ],
+                  SizedBox(height: 16.h),
+
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Tidak punya akun? ',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        GestureDetector(
+                          onTap: () => _showAccountTypePicker(context),
+                          child: Text(
+                            'Daftar',
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -167,10 +223,7 @@ class LoginScreen extends HookWidget {
           child: _AccountTypeSheet(
             onSelected: (type) {
               Navigator.of(sheetContext).pop();
-              context.pushNamed(
-                RouteNamed.register,
-                extra: type,
-              );
+              context.pushNamed(RouteNamed.register, extra: type);
             },
           ),
         );
@@ -205,20 +258,20 @@ class _AccountTypeSheet extends HookWidget {
           const SizedBox(height: 16),
           _AccountTypeTile(
             label: 'Perorangan',
-            selected: selected.value == AccountType.perorangan,
+            selected: selected.value == AccountType.personal,
             onTap: () {
-              selected.value = AccountType.perorangan;
-              onSelected(AccountType.perorangan);
+              selected.value = AccountType.personal;
+              onSelected(AccountType.personal);
             },
             color: colorScheme.primary,
           ),
           const SizedBox(height: 4),
           _AccountTypeTile(
             label: 'Organisasi',
-            selected: selected.value == AccountType.organisasi,
+            selected: selected.value == AccountType.organization,
             onTap: () {
-              selected.value = AccountType.organisasi;
-              onSelected(AccountType.organisasi);
+              selected.value = AccountType.organization;
+              onSelected(AccountType.organization);
             },
             color: colorScheme.primary,
           ),
@@ -261,10 +314,7 @@ class _AccountTypeTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text(label, style: const TextStyle(fontSize: 16)),
           ],
         ),
       ),

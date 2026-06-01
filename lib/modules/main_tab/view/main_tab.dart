@@ -6,15 +6,21 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 import 'package:sejasa/domain/repositories/project_repository.dart';
+import 'package:sejasa/domain/repositories/user_repository.dart';
+import 'package:sejasa/domain/repositories/auth_repository.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 import 'package:sejasa/modules/dashboard_project/bloc/dashboard_project_bloc.dart';
 import 'package:sejasa/modules/dashboard_project/view/dashboard_screen.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_bloc.dart';
 import 'package:sejasa/modules/main_tab/bloc/main_tab_state.dart';
-import 'package:sejasa/modules/my_project/bloc/my_project_bloc.dart';
-import 'package:sejasa/modules/my_project/view/my_project_screen.dart';
+import 'package:sejasa/modules/taken_project/bloc/taken_project_bloc.dart';
+import 'package:sejasa/modules/taken_project/view/taken_project_screen.dart';
 import 'package:sejasa/modules/profil_project/bloc/profil_project_bloc.dart';
 import 'package:sejasa/modules/profil_project/view/profil_screen.dart';
 import 'package:sejasa/modules/chat/view/chat_list_screen.dart';
+import 'package:sejasa/domain/repositories/chat_repository.dart';
+import 'package:sejasa/modules/chat/bloc/chat_list_bloc.dart';
 
 class MainTab extends StatelessWidget {
   const MainTab({super.key});
@@ -25,7 +31,8 @@ class MainTab extends StatelessWidget {
     final mainTabBloc = context.read<MainTabBloc>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
+
       body: SafeArea(
         child: BlocBuilder<MainTabBloc, MainTabState>(
           buildWhen: (previous, current) => false,
@@ -48,12 +55,12 @@ class MainTab extends StatelessWidget {
                 PersistentTabConfig(
                   screen: BlocProvider(
                     create: (context) =>
-                        MyProjectBloc(context.read<ProjectRepository>()),
-                    child: MyProjectScreen(),
+                        TakenProjectBloc(context.read<ProjectRepository>()),
+                    child: const TakenProjectScreen(),
                   ),
                   item: ItemConfig(
                     icon: const Icon(Icons.assignment_outlined),
-                    title: "My Project",
+                    title: "Taken Project",
                     activeForegroundColor: theme.colorScheme.primary,
                   ),
                 ),
@@ -68,7 +75,13 @@ class MainTab extends StatelessWidget {
                   },
                 ),
                 PersistentTabConfig(
-                  screen: const ChatListScreen(),
+                  screen: BlocProvider(
+                    create: (context) => ChatListBloc(
+                      context.read<ChatRepository>(),
+                      context.read<ProjectRepository>(),
+                    ),
+                    child: const ChatListScreen(),
+                  ),
                   item: ItemConfig(
                     icon: const Icon(Icons.chat_outlined),
                     title: "Chats",
@@ -77,9 +90,22 @@ class MainTab extends StatelessWidget {
                 ),
                 PersistentTabConfig(
                   screen: BlocProvider(
-                    create: (context) =>
-                        ProfilProjectBloc(context.read<ProjectRepository>()),
-                    child: ProfilScreen(),
+                    create: (context) => ProfilProjectBloc(
+                      context.read<ProjectRepository>(),
+                      context.read<UserRepository>(),
+                      context.read<AuthRepository>(),
+                    ),
+                    child: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        final user = state.user;
+                        if (user == null) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return ProfilScreen(userId: user.id);
+                      },
+                    ),
                   ),
                   item: ItemConfig(
                     icon: const Icon(Icons.person_outline_rounded),

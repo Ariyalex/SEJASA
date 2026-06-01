@@ -1,12 +1,22 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/services/location_service.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
+import 'package:sejasa/core/widgets/project_location_view_sheet.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
+import 'package:sejasa/core/config/app_config.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_state.dart';
@@ -17,11 +27,13 @@ class ProjectDetailScreen extends HookWidget {
   final String id;
   final bool isOwner;
   final bool isReadMore;
+  final bool isTaken;
   const ProjectDetailScreen({
     super.key,
     required this.id,
     this.isOwner = false,
     this.isReadMore = false,
+    this.isTaken = false,
   });
 
   @override
@@ -30,14 +42,67 @@ class ProjectDetailScreen extends HookWidget {
     final scrollController = useScrollController();
 
     final projectDetailBloc = context.read<ProjectDetailBloc>();
+    final authBloc = context.read<AuthBloc>();
+    final locationService = context.read<LocationService>();
 
     final seeMoreDescription = useState<bool>(false);
     final isScrolled = useState<bool>(false);
 
+    final project = context.select(
+      (ProjectDetailBloc bloc) => bloc.state.project,
+    );
+    final projectAddressState = useState<String>("");
+
     useEffect(() {
-      projectDetailBloc.add(LoadProject(id));
+      if (project != null && project.detailAddress == null) {
+        locationService
+            .getAddressFromLatLng(LatLng(project.latitude, project.longitude))
+            .then((value) {
+              projectAddressState.value = value;
+            });
+      } else {
+        projectAddressState.value = "";
+      }
+      return null;
+    }, [project?.latitude, project?.longitude, project?.detailAddress]);
+
+    useEffect(() {
+      projectDetailBloc.add(
+        LoadProject(id, isAuthenticated: authBloc.state.user != null),
+      );
       return null;
     }, [id]);
+
+    final currentDescription = context.select(
+      (ProjectDetailBloc bloc) => bloc.state.project?.description,
+    );
+
+    // Quill Controller hook
+    final quillController = useMemoized(() {
+      final description = projectDetailBloc.state.project?.description;
+      late QuillController controller;
+      if (description != null) {
+        try {
+          final doc = Document.fromJson(jsonDecode(description));
+          controller = QuillController(
+            document: doc,
+            selection: const TextSelection.collapsed(offset: 0),
+            readOnly: true,
+          );
+        } catch (_) {
+          controller = QuillController.basic()..document.insert(0, description);
+        }
+      } else {
+        controller = QuillController.basic();
+      }
+      controller.readOnly = true;
+
+      return controller;
+    }, [currentDescription]);
+
+    useEffect(() {
+      return () => quillController.dispose();
+    }, [quillController]);
 
     useEffect(() {
       void scrollListener() {
@@ -53,368 +118,1104 @@ class ProjectDetailScreen extends HookWidget {
       return () => scrollController.removeListener(scrollListener);
     }, [scrollController]);
 
-    return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        shadowColor: theme.focusColor,
-        leadingWidth: 50,
-        titleSpacing: 4,
-        title:
-            BlocSelector<ProjectDetailBloc, ProjectDetailState, ProjectEntity?>(
-              selector: (state) {
-                return state.project;
-              },
-              builder: (context, project) {
-                if (project == null) return SizedBox.shrink();
-                if (isScrolled.value) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        project.title,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      Row(
-                        spacing: 4,
-                        children: [
-                          Icon(Icons.person, size: 18),
-                          Expanded(
-                            child: Text(
-                              project.ownerName,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-                return SizedBox.shrink();
-              },
-            ),
-        actions: [
-          BlocSelector<ProjectDetailBloc, ProjectDetailState, bool?>(
-            selector: (state) {
-              return state.project?.isBookmark;
+    final hasLongDescription = useMemoized(() {
+      final description = projectDetailBloc.state.project?.description;
+      if (description == null) return false;
+
+      final plainText = quillController.document.toPlainText();
+      final textPainter = TextPainter(
+        text: TextSpan(text: plainText, style: theme.textTheme.bodyMedium),
+        maxLines: 5,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: MediaQuery.of(context).size.width - 16);
+
+      return textPainter.didExceedMaxLines;
+    }, [currentDescription, quillController]);
+
+    return BlocListener<ProjectDetailBloc, ProjectDetailState>(
+      listener: (context, state) {
+        if (state.status == ProjectDetailStatus.applySuccess) {
+          context.pushNamed(
+            RouteNamed.chat,
+            pathParameters: {"id": state.appliedChatId ?? ""},
+            extra: {
+              "name": state.project?.ownerName ?? 'Owner',
+              "project_id": state.appliedProjectId ?? "",
+              "participant_status": null,
+              "is_owner": false,
+              "apply_project_message": true,
+              "user_id": state.project?.ownerId,
             },
-            builder: (context, isBookmark) {
-              if (isBookmark == null) {
-                return IconButton(
-                  onPressed: null,
-                  icon: Icon(
-                    Icons.bookmark_outline,
-                    color: theme.colorScheme.primary,
-                  ),
-                );
-              }
-              return IconButton(
-                onPressed: () {
-                  projectDetailBloc.add(ToggleProjectBookmark());
+          );
+        } else if (state.status == ProjectDetailStatus.applyError) {
+          MySnackbar.error(message: state.message ?? "Gagal melamar proyek");
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          surfaceTintColor: Colors.transparent,
+          shadowColor: theme.focusColor,
+          leadingWidth: 50,
+          titleSpacing: 4,
+          title:
+              BlocSelector<
+                ProjectDetailBloc,
+                ProjectDetailState,
+                ProjectEntity?
+              >(
+                selector: (state) {
+                  return state.project;
                 },
-                icon: Icon(
-                  isBookmark ? Icons.bookmark : Icons.bookmark_outline,
-                  color: theme.colorScheme.primary,
-                ),
-              );
-            },
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(LucideIcons.share2, color: theme.colorScheme.primary),
-          ),
-          if (isOwner)
-            IconButton(
-              onPressed: () {
-                context.pushNamed(
-                  RouteNamed.editProject,
-                  extra: projectDetailBloc.state.project,
-                );
-              },
-              icon: Icon(Icons.edit, color: theme.colorScheme.primary),
-            ),
-          if (!isOwner)
+                builder: (context, project) {
+                  if (project == null) return SizedBox.shrink();
+
+                  if (isScrolled.value) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          project.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        Row(
+                          spacing: 4,
+                          children: [
+                            Icon(Icons.person, size: 18),
+                            Expanded(
+                              child: Text(
+                                project.ownerName,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+          actions: [
             IconButton(
               onPressed: () {},
-              icon: Icon(LucideIcons.flag, color: theme.colorScheme.error),
+              icon: Icon(LucideIcons.share2, color: theme.colorScheme.primary),
             ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          controller: scrollController,
-          child: BlocBuilder<ProjectDetailBloc, ProjectDetailState>(
-            builder: (context, state) {
-              if (state.status == ProjectDetailStatus.error) {
-                return Center(child: Text("Terjadi error: ${state.message}"));
-              } else {
-                final project = state.project ?? ProjectEntity.dummyProject();
-                final isSkeleton =
-                    state.status != ProjectDetailStatus.success &&
-                    state.project == null;
-                return Skeletonizer(
-                  enabled: isSkeleton,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            project.title,
-                            style: theme.textTheme.headlineMedium,
-                            overflow: TextOverflow.visible,
-                          ),
-                          SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
+            if (isOwner)
+              IconButton(
+                onPressed: () {
+                  context.pushNamed(
+                    RouteNamed.editProject,
+                    extra: projectDetailBloc.state.project,
+                  );
+                },
+                icon: Icon(Icons.edit, color: theme.colorScheme.primary),
+              ),
+            if (!isOwner)
+              IconButton(
+                onPressed: () {
+                  MySnackbar.info(
+                    message:
+                        "Frenkkkk, fitur belum ada (mengejeck dengan sopan)",
+                  );
+                },
+                icon: Icon(LucideIcons.flag, color: theme.colorScheme.error),
+              ),
+          ],
+        ),
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                Future.microtask(() {
+                  projectDetailBloc.add(
+                    LoadProject(
+                      id,
+                      isAuthenticated: authBloc.state.user != null,
+                    ),
+                  );
+                }),
+                projectDetailBloc.stream.firstWhere(
+                  (state) =>
+                      state.status == ProjectDetailStatus.success ||
+                      state.status == ProjectDetailStatus.error,
+                ),
+              ]);
+            },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 8,
+                  ),
+                  controller: scrollController,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: BlocBuilder<ProjectDetailBloc, ProjectDetailState>(
+                      builder: (context, state) {
+                        if (state.status == ProjectDetailStatus.error) {
+                          return Center(
+                            child: Text("Terjadi error: ${state.message}"),
+                          );
+                        } else {
+                          final project =
+                              state.project ?? ProjectEntity.dummyProject();
+                          final isSkeleton =
+                              state.status != ProjectDetailStatus.success &&
+                              state.project == null;
+
+                          final projectAddress =
+                              project.detailAddress ??
+                              projectAddressState.value;
+
+                          return Skeletonizer(
+                            enabled: isSkeleton,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.route_outlined,
-                                      size: 24,
-                                      color: theme.colorScheme.primary,
+                                    Text(
+                                      project.name,
+                                      style: theme.textTheme.headlineMedium,
+                                      overflow: TextOverflow.visible,
                                     ),
-                                    Expanded(
-                                      child: Text(
-                                        project.distance,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodyLarge,
+                                    SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        if (!isOwner)
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.route_outlined,
+                                                  size: 24,
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                ),
+                                                if (project.distance != null)
+                                                  Expanded(
+                                                    child: Text(
+                                                      "${round(project.distance! / 1000, decimals: 2)} KM",
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodyLarge,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (isOwner)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: theme
+                                                  .colorScheme
+                                                  .primaryContainer
+                                                  .withValues(alpha: 0.5),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              "${project.currentParticipant} Pelamar",
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .primary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                          ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: theme
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withValues(alpha: 0.5),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            "${project.acceptedParticipant}/${project.maxParticipant} Partisipan",
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(
+                                                Icons.location_on_outlined,
+                                                color: theme.primaryColor,
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  project.detailAddress ??
+                                                      projectAddress,
+                                                  style:
+                                                      theme.textTheme.bodyLarge,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        FilledButton.icon(
+                                          onPressed: () {
+                                            showProjectLocationView(
+                                              context: context,
+                                              projectLocation: LatLng(
+                                                project.latitude,
+                                                project.longitude,
+                                              ),
+                                              projectAddress:
+                                                  project.detailAddress ??
+                                                  projectAddress,
+                                              projectName: project.name,
+                                            );
+                                          },
+                                          style: FilledButton.styleFrom(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          icon: const Icon(
+                                            LucideIcons.map,
+                                            size: 16,
+                                          ),
+                                          label: const Text("Lokasi"),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      spacing: 6,
+                                      children: [
+                                        MyVisualChip(
+                                          title: project.status.display,
+                                          textColor: project.status
+                                              .getTextColor(theme),
+                                          backgroundColor: project.status
+                                              .getBackgroundColor(theme),
+                                        ),
+                                        MyVisualChip(
+                                          title: project.category.name,
+                                          backgroundColor: theme
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.1),
+                                          textColor: theme.colorScheme.primary,
+                                        ),
+                                      ],
+                                    ),
+
+                                    SizedBox(height: 12),
+                                    InkWell(
+                                      onTap: () {
+                                        context.pushNamed(
+                                          RouteNamed.userProfile,
+                                          pathParameters: {
+                                            'id': project.ownerId,
+                                          },
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.only(right: 16.w),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          spacing: 10,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 26,
+                                              backgroundColor: Colors.grey,
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 38,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  project.ownerName,
+                                                  style: theme
+                                                      .textTheme
+                                                      .titleMedium,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Row(
+                                                  spacing: 6,
+                                                  children: [
+                                                    RatingBarIndicator(
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                            return Icon(
+                                                              Icons.star,
+                                                              color:
+                                                                  Colors.amber,
+                                                            );
+                                                          },
+                                                      itemCount: 5,
+
+                                                      rating:
+                                                          project.ownerRating,
+                                                      itemSize: 20.r,
+                                                    ),
+                                                    Text(
+                                                      project.ownerRating
+                                                          .toStringAsFixed(1),
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodyLarge
+                                                          ?.copyWith(
+                                                            color: theme
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
+                                    ),
+                                    // Check if completed project
+                                    if (project.status ==
+                                        ProjectStatus.completed) ...[
+                                      const SizedBox(height: 16),
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: theme
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          border: Border.all(
+                                            color: theme.colorScheme.primary
+                                                .withValues(alpha: 0.2),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.stars_rounded,
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  size: 22,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  "Ulasan & Rating Project",
+                                                  style: theme
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: theme
+                                                            .colorScheme
+                                                            .primary,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Rating Project Keseluruhan:",
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    RatingBarIndicator(
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                            return const Icon(
+                                                              Icons
+                                                                  .star_rounded,
+                                                              color:
+                                                                  Colors.amber,
+                                                            );
+                                                          },
+                                                      itemCount: 5,
+                                                      rating:
+                                                          project.projectRating,
+                                                      itemSize: 18,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      project.projectRating
+                                                          .toStringAsFixed(1),
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            if (project.givenRating != null &&
+                                                project.givenRating != 0) ...[
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Rating yang Anda Berikan:",
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodyMedium,
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      RatingBarIndicator(
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                              return const Icon(
+                                                                Icons
+                                                                    .star_rounded,
+                                                                color: Colors
+                                                                    .amber,
+                                                              );
+                                                            },
+                                                        itemCount: 5,
+                                                        rating: project
+                                                            .givenRating!,
+                                                        itemSize: 18,
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        project.givenRating!
+                                                            .toStringAsFixed(1),
+                                                        style: theme
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const Divider(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Deskripsi",
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    AnimatedSize(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                      child: ShaderMask(
+                                        shaderCallback: (rect) {
+                                          return LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.black,
+                                              (hasLongDescription &&
+                                                      !seeMoreDescription.value)
+                                                  ? Colors.transparent
+                                                  : Colors.black,
+                                            ],
+                                            stops: const [0.8, 1.0],
+                                          ).createShader(
+                                            Rect.fromLTRB(
+                                              0,
+                                              0,
+                                              rect.width,
+                                              rect.height,
+                                            ),
+                                          );
+                                        },
+                                        blendMode: BlendMode.dstIn,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxHeight:
+                                                (hasLongDescription &&
+                                                    !seeMoreDescription.value)
+                                                ? 120
+                                                : double.infinity,
+                                          ),
+                                          child: QuillEditor.basic(
+                                            controller: quillController,
+                                            config: const QuillEditorConfig(
+                                              readOnlyMouseCursor:
+                                                  MouseCursor.defer,
+                                              scrollable: false,
+                                              showCursor: false,
+                                              autoFocus: false,
+                                              expands: false,
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (hasLongDescription &&
+                                        !seeMoreDescription.value)
+                                      TextButton(
+                                        style: ButtonStyle(
+                                          shape: WidgetStatePropertyAll(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadiusGeometry.circular(
+                                                    8,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        onPressed: () =>
+                                            seeMoreDescription.value = true,
+                                        child: Text(
+                                          "Lihat Selengkapnya",
+                                          style: theme.textTheme.titleMedium!
+                                              .copyWith(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                Divider(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Persyaratan",
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Column(
+                                      children:
+                                          project.requirements?.map((e) {
+                                            return RequirementTextItem(text: e);
+                                          }).toList() ??
+                                          [],
                                     ),
                                   ],
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer
-                                      .withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "${project.participant} Pelamar",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            project.address,
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                          SizedBox(height: 8),
-                          Row(
-                            spacing: 6,
-                            children: [
-                              MyVisualChip(
-                                title: project.status.display,
-                                textColor: project.status.getTextColor(theme),
-                                backgroundColor: project.status
-                                    .getBackgroundColor(theme),
-                              ),
-                              MyVisualChip(
-                                title: project.category,
-                                backgroundColor: theme.colorScheme.primary
-                                    .withValues(alpha: 0.1),
-                                textColor: theme.colorScheme.primary,
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: 12),
-                          Row(
-                            spacing: 10,
-                            children: [
-                              CircleAvatar(
-                                radius: 26,
-                                backgroundColor: Colors.grey,
-                                child: Icon(
-                                  Icons.person,
-                                  size: 38,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    project.ownerName,
-                                    style: theme.textTheme.titleMedium,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Row(
-                                    spacing: 6,
-                                    children: [
-                                      RatingBarIndicator(
-                                        itemBuilder: (context, index) {
-                                          return Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                          );
-                                        },
-                                        itemCount: 5,
-
-                                        rating: project.ownerRating,
-                                        itemSize: 24,
-                                      ),
-                                      Text(
-                                        project.ownerRating.toString(),
-                                        style: theme.textTheme.bodyLarge
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Divider(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Deskripsi", style: theme.textTheme.titleLarge),
-                          SizedBox(height: 6),
-                          Text(
-                            "${project.description}",
-                            overflow: seeMoreDescription.value
-                                ? TextOverflow.visible
-                                : TextOverflow.fade,
-                            maxLines: seeMoreDescription.value ? null : 10,
-                          ),
-                          if (!seeMoreDescription.value)
-                            TextButton(
-                              style: ButtonStyle(
-                                shape: WidgetStatePropertyAll(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadiusGeometry.circular(
-                                      8,
+                                Divider(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Hastags",
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children:
+                                          project.hastags
+                                              ?.map<Widget>(
+                                                (e) =>
+                                                    MyVisualChip(title: "#$e"),
+                                              )
+                                              .toList() ??
+                                          [],
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              onPressed: () => seeMoreDescription.value = true,
-                              child: Text(
-                                "Lihat Selengkapnya",
-                                style: theme.textTheme.titleMedium!.copyWith(
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
+                              ],
                             ),
-                        ],
-                      ),
-                      Divider(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Persyaratan",
-                            style: theme.textTheme.titleLarge,
-                          ),
-                          SizedBox(height: 6),
-                          Column(
-                            children:
-                                project.requirements?.map((e) {
-                                  return RequirementTextItem(text: e);
-                                }).toList() ??
-                                [],
-                          ),
-                        ],
-                      ),
-                      Divider(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Hastags", style: theme.textTheme.titleLarge),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children:
-                                project.hastags
-                                    ?.map<Widget>(
-                                      (e) => MyVisualChip(title: "#$e"),
-                                    )
-                                    .toList() ??
-                                [],
-                          ),
-                        ],
-                      ),
-                    ],
+                          );
+                        }
+                      },
+                    ),
                   ),
                 );
-              }
-            },
+              },
+            ),
           ),
         ),
-      ),
-      bottomNavigationBar: isReadMore
-          ? null
-          : SafeArea(
-              child: BlocBuilder<ProjectDetailBloc, ProjectDetailState>(
-                builder: (context, state) {
-                  if (state.status == ProjectDetailStatus.error) {
-                    return Center(
-                      child: Text("Terjadi error: ${state.message}"),
-                    );
-                  } else {
-                    final bool isSkeleton =
-                        state.status != ProjectDetailStatus.success &&
-                        state.project == null;
-                    return Skeletonizer(
-                      enabled: isSkeleton,
-                      child: Container(
-                        color: Colors.transparent,
-                        padding: EdgeInsets.symmetric(
-                          vertical: 0,
-                          horizontal: 12,
-                        ),
-                        width: double.infinity,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(8),
+        bottomNavigationBar: isReadMore
+            ? null
+            : SafeArea(
+                child: BlocBuilder<ProjectDetailBloc, ProjectDetailState>(
+                  builder: (context, state) {
+                    if (state.status == ProjectDetailStatus.error) {
+                      return Center(
+                        child: Text("Terjadi error: ${state.message}"),
+                      );
+                    } else {
+                      final bool isSkeleton =
+                          state.status != ProjectDetailStatus.success &&
+                          state.project == null;
+
+                      // If not owner and not authenticated, hide the button
+                      if (!isOwner && !state.isAuthenticated) {
+                        return const SizedBox.shrink();
+                      }
+
+                      // If completed taken project, render Beri Ulasan or rating badge
+                      if (!isSkeleton &&
+                          !isOwner &&
+                          isTaken &&
+                          state.project?.status == ProjectStatus.completed) {
+                        final project = state.project!;
+                        if (project.givenRating != 0) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 16,
                             ),
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_outline,
+                                      color: theme.colorScheme.primary,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "Sudah Diulas",
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      color: Colors.amber,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      "${project.givenRating} / 5",
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.rate_review_outlined,
+                                size: 18,
+                              ),
+                              label: const Text(
+                                "Beri Ulasan",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              onPressed: () => _showReviewBottomSheet(
+                                context,
+                                projectDetailBloc,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+
+                      return Skeletonizer(
+                        enabled: isSkeleton,
+                        child: Container(
+                          color: Colors.transparent,
+                          padding: EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 12,
                           ),
-                          onPressed: () {
-                            if (!isOwner) {
-                              context.pushNamed(
-                                RouteNamed.chat,
-                                pathParameters: {"id": '1'},
-                                extra: {
-                                  "name": state.project?.ownerName,
-                                  "project_id": state.project?.id,
-                                },
-                              );
-                            }
-                          },
-                          child: Text(
-                            isOwner ? "List pelamar" : "Hubungi sekarang",
+                          width: double.infinity,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadiusGeometry.circular(8),
+                              ),
+                            ),
+                            onPressed:
+                                state.status == ProjectDetailStatus.applyLoading
+                                ? null
+                                : () {
+                                    final project = state.project;
+                                    if (!isOwner) {
+                                      if (project?.chatId != null && isTaken) {
+                                        context.pushNamed(
+                                          RouteNamed.chat,
+                                          pathParameters: {
+                                            'id': project!.chatId!,
+                                          },
+                                          extra: {
+                                            'project_id': project.id,
+                                            'name': project.ownerName,
+                                            if (project.ownerImagePath != null)
+                                              if (project
+                                                  .ownerImagePath!
+                                                  .isNotEmpty)
+                                                'avatar_url':
+                                                    AppConfig.baseUrl +
+                                                    project.ownerImagePath!,
+                                            'is_owner': false,
+                                          },
+                                        );
+                                      } else {
+                                        context.read<ProjectDetailBloc>().add(
+                                          const ApplyToProject(),
+                                        );
+                                      }
+                                    } else {
+                                      if (project != null) {
+                                        context.pushNamed(
+                                          RouteNamed.projectChatList,
+                                          pathParameters: {"id": project.id},
+                                        );
+                                      }
+                                    }
+                                  },
+                            child:
+                                state.status == ProjectDetailStatus.applyLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    isOwner
+                                        ? "List pelamar"
+                                        : ((state.project?.chatId != null &&
+                                                  isTaken)
+                                              ? "Buka Chat"
+                                              : "Gabung Project"),
+                                  ),
                           ),
                         ),
-                      ),
-                    );
-                  }
-                },
+                      );
+                    }
+                  },
+                ),
+              ),
+      ),
+    );
+  }
+
+  void _showReviewBottomSheet(BuildContext context, ProjectDetailBloc bloc) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return _ProjectDetailReviewBottomSheetContent(
+          project: bloc.state.project!,
+          onSubmit: (rating, review) {
+            bloc.add(ReviewProject(rating: rating, review: review));
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ProjectDetailReviewBottomSheetContent extends StatefulWidget {
+  final ProjectEntity project;
+  final Function(double rating, String review) onSubmit;
+
+  const _ProjectDetailReviewBottomSheetContent({
+    required this.project,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_ProjectDetailReviewBottomSheetContent> createState() =>
+      _ProjectDetailReviewBottomSheetContentState();
+}
+
+class _ProjectDetailReviewBottomSheetContentState
+    extends State<_ProjectDetailReviewBottomSheetContent> {
+  late final TextEditingController _reviewController;
+  double _currentRating = 5.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _reviewController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _reviewController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: 20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
+            const SizedBox(height: 20),
+            Text(
+              "Beri Ulasan Proyek",
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              widget.project.name,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Column(
+                children: [
+                  RatingBar.builder(
+                    initialRating: 5,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: false,
+                    itemCount: 5,
+                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    itemBuilder: (context, _) =>
+                        const Icon(Icons.star_rounded, color: Colors.amber),
+                    onRatingUpdate: (rating) {
+                      setState(() {
+                        _currentRating = rating;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${_currentRating.toInt()} dari 5 Bintang",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber[800],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Tulis Ulasan Anda",
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _reviewController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: "Bagikan pengalaman Anda bekerja pada proyek ini...",
+                hintStyle: TextStyle(fontSize: 14, color: theme.hintColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: theme.dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  if (_reviewController.text.trim().isEmpty) {
+                    MySnackbar.warning(
+                      message: "Silakan masukkan ulasan Anda terlebih dahulu",
+                    );
+                    return;
+                  }
+
+                  widget.onSubmit(
+                    _currentRating,
+                    _reviewController.text.trim(),
+                  );
+                  Navigator.pop(context);
+
+                  MySnackbar.success(message: "Ulasan berhasil dikirim");
+                },
+                child: const Text(
+                  "Kirim Ulasan",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

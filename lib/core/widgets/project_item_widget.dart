@@ -1,29 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/services/location_service.dart';
 import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/domain/value_objects/project_status.dart';
+import 'package:sejasa/core/widgets/build_project_list_widget.dart';
 
-class ProjectItemWidget extends StatelessWidget {
+class ProjectItemWidget extends HookWidget {
   final ProjectEntity project;
   final bool isMyProject;
+  final ProjectListType listType;
+  final String? takenStatus;
+
   const ProjectItemWidget({
     super.key,
     required this.project,
     this.isMyProject = false,
+    this.listType = ProjectListType.general,
+    this.takenStatus,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locationService = context.read<LocationService>();
+    String projcetAddress = "";
+    useEffect(() {
+      if (project.detailAddress == null) {
+        locationService
+            .getAddressFromLatLng(LatLng(project.latitude, project.longitude))
+            .then((value) {
+              projcetAddress = value;
+            });
+      }
+      return null;
+    }, [project]);
+
     return InkWell(
       onTap: () {
-        context.pushNamed(
-          RouteNamed.projectDetail,
-          pathParameters: {'id': project.id},
-          extra: {'is_owner': isMyProject},
-        );
+        final isLoggedIn = context.read<AuthBloc>().state.user != null;
+        if (!isLoggedIn) {
+          context.pushNamed(RouteNamed.login);
+        } else {
+          context.pushNamed(
+            RouteNamed.projectDetail,
+            pathParameters: {'id': project.id},
+            extra: {
+              'is_owner': isMyProject,
+              'is_taken': listType == ProjectListType.taken,
+            },
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -34,17 +67,14 @@ class ProjectItemWidget extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 8,
+          // spacing: 8,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               spacing: 8,
               children: [
                 Expanded(
-                  child: Text(
-                    project.title,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  child: Text(project.name, style: theme.textTheme.titleMedium),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -58,7 +88,7 @@ class ProjectItemWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    "${project.participant} Pelamar",
+                    "${project.acceptedParticipant}/${project.maxParticipant} Partisipan",
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -67,10 +97,33 @@ class ProjectItemWidget extends StatelessWidget {
                 ),
               ],
             ),
+            if (project.status != ProjectStatus.hiring &&
+                project.status != ProjectStatus.pending)
+              Row(
+                spacing: 6,
+                children: [
+                  RatingBarIndicator(
+                    itemBuilder: (context, index) {
+                      return const Icon(Icons.star, color: Colors.amber);
+                    },
+                    itemCount: 5,
+                    rating: project.projectRating,
+                    itemSize: 18,
+                  ),
+                  Text(
+                    project.projectRating.toStringAsFixed(1),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.location_on_outlined,
@@ -80,18 +133,50 @@ class ProjectItemWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        project.address,
+                        project.detailAddress ?? projcetAddress,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.route_outlined,
-                      size: 18,
-                      color: theme.colorScheme.primary,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      spacing: 2,
+                      children: [
+                        if (project.currentParticipant != null && isMyProject)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "${project.currentParticipant} Pelamar",
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        if (project.distance != null && !isMyProject)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.route_outlined,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                " ${round(project.distance! / 1000, decimals: 2)} KM",
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(project.distance),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -104,7 +189,7 @@ class ProjectItemWidget extends StatelessWidget {
                       backgroundColor: project.status.getBackgroundColor(theme),
                     ),
                     MyVisualChip(
-                      title: project.category,
+                      title: project.category.name,
                       backgroundColor: theme.colorScheme.primary.withValues(
                         alpha: 0.1,
                       ),
@@ -141,7 +226,7 @@ class ProjectItemWidget extends StatelessWidget {
     return Row(
       spacing: 10,
       children: [
-        CircleAvatar(
+        const CircleAvatar(
           radius: 20,
           backgroundColor: Colors.grey,
           child: Icon(Icons.person, size: 18, color: Colors.white),
@@ -159,15 +244,14 @@ class ProjectItemWidget extends StatelessWidget {
               children: [
                 RatingBarIndicator(
                   itemBuilder: (context, index) {
-                    return Icon(Icons.star, color: Colors.amber);
+                    return const Icon(Icons.star, color: Colors.amber);
                   },
                   itemCount: 5,
-
                   rating: project.ownerRating,
                   itemSize: 18,
                 ),
                 Text(
-                  project.ownerRating.toString(),
+                  project.ownerRating.toStringAsFixed(1),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

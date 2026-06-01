@@ -8,8 +8,12 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:sejasa/core/config/app_config.dart';
+import 'package:sejasa/core/di/dependency_injection.dart';
 import 'package:sejasa/core/errors/api_exceptions.dart';
+import 'package:sejasa/core/routes/app_router.dart';
+import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/services/connectivity_service.dart';
+import 'package:sejasa/core/services/socket_service.dart';
 import 'package:sejasa/core/services/storage_service.dart';
 import 'package:sejasa/core/utils/log_utils.dart';
 
@@ -37,7 +41,7 @@ class ApiService {
     _dio = Dio(
       // base options is base setting for request, like request base url, timeout, global headers, response type, etc.
       BaseOptions(
-        baseUrl: AppConfig.baseUrl,
+        baseUrl: AppConfig.baseApiUrl,
         connectTimeout: Duration(seconds: AppConfig.timeout),
         receiveTimeout: Duration(seconds: AppConfig.timeout),
         sendTimeout: Duration(seconds: AppConfig.timeout),
@@ -116,19 +120,29 @@ class ApiService {
             } else {
               LogUtils.d('❌ No token for: ${options.path}');
 
-              // If no token and not auth endpoint, reject immediately
-              _pendingRequests.remove(requestId);
-              handler.reject(
-                DioException(
-                  requestOptions: options,
-                  response: Response(
+              // If it's a public GET request (except get profile /me), proceed without token
+              final isPublicGet =
+                  options.method == 'GET' && !options.path.contains('/me');
+
+              if (isPublicGet) {
+                LogUtils.d(
+                  '🔓 Proceeding without token for public GET: ${options.path}',
+                );
+              } else {
+                // If no token and not public GET, reject immediately
+                _pendingRequests.remove(requestId);
+                handler.reject(
+                  DioException(
                     requestOptions: options,
-                    statusCode: 401,
-                    statusMessage: 'No access token',
+                    response: Response(
+                      requestOptions: options,
+                      statusCode: 401,
+                      statusMessage: 'No access token',
+                    ),
                   ),
-                ),
-              );
-              return;
+                );
+                return;
+              }
             }
           } else {
             LogUtils.d('🔐 Auth endpoint (no token): ${options.path}');
@@ -164,10 +178,15 @@ class ApiService {
 
           LogUtils.d('❌ Error: $statusCode $path');
           LogUtils.d('❌ message: $message');
+          LogUtils.d('❌ detail: ${error.error}');
 
           // ✅ Handle 401 with better logic
           if (statusCode == 401 && !_isAuthEndpoint(path)) {
-            if (error.response?.data["data"] != "unauthorized") {
+            final isUnauthorized =
+                error.response?.data?["message"]?.toString().toLowerCase() ==
+                "unauthorized";
+
+            if (!isUnauthorized) {
               LogUtils.d('🔄 Handling 401 for non-auth endpoint: $path');
 
               // Wait for ongoing refresh or start new one
@@ -224,7 +243,7 @@ class ApiService {
               } else {
                 // if token refresh with refreh token failed, then do log out.
                 LogUtils.d('❌ Token refresh failed, logging out...');
-                // await _handleLogout();
+                await _handleLogout();
               }
             }
           }
@@ -262,7 +281,7 @@ class ApiService {
       // Create separate Dio instance to avoid interceptor loops
       final refreshDio = Dio(
         BaseOptions(
-          baseUrl: AppConfig.baseUrl,
+          baseUrl: AppConfig.baseApiUrl,
           connectTimeout: Duration(seconds: 15),
           receiveTimeout: Duration(seconds: 15),
           headers: {
@@ -273,19 +292,21 @@ class ApiService {
       );
 
       final response = await refreshDio.post(
-        '/token/refresh',
-        data: {'refresh': refreshToken},
+        '/refresh',
+        data: {'refresh_token': refreshToken},
       );
 
       LogUtils.d('✅ Refresh API response: ${response.statusCode}');
 
-      final newAccessToken = response.data['access'];
+      final newAccessToken = response.data['data']?['access_token'];
 
       if (newAccessToken != null && newAccessToken.isNotEmpty) {
         await _storage.write('access_token', newAccessToken);
 
-        final newRefreshToken = response.data['refresh'];
-        await _storage.write('refresh_token', newRefreshToken);
+        final newRefreshToken = response.data['data']?['refresh_token'];
+        if (newRefreshToken != null) {
+          await _storage.write('refresh_token', newRefreshToken);
+        }
 
         LogUtils.d('✅ Tokens updated successfully');
         _refreshCompleter!.complete(true);
@@ -308,39 +329,36 @@ class ApiService {
   /// Checking is this path is auth endpoint or not.
   /// It will return [bool]
   bool _isAuthEndpoint(String path) {
-    final authEndpoints = ['/login', '/register', '/logout', '/token/refresh'];
+    final authEndpoints = ['/login', '/register', '/refresh'];
     return authEndpoints.any((endpoint) => path.contains(endpoint));
   }
 
   /// Handle logout.
   /// Clear all pending request, access and refresh token
-  // Future<void> _handleLogout() async {
-  //   try {
-  //     LogUtils.d('🔄 Handling auto logout...');
+  Future<void> _handleLogout() async {
+    try {
+      LogUtils.d('🔄 Handling auto logout...');
 
-  //     //  Clear pending requests
-  //     _pendingRequests.clear();
-  //     _isRefreshing = false;
-  //     _refreshCompleter = null;
+      //  Clear pending requests
+      _pendingRequests.clear();
+      _isRefreshing = false;
+      _refreshCompleter = null;
 
-  //     //  Clear tokens
-  //     await _storage.delete('access_token');
-  //     await _storage.delete('refresh_token');
+      //  Clear tokens
+      await _storage.delete('access_token');
+      await _storage.delete('refresh_token');
 
-  //     // Call AuthService if available
-  //     if (Get.isRegistered<AuthService>()) {
-  //       final authService = Get.find<AuthService>();
-  //       await authService.logout();
-  //     }
-  //   } catch (e) {
-  //     LogUtils.e('❌ Logout error', e);
-  //   } finally {
-  //     //  Navigate to login
-  //     if (Get.currentRoute != RouteNames.loginPage) {
-  //       Get.offAllNamed(RouteNames.loginPage);
-  //     }
-  //   }
-  // }
+      // Disconnect socket
+      if (getIt.isRegistered<SocketService>()) {
+        getIt<SocketService>().disconnect();
+      }
+    } catch (e) {
+      LogUtils.e('❌ Logout error', e);
+    } finally {
+      //  Navigate to login
+      AppRouter.router.goNamed(RouteNamed.login);
+    }
+  }
 
   /// Http request Get.
   /// Handle custom get with dio.
@@ -462,6 +480,31 @@ class ApiService {
         if (data != null) ...data,
       });
       return await _dio.post(path, data: formData);
+    } on DioException catch (error) {
+      throw _handleDioError(error);
+    }
+  }
+
+  /// Http request download for file.
+  /// Downloads a file from the remote [urlPath] and saves it locally at [savePath].
+  Future<Response> download(
+    String urlPath,
+    String savePath, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      await isReady;
+      return await _dio.download(
+        urlPath,
+        savePath,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+      );
     } on DioException catch (error) {
       throw _handleDioError(error);
     }

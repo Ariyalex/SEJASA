@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/routes/route_named.dart';
+import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/core/widgets/my_text_field.dart';
-
-/// Jenis akun yang dipilih user saat register.
-/// Dipakai juga sebagai parameter ke [RegisterScreen].
-enum AccountType { perorangan, organisasi }
+import 'package:sejasa/core/widgets/project_location_picker.dart';
+import 'package:sejasa/data/payloads/register_payload.dart';
+import 'package:sejasa/domain/value_objects/account_type.dart';
+import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
+import 'package:sejasa/modules/auth/bloc/auth_event.dart';
+import 'package:sejasa/modules/auth/bloc/auth_state.dart';
 
 /// Register screen untuk Perorangan dan Organisasi.
 ///
@@ -19,14 +22,11 @@ enum AccountType { perorangan, organisasi }
 ///
 /// Sisa field (Email, Alamat + peta, Password, Konfirmasi Password) sama.
 class RegisterScreen extends HookWidget {
-  const RegisterScreen({
-    super.key,
-    this.accountType = AccountType.perorangan,
-  });
+  const RegisterScreen({super.key, this.accountType = AccountType.personal});
 
   final AccountType accountType;
 
-  bool get _isOrganisasi => accountType == AccountType.organisasi;
+  bool get _isOrganisasi => accountType == AccountType.organization;
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +45,6 @@ class RegisterScreen extends HookWidget {
     final selectedLocation = useState<LatLng?>(null);
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
-    final mapController = useMemoized(() => MapController());
-    useEffect(() => mapController.dispose, [mapController]);
-
-    // Default kamera peta: Yogyakarta (sesuaikan jika perlu)
-    const defaultCenter = LatLng(-7.7956, 110.3695);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -58,265 +52,294 @@ class RegisterScreen extends HookWidget {
         ),
         surfaceTintColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 8),
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state.status == AuthStatus.success) {
+            MySnackbar.success(
+              title: "Registrasi Berhasil",
+              message: state.message ?? "Silakan masuk dengan akun Anda.",
+            );
+            // Kembali ke login jika bisa, kalau tidak go ke /login
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(RouteNamed.login);
+            }
+          } else if (state.status == AuthStatus.error) {
+            MySnackbar.error(
+              title: "Registrasi Gagal",
+              message: state.message ?? "Terjadi kesalahan saat registrasi",
+            );
+          }
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 8.h),
 
-                // Logo placeholder — ganti dengan asset logo SEJASA jika ada
-                Center(
-                  child: Text(
-                    'Logo',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 72,
+                  // Logo placeholder — ganti dengan asset logo SEJASA jika ada
+                  Center(
+                    child: Text(
+                      'Logo',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 72.sp,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
-                Center(
-                  child: Text(
-                    'Daftar Akun',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                  Center(
+                    child: Text(
+                      'Daftar Akun',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.sp,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
 
-                MyTextField(
-                  title: _isOrganisasi ? 'Nama Organisasi' : 'Nama',
-                  hint: _isOrganisasi ? 'nama organisasi...' : 'nama lengkap',
-                  controller: namaController,
-                ),
-                const SizedBox(height: 12),
+                  MyTextField(
+                    title: _isOrganisasi ? 'Nama Organisasi' : 'Nama',
+                    hint: _isOrganisasi ? 'nama organisasi...' : 'nama lengkap',
+                    controller: namaController,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return _isOrganisasi
+                            ? 'Nama organisasi wajib diisi'
+                            : 'Nama wajib diisi';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
 
-                MyTextField(
-                  title: 'Email',
-                  hint: 'Email aktif',
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
+                  MyTextField(
+                    title: 'Email',
+                    hint: 'Email aktif',
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email wajib diisi';
+                      }
+                      final emailRegExp = RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
+                      if (!emailRegExp.hasMatch(value.trim())) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
 
-                // Alamat + tombol pilih lokasi (sesuai mockup)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: MyTextField(
-                        title: 'Alamat',
-                        hint: 'alamat lengkap',
-                        controller: alamatController,
-                        maxLines: 1,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: colorScheme.outline),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(LucideIcons.mapPin),
-                          tooltip: 'Pilih lokasi di peta',
-                          onPressed: () {
-                            // Scroll fokus ke peta (peta sudah tampil di bawah)
-                            // TODO: optional — bisa juga buka full-screen map picker
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                  ProjectLocationPicker(
+                    initialLocation: selectedLocation.value,
+                    initialAddress: alamatController.text,
+                    title: 'Lokasi Anda',
+                    description:
+                        'Ketuk peta untuk memilih lokasi Anda secara presisi.',
+                    onLocationChanged: (LatLng location, String address) {
+                      selectedLocation.value = location;
+                      alamatController.text = address;
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  MyTextField(
+                    hint: 'Pilih lokasi untuk mengisi alamat...',
+                    controller: alamatController,
+                    readOnly: true,
+                    maxLines: 1,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Alamat wajib diisi';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
 
-                // Peta lokasi (sesuai mockup)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Lokasi Anda',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(LucideIcons.locateFixed),
-                      tooltip: 'Gunakan lokasi saat ini',
-                      onPressed: () {
-                        // TODO: integrasi geolocator untuk get current position,
-                        // lalu mapController.move(latLng, 16) + selectedLocation.value = latLng;
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    height: 220,
-                    child: FlutterMap(
-                      mapController: mapController,
-                      options: MapOptions(
-                        initialCenter: defaultCenter,
-                        initialZoom: 14,
-                        onTap: (tapPosition, latLng) {
-                          selectedLocation.value = latLng;
-                        },
-                      ),
+                  // Gender — hanya muncul untuk perorangan
+                  if (!_isOrganisasi) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.sejasa.app',
+                        const Text(
+                          'Gender',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                        if (selectedLocation.value != null)
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: selectedLocation.value!,
-                                width: 36,
-                                height: 36,
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: colorScheme.primary,
-                                  size: 36,
+                        const SizedBox(height: 4),
+                        DropdownButtonFormField<String>(
+                          initialValue: gender.value,
+                          validator: (value) {
+                            if (!_isOrganisasi && value == null) {
+                              return 'Gender wajib diisi';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'gender',
+                            filled: true,
+                            fillColor: const Color(0xFFEEEEEE),
+                            hintStyle: TextStyle(color: theme.disabledColor),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'male',
+                              child: Text('Laki-laki'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'female',
+                              child: Text('Perempuan'),
+                            ),
+                          ],
+                          onChanged: (value) => gender.value = value,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  MyTextField(
+                    title: 'Password',
+                    hint: 'password rahasia',
+                    controller: passwordController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password wajib diisi';
+                      }
+                      if (value.length < 6) {
+                        return 'Password minimal 6 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  MyTextField(
+                    title: 'Konfirmasi password',
+                    hint: 'isi ulang password',
+                    controller: konfirmasiController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Konfirmasi password wajib diisi';
+                      }
+                      if (value != passwordController.text) {
+                        return 'Konfirmasi password tidak cocok';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == AuthStatus.loading;
+                      return FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                if (formKey.currentState?.validate() == true) {
+                                  if (selectedLocation.value == null) {
+                                    MySnackbar.error(
+                                      title: "Lokasi Belum Dipilih",
+                                      message:
+                                          "Silakan pilih lokasi Anda di peta terlebih dahulu.",
+                                    );
+                                    return;
+                                  }
+
+                                  final payload = RegisterPayload(
+                                    name: namaController.text.trim(),
+                                    email: emailController.text.trim(),
+                                    password1: passwordController.text,
+                                    password2: konfirmasiController.text,
+                                    gender: _isOrganisasi ? '' : (gender.value ?? ''),
+                                    accountType: accountType.name,
+                                    latitude: selectedLocation.value!.latitude,
+                                    longitude: selectedLocation.value!.longitude,
+                                  );
+
+                                  context.read<AuthBloc>().add(
+                                    AuthRegisterRequested(payload),
+                                  );
+                                }
+                              },
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    colorScheme.onPrimary,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'Register',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
+                      );
+                    },
+                  ),
+                  SizedBox(height: 12.h),
+
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Sudah punya akun? ',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.goNamed(RouteNamed.login);
+                            }
+                          },
+                          child: Text(
+                            'login',
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Ketuk peta untuk memilih lokasi Anda secara presisi.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Gender — hanya muncul untuk perorangan
-                if (!_isOrganisasi) ...[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Gender',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      DropdownButtonFormField<String>(
-                        initialValue: gender.value,
-                        decoration: InputDecoration(
-                          hintText: 'gender',
-                          filled: true,
-                          fillColor: const Color(0xFFEEEEEE),
-                          hintStyle: TextStyle(color: theme.disabledColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'male',
-                            child: Text('Laki-laki'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'female',
-                            child: Text('Perempuan'),
-                          ),
-                        ],
-                        onChanged: (value) => gender.value = value,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                 ],
-
-                MyTextField(
-                  title: 'Password',
-                  hint: 'password rahasia',
-                  controller: passwordController,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 12),
-
-                MyTextField(
-                  title: 'Konfirmasi password',
-                  hint: 'isi ulang password',
-                  controller: konfirmasiController,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    // TODO: panggil auth bloc untuk register
-                    // sertakan accountType, dan jika perorangan: gender.value
-                    // serta selectedLocation.value untuk koordinat alamat
-                  },
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Sudah punya akun? ',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          // Kembali ke login: pop jika bisa, kalau tidak go ke /login
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.goNamed(RouteNamed.login);
-                          }
-                        },
-                        child: Text(
-                          'login',
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
           ),
         ),
