@@ -26,10 +26,15 @@ class MyApp extends HookWidget {
     }, []);
 
     if (!isReady.value) {
-      return MaterialApp(
-        theme: AppTheme.light,
-        debugShowCheckedModeBanner: false,
-        home: const SplashScreen(message: "Menyiapkan sistem..."),
+      return ScreenUtilInit(
+        designSize: const Size(360, 690),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          debugShowCheckedModeBanner: false,
+          home: const SplashScreen(message: "Menyiapkan sistem..."),
+        ),
       );
     }
 
