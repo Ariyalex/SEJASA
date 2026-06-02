@@ -6,7 +6,7 @@ import 'package:sejasa/my_app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: '.env');
+  await dotenv.load(fileName: 'assets/env');
 
   await DependencyInjection.init();
 
