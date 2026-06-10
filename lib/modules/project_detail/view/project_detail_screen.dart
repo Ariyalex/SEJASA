@@ -15,7 +15,6 @@ import 'package:sejasa/core/widgets/my_visual_chip.dart';
 import 'package:sejasa/core/widgets/project_location_view_sheet.dart';
 import 'package:sejasa/domain/entities/project_entity.dart';
 import 'package:sejasa/domain/value_objects/project_status.dart';
-import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_bloc.dart';
 import 'package:sejasa/modules/project_detail/bloc/project_detail_event.dart';
@@ -977,7 +976,6 @@ class ProjectDetailScreen extends HookWidget {
                                                   .ownerImagePath!
                                                   .isNotEmpty)
                                                 'avatar_url':
-                                                    AppConfig.baseUrl +
                                                     project.ownerImagePath!,
                                             'is_owner': false,
                                           },

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sejasa/core/config/app_config.dart';
 import 'package:sejasa/core/routes/route_named.dart';
 import 'package:sejasa/core/utils/my_snackbar.dart';
 import 'package:sejasa/domain/repositories/file_repository.dart';
@@ -101,7 +102,7 @@ class ChatScreen extends HookWidget {
                     CircleAvatar(
                       radius: 18.r,
                       backgroundImage: avatarUrl != null
-                          ? NetworkImage(avatarUrl!)
+                          ? NetworkImage(AppConfig.baseUrl + avatarUrl!)
                           : null,
                       child: avatarUrl == null
                           ? const Icon(Icons.person)

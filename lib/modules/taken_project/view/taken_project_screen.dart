@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:sejasa/core/widgets/build_project_list_widget.dart';
+import 'package:sejasa/core/widgets/my_filled_button.dart';
 import 'package:sejasa/core/widgets/my_tab_chip.dart';
 import 'package:sejasa/domain/value_objects/project_filter_type.dart';
 import 'package:sejasa/modules/auth/bloc/auth_bloc.dart';
@@ -140,7 +142,9 @@ class TakenProjectScreen extends HookWidget {
                                           onSelected: (selected) {
                                             if (selected) {
                                               projectBloc.add(
-                                                SetTakenProjectFilterType(status),
+                                                SetTakenProjectFilterType(
+                                                  status,
+                                                ),
                                               );
                                             }
                                           },
@@ -162,7 +166,37 @@ class TakenProjectScreen extends HookWidget {
         body: BlocBuilder<TakenProjectBloc, TakenProjectState>(
           builder: (context, state) {
             if (state.status == TakenProjectStatus.error) {
-              return Center(child: Text("Error: ${state.message}"));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Error: ${state.message}"),
+                    MyFilledButton(
+                      child: state.status == TakenProjectStatus.loading
+                          ? CircularProgressIndicator()
+                          : Row(
+                              spacing: 6,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("Retry"),
+                                Icon(LucideIcons.rotateCcw),
+                              ],
+                            ),
+                      onPressed: () {
+                        projectBloc.add(
+                          LoadTakenPendingProjects(authBloc.state.user!.id),
+                        );
+                        projectBloc.add(
+                          LoadTakenAcceptedProjects(authBloc.state.user!.id),
+                        );
+                        projectBloc.add(
+                          LoadTakenRejectedProjects(authBloc.state.user!.id),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
             } else {
               return TabBarView(
                 controller: tabBarController,
